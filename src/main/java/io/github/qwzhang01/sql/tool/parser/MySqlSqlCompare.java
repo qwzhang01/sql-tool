@@ -21,6 +21,9 @@ public class MySqlSqlCompare implements SqlCompare {
         mark1 = mark1.replaceAll("`", "").replaceAll("\"", "").replaceAll("'", "");
         mark2 = mark2.replaceAll("`", "").replaceAll("\"", "").replaceAll("'", "");
 
+        mark1 = mark1.trim();
+        mark2 = mark2.trim();
+
         mark1 = mark1.toUpperCase();
         mark2 = mark2.toUpperCase();
         return mark1.equals(mark2);

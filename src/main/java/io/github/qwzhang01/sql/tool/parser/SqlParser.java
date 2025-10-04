@@ -47,6 +47,7 @@ public interface SqlParser {
 
     /**
      * 获取SqlCompare
+     *
      * @return
      */
     SqlCompare getCompare();
