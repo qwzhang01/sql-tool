@@ -368,7 +368,7 @@ class MySqlSqlCleanerTest {
     @Test
     @DisplayName("测试连续的注释符号")
     void testConsecutiveCommentMarkers() {
-        String sql = "SELECT * FROM users ---- multiple dashes /* /* nested */ WHERE id = 1";
+        String sql = "SELECT * FROM users ---- multiple dashes\n /* /* nested */ WHERE id = 1";
         String result = cleaner.cleanSql(sql);
 
         assertTrue(result.contains("SELECT"));

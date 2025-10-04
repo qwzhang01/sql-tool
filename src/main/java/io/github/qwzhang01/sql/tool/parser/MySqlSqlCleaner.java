@@ -15,7 +15,11 @@ public class MySqlSqlCleaner implements SqlCleaner {
      */
     @Override
     public String cleanSql(String sql) {
-        if (sql == null || sql.trim().isEmpty()) {
+        if (sql == null) {
+            return null;
+        }
+        sql = sql.trim();
+        if (sql.isEmpty()) {
             return sql;
         }
 
