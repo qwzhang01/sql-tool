@@ -16,17 +16,45 @@ public class SqlParserUtils {
     private static final SqlParser DEFAULT_PARSER = new MySqlPureSqlParser();
 
     /**
-     * 解析SQL语句
+     * 解析SQL语句（自动清理注释）
      */
     public static SqlInfo parseSQL(String sql) {
         return DEFAULT_PARSER.parse(sql);
     }
 
     /**
-     * 解析SQL语句（带参数）
+     * 解析SQL语句（带参数，自动清理注释）
      */
     public static SqlInfo parseSQL(String sql, Map<String, Object> parameters) {
         return DEFAULT_PARSER.parse(sql, parameters);
+    }
+
+    /**
+     * 清理SQL中的注释和多余空白字符
+     */
+    public static String cleanSQL(String sql) {
+        return DEFAULT_PARSER.getCleaner().cleanSql(sql);
+    }
+
+    /**
+     * 清理并格式化SQL
+     */
+    public static String cleanAndFormatSQL(String sql) {
+        return DEFAULT_PARSER.getCleaner().cleanAndFormatSql(sql);
+    }
+
+    /**
+     * 检查SQL是否包含注释
+     */
+    public static boolean containsComments(String sql) {
+        return DEFAULT_PARSER.getCleaner().containsComments(sql);
+    }
+
+    /**
+     * 仅移除注释，保留原始格式
+     */
+    public static String removeCommentsOnly(String sql) {
+        return DEFAULT_PARSER.getCleaner().removeCommentsOnly(sql);
     }
 
     /**
@@ -306,5 +334,9 @@ public class SqlParserUtils {
         sb.append("  复杂度评分: ").append(getComplexityScore(sqlInfo));
 
         return sb.toString();
+    }
+
+    public static boolean equal(String mark1, String mark2) {
+        return DEFAULT_PARSER.getCompare().equal(mark1, mark2);
     }
 }

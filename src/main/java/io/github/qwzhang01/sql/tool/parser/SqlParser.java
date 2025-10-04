@@ -37,4 +37,17 @@ public interface SqlParser {
      * @return SQL语句
      */
     String toSql(SqlInfo sqlInfo);
+
+    /**
+     * 获取SqlCleaner
+     *
+     * @return
+     */
+    SqlCleaner getCleaner();
+
+    /**
+     * 获取SqlCompare
+     * @return
+     */
+    SqlCompare getCompare();
 }

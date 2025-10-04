@@ -15,27 +15,25 @@ import java.util.regex.Pattern;
  * 不依赖任何外部包，支持SQL与对象的双向转换
  */
 public class MySqlPureSqlParser implements SqlParser {
-
     // SQL关键字正则表达式
     private static final Pattern SELECT_PATTERN = Pattern.compile(
             "^\\s*SELECT\\s+(.+?)\\s+FROM\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+GROUP\\s+BY\\s+(.+?))?(?:\\s+HAVING\\s+(.+?))?(?:\\s+ORDER\\s+BY\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
-
     private static final Pattern INSERT_PATTERN = Pattern.compile(
             "^\\s*INSERT\\s+INTO\\s+(\\w+)\\s*\\(([^)]+)\\)\\s*VALUES\\s*\\(([^)]+)\\)\\s*$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
-
     private static final Pattern UPDATE_PATTERN = Pattern.compile(
             "^\\s*UPDATE\\s+(\\w+(?:\\s+\\w+)?)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
-
     private static final Pattern DELETE_PATTERN = Pattern.compile(
             "^\\s*DELETE\\s+FROM\\s+(\\w+(?:\\s+\\w+)?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private SqlCleaner sqlCleaner = null;
+    private SqlCompare compare = null;
 
     @Override
     public SqlInfo parse(String sql) {
@@ -51,19 +49,21 @@ public class MySqlPureSqlParser implements SqlParser {
             throw new IllegalArgumentException("SQL不能为空");
         }
 
-        sql = sql.trim();
         SqlInfo sqlInfo = new SqlInfo();
         sqlInfo.setOriginalSql(sql);
 
+        // 清理SQL中的注释和多余空白字符
+        sqlInfo.setOriginalSql(getCleaner().cleanSql(sqlInfo.getOriginalSql()));
+
         try {
-            if (sql.toUpperCase().startsWith("SELECT")) {
-                parseSelect(sql, sqlInfo);
-            } else if (sql.toUpperCase().startsWith("INSERT")) {
-                parseInsert(sql, sqlInfo);
-            } else if (sql.toUpperCase().startsWith("UPDATE")) {
-                parseUpdate(sql, sqlInfo);
-            } else if (sql.toUpperCase().startsWith("DELETE")) {
-                parseDelete(sql, sqlInfo);
+            if (sqlInfo.getOriginalSql().toUpperCase().startsWith("SELECT")) {
+                parseSelect(sqlInfo.getOriginalSql(), sqlInfo);
+            } else if (sqlInfo.getOriginalSql().toUpperCase().startsWith("INSERT")) {
+                parseInsert(sqlInfo.getOriginalSql(), sqlInfo);
+            } else if (sqlInfo.getOriginalSql().toUpperCase().startsWith("UPDATE")) {
+                parseUpdate(sqlInfo.getOriginalSql(), sqlInfo);
+            } else if (sqlInfo.getOriginalSql().toUpperCase().startsWith("DELETE")) {
+                parseDelete(sqlInfo.getOriginalSql(), sqlInfo);
             } else {
                 throw new IllegalArgumentException("不支持的SQL类型: " + sql);
             }
@@ -602,7 +602,9 @@ public class MySqlPureSqlParser implements SqlParser {
         // SELECT字段
         if (sqlInfo.getSelectColumns() != null && !sqlInfo.getSelectColumns().isEmpty()) {
             for (int i = 0; i < sqlInfo.getSelectColumns().size(); i++) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 ColumnInfo column = sqlInfo.getSelectColumns().get(i);
 
                 if (column.getTableAlias() != null) {
@@ -642,7 +644,9 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getWhereConditions() != null && !sqlInfo.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int i = 0; i < sqlInfo.getWhereConditions().size(); i++) {
-                if (i > 0) sql.append(" AND ");
+                if (i > 0) {
+                    sql.append(" AND ");
+                }
                 sql.append(buildConditionString(sqlInfo.getWhereConditions().get(i)));
             }
         }
@@ -651,7 +655,9 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getGroupByColumns() != null && !sqlInfo.getGroupByColumns().isEmpty()) {
             sql.append(" GROUP BY ");
             for (int i = 0; i < sqlInfo.getGroupByColumns().size(); i++) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 sql.append(sqlInfo.getGroupByColumns().get(i));
             }
         }
@@ -665,7 +671,9 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getOrderByColumns() != null && !sqlInfo.getOrderByColumns().isEmpty()) {
             sql.append(" ORDER BY ");
             for (int i = 0; i < sqlInfo.getOrderByColumns().size(); i++) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 OrderByInfo orderBy = sqlInfo.getOrderByColumns().get(i);
                 sql.append(orderBy.getColumnName()).append(" ").append(orderBy.getDirection());
             }
@@ -689,13 +697,17 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getInsertColumns() != null && !sqlInfo.getInsertColumns().isEmpty()) {
             sql.append(" (");
             for (int i = 0; i < sqlInfo.getInsertColumns().size(); i++) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 sql.append(sqlInfo.getInsertColumns().get(i));
             }
             sql.append(") VALUES (");
 
             for (int i = 0; i < sqlInfo.getInsertValues().size(); i++) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 Object value = sqlInfo.getInsertValues().get(i);
                 sql.append(value != null ? value.toString() : "NULL");
             }
@@ -716,7 +728,9 @@ public class MySqlPureSqlParser implements SqlParser {
             sql.append(" SET ");
             int i = 0;
             for (Map.Entry<String, Object> entry : sqlInfo.getUpdateValues().entrySet()) {
-                if (i > 0) sql.append(", ");
+                if (i > 0) {
+                    sql.append(", ");
+                }
                 sql.append(entry.getKey()).append(" = ").append(entry.getValue());
                 i++;
             }
@@ -726,7 +740,9 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getWhereConditions() != null && !sqlInfo.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int j = 0; j < sqlInfo.getWhereConditions().size(); j++) {
-                if (j > 0) sql.append(" AND ");
+                if (j > 0) {
+                    sql.append(" AND ");
+                }
                 sql.append(buildConditionString(sqlInfo.getWhereConditions().get(j)));
             }
         }
@@ -742,7 +758,9 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlInfo.getWhereConditions() != null && !sqlInfo.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int i = 0; i < sqlInfo.getWhereConditions().size(); i++) {
-                if (i > 0) sql.append(" AND ");
+                if (i > 0) {
+                    sql.append(" AND ");
+                }
                 sql.append(buildConditionString(sqlInfo.getWhereConditions().get(i)));
             }
         }
@@ -761,5 +779,33 @@ public class MySqlPureSqlParser implements SqlParser {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public SqlCleaner getCleaner() {
+        if (this.sqlCleaner != null) {
+            return this.sqlCleaner;
+        }
+        synchronized (this) {
+            if (this.sqlCleaner != null) {
+                return this.sqlCleaner;
+            }
+            this.sqlCleaner = new MySqlSqlCleaner();
+            return this.sqlCleaner;
+        }
+    }
+
+    @Override
+    public SqlCompare getCompare() {
+        if (this.compare != null) {
+            return this.compare;
+        }
+        synchronized (this) {
+            if (this.compare != null) {
+                return this.compare;
+            }
+            this.compare = new MySqlSqlCompare();
+            return this.compare;
+        }
     }
 }
