@@ -1,4 +1,4 @@
-package io.github.qwzhang01.sql.tool.util;
+package io.github.qwzhang01.sql.tool.helper;
 
 import io.github.qwzhang01.sql.tool.exception.ParseException;
 import io.github.qwzhang01.sql.tool.model.*;
@@ -38,7 +38,7 @@ import java.util.Map;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class SqlParserUtils {
+public class SqlParseHelper {
 
     private static final SqlParser DEFAULT_PARSER = new MySqlPureSqlParser();
 
