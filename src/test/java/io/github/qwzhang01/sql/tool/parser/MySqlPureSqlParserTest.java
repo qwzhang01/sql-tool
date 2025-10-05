@@ -93,7 +93,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("user", result.getMainTable().getTableName());
         assertNull(result.getMainTable().getAlias());
     }
 

@@ -95,7 +95,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     @Override
-    public SqlInfo parseWhere(String sql) {
+    public List<WhereCondition> parseWhere(String sql) {
         if (sql == null || sql.trim().isEmpty()) {
             throw new IllegalArgumentException("SQL不能为空");
         }
@@ -107,9 +107,8 @@ public class MySqlPureSqlParser implements SqlParser {
         if (!sqlInfo.getOriginalSql().toUpperCase().startsWith("WHERE")) {
             throw new IllegalArgumentException("不支持的JOIN类型: " + sql);
         }
-
-        parseSelect("select * from a a " + sqlInfo.getOriginalSql(), sqlInfo);
-        return sqlInfo;
+        parseWhereConditions(sqlInfo.getOriginalSql().substring(5).trim(), sqlInfo);
+        return sqlInfo.getWhereConditions();
     }
 
     /**
@@ -242,7 +241,7 @@ public class MySqlPureSqlParser implements SqlParser {
         List<JoinInfo> joinTables = new ArrayList<>();
 
         // 改进的JOIN正则表达式，支持多个JOIN和反引号标识符
-        Pattern joinPattern = Pattern.compile("(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" + "(`?\\w+`?)(?:\\s+(`?\\w+`?))?(?:\\s+ON\\s+(.+?))?(?=\\s+(?:INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN|WHERE|GROUP\\s+BY|ORDER\\s+BY|LIMIT|$))", Pattern.CASE_INSENSITIVE);
+        Pattern joinPattern = Pattern.compile("(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" + "(`?[\\w.]+`?)(?:\\s+(`?\\w+`?))?(?:\\s+ON\\s+(.+?))?(?=\\s+(?:INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN|WHERE|GROUP\\s+BY|ORDER\\s+BY|LIMIT|$)|$)", Pattern.CASE_INSENSITIVE);
 
         Matcher matcher = joinPattern.matcher(fromClause);
 
@@ -272,7 +271,7 @@ public class MySqlPureSqlParser implements SqlParser {
             // 解析JOIN条件
             if (joinConditionStr != null) {
                 joinInfo.setCondition(joinConditionStr.trim());
-                
+
                 // 解析详细的JOIN条件
                 List<WhereCondition> joinConditions = parseJoinConditions(joinConditionStr.trim());
                 joinInfo.setJoinConditions(joinConditions);

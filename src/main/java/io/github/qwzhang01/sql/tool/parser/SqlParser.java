@@ -2,6 +2,7 @@ package io.github.qwzhang01.sql.tool.parser;
 
 import io.github.qwzhang01.sql.tool.model.JoinInfo;
 import io.github.qwzhang01.sql.tool.model.SqlInfo;
+import io.github.qwzhang01.sql.tool.model.WhereCondition;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public interface SqlParser {
      * @param sql SQL语句
      * @return SQL信息对象
      */
-    SqlInfo parseWhere(String sql);
+    List<WhereCondition> parseWhere(String sql);
 
     /**
      * 将SqlInfo对象转换为SQL语句

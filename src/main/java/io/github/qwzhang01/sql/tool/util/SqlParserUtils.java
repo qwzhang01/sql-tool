@@ -30,7 +30,7 @@ public class SqlParserUtils {
         return DEFAULT_PARSER.parse(sql, parameters);
     }
 
-    public static SqlInfo parseWhere(String sql) {
+    public static List<WhereCondition> parseWhere(String sql) {
         return DEFAULT_PARSER.parseWhere(sql);
     }
 
