@@ -9,15 +9,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 纯Java实现的MySQL SQL解析器
- * 不依赖任何外部包，支持SQL与对象的双向转换
+ * MySQL-specific SQL parser implementation that provides comprehensive parsing
+ * capabilities for MySQL SQL statements. This parser can extract detailed information
+ * about tables, columns, WHERE conditions, JOIN clauses, ORDER BY, LIMIT, and more.
+ *
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Supports MySQL-specific syntax including backtick identifiers</li>
+ *   <li>Parses complex WHERE conditions with detailed field information</li>
+ *   <li>Handles various JOIN types (INNER, LEFT, RIGHT, FULL, CROSS)</li>
+ *   <li>Extracts ORDER BY and LIMIT clauses</li>
+ *   <li>Provides detailed field analysis with table names and aliases</li>
+ *   <li>Supports subqueries and complex expressions</li>
+ * </ul>
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class MySqlPureSqlParser implements SqlParser {
-    // SQL关键字正则表达式
+    // SQL keyword regular expressions
     private static final Pattern SELECT_PATTERN = Pattern.compile("^\\s*SELECT\\s+(.+?)\\s+FROM\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+GROUP\\s+BY\\s+(.+?))?(?:\\s+HAVING\\s+(.+?))?(?:\\s+ORDER\\s+BY\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern INSERT_PATTERN = Pattern.compile("^\\s*INSERT\\s+INTO\\s+(\\w+)\\s*\\(([^)]+)\\)\\s*VALUES\\s*\\(([^)]+)\\)\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern UPDATE_PATTERN = Pattern.compile("^\\s*UPDATE\\s+(\\w+(?:\\s+\\w+)?)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern DELETE_PATTERN = Pattern.compile("^\\s*DELETE\\s+FROM\\s+(\\w+(?:\\s+\\w+)?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Set<String> JOIN = Set.of("INNER JOIN", "JOIN", "LEFT JOIN", "LEFT OUTER JOIN", "RIGHT JOIN", "RIGHT OUTER JOIN", "FULL JOIN", "FULL OUTER JOIN", "CROSS JOIN");
     private SqlCleaner sqlCleaner = null;
     private SqlCompare compare = null;
 
@@ -32,13 +47,13 @@ public class MySqlPureSqlParser implements SqlParser {
     @Override
     public SqlInfo parse(String sql, Map<String, Object> parameters) {
         if (sql == null || sql.trim().isEmpty()) {
-            throw new IllegalArgumentException("SQL不能为空");
+            throw new IllegalArgumentException("SQL cannot be null or empty");
         }
 
         SqlInfo sqlInfo = new SqlInfo();
         sqlInfo.setOriginalSql(sql);
 
-        // 清理SQL中的注释和多余空白字符
+        // Clean SQL comments and extra whitespace characters
         sqlInfo.setOriginalSql(getCleaner().cleanSql(sqlInfo.getOriginalSql()).trim());
 
         try {
@@ -65,8 +80,6 @@ public class MySqlPureSqlParser implements SqlParser {
             throw new ParseException("解析SQL失败: " + sql, e);
         }
     }
-
-    private static final Set<String> JOIN = Set.of("INNER JOIN", "JOIN", "LEFT JOIN", "LEFT OUTER JOIN", "RIGHT JOIN", "RIGHT OUTER JOIN", "FULL JOIN", "FULL OUTER JOIN", "CROSS JOIN");
 
     @Override
     public List<JoinInfo> parseJoin(String sql) {

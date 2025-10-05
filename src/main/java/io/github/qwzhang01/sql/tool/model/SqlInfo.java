@@ -4,85 +4,113 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * SQL信息对象，包含SQL解析后的详细信息
+ * SQL information object containing detailed information after SQL parsing.
+ * This class serves as the main container for all parsed SQL components including
+ * tables, columns, conditions, and other SQL elements.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class SqlInfo {
 
     /**
-     * 原始SQL语句
+     * Original SQL statement as provided by the user
      */
     private String originalSql;
+
     /**
-     * SQL类型
+     * Type of SQL statement (SELECT, INSERT, UPDATE, DELETE, etc.)
      */
     private SqlType sqlType;
+
     /**
-     * 主表信息
+     * Main table information for the SQL statement
      */
     private TableInfo mainTable;
+
     /**
-     * 关联表信息列表（用于JOIN查询）
+     * List of joined table information (used for JOIN queries)
      */
     private List<JoinInfo> joinTables;
+
     /**
-     * 查询字段列表
+     * List of selected columns in SELECT statements
      */
     private List<ColumnInfo> selectColumns;
+
     /**
-     * WHERE条件列表
+     * List of WHERE conditions with detailed field analysis
      */
     private List<WhereCondition> whereConditions;
+
     /**
-     * GROUP BY字段
+     * List of GROUP BY columns
      */
     private List<String> groupByColumns;
+
     /**
-     * HAVING条件
+     * HAVING condition clause
      */
     private String havingCondition;
+
     /**
-     * ORDER BY信息
+     * List of ORDER BY information including sort direction
      */
     private List<OrderByInfo> orderByColumns;
+
     /**
-     * LIMIT信息
+     * LIMIT information including offset and row count
      */
     private LimitInfo limitInfo;
+
     /**
-     * 参数映射（参数名 -> 参数值）
+     * Parameter mapping (parameter name -> parameter value) for prepared statements
      */
     private Map<String, Object> parameterMap;
+
     /**
-     * 子查询信息
+     * List of subquery information for nested queries
      */
     private List<SqlInfo> subQueries;
+
     /**
-     * INSERT/UPDATE的字段值映射
+     * Column-value mapping for INSERT/UPDATE statements
      */
     private Map<String, Object> columnValues;
+
     /**
-     * INSERT语句的列名列表
+     * List of column names for INSERT statements
      */
     private List<String> insertColumns;
+
     /**
-     * INSERT语句的值列表
+     * List of values for INSERT statements
      */
     private List<Object> insertValues;
+
     /**
-     * UPDATE语句的更新值映射
+     * Update value mapping for UPDATE statements
      */
     private Map<String, Object> updateValues;
 
-    // 构造函数
+    /**
+     * Default constructor
+     */
     public SqlInfo() {
     }
 
+    /**
+     * Constructor with original SQL and SQL type
+     *
+     * @param originalSql the original SQL statement
+     * @param sqlType     the type of SQL statement
+     */
     public SqlInfo(String originalSql, SqlType sqlType) {
         this.originalSql = originalSql;
         this.sqlType = sqlType;
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public String getOriginalSql() {
         return originalSql;
     }
@@ -234,9 +262,41 @@ public class SqlInfo {
     }
 
     /**
-     * SQL类型枚举
+     * SQL statement type enumeration.
+     * Defines the different types of SQL statements that can be parsed.
      */
     public enum SqlType {
-        SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, TRUNCATE
+        /**
+         * SELECT statement for data retrieval
+         */
+        SELECT,
+        /**
+         * INSERT statement for data insertion
+         */
+        INSERT,
+        /**
+         * UPDATE statement for data modification
+         */
+        UPDATE,
+        /**
+         * DELETE statement for data removal
+         */
+        DELETE,
+        /**
+         * CREATE statement for schema creation
+         */
+        CREATE,
+        /**
+         * DROP statement for schema removal
+         */
+        DROP,
+        /**
+         * ALTER statement for schema modification
+         */
+        ALTER,
+        /**
+         * TRUNCATE statement for table truncation
+         */
+        TRUNCATE
     }
 }

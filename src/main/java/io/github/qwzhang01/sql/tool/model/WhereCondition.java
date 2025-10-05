@@ -3,54 +3,70 @@ package io.github.qwzhang01.sql.tool.model;
 import java.util.List;
 
 /**
- * WHERE条件信息
+ * WHERE condition information with detailed field analysis.
+ * This class represents a single condition in a WHERE clause, providing
+ * comprehensive information about the field, operator, and values involved.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class WhereCondition {
 
     /**
-     * 左操作数（字段名）- 保持向后兼容
+     * Left operand (field name) - maintained for backward compatibility
      */
     private String leftOperand;
 
     /**
-     * 字段信息对象
+     * Detailed field information object containing table name, alias, and field name
      */
     private FieldInfo fieldInfo;
 
     /**
-     * 操作符（=, >, <, >=, <=, !=, LIKE, IN, BETWEEN等）
+     * Comparison operator (=, >, <, >=, <=, !=, LIKE, IN, BETWEEN, etc.)
      */
     private String operator;
 
     /**
-     * 右操作数（值或参数）
+     * Right operand (value or parameter) that the field is compared against
      */
     private Object rightOperand;
 
     /**
-     * 值的数量（针对IN、BETWEEN等操作符）
+     * Number of values (for IN, BETWEEN and other multi-value operators)
      */
     private Integer valueCount;
 
     /**
-     * 逻辑连接符（AND, OR）
+     * Logical connector (AND, OR) linking this condition to others
      */
     private String logicalOperator;
 
     /**
-     * 条件类型
+     * Type of condition for categorization and processing
      */
     private ConditionType conditionType;
 
     /**
-     * 子条件（用于复杂的嵌套条件）
+     * Sub-conditions for complex nested conditions with parentheses
      */
     private List<WhereCondition> subConditions;
 
-    // 构造函数
+    // Constructors
+
+    /**
+     * Default constructor
+     */
     public WhereCondition() {
     }
 
+    /**
+     * Constructor with basic condition components
+     *
+     * @param leftOperand  the field name or expression on the left side
+     * @param operator     the comparison operator
+     * @param rightOperand the value or expression on the right side
+     */
     public WhereCondition(String leftOperand, String operator, Object rightOperand) {
         this.leftOperand = leftOperand;
         this.fieldInfo = new FieldInfo(leftOperand);
@@ -60,6 +76,14 @@ public class WhereCondition {
         this.valueCount = calculateValueCount(operator, rightOperand);
     }
 
+    /**
+     * Constructor with logical operator
+     *
+     * @param leftOperand     the field name or expression on the left side
+     * @param operator        the comparison operator
+     * @param rightOperand    the value or expression on the right side
+     * @param logicalOperator the logical connector (AND/OR)
+     */
     public WhereCondition(String leftOperand, String operator, Object rightOperand, String logicalOperator) {
         this.leftOperand = leftOperand;
         this.fieldInfo = new FieldInfo(leftOperand);
@@ -70,6 +94,13 @@ public class WhereCondition {
         this.valueCount = calculateValueCount(operator, rightOperand);
     }
 
+    /**
+     * Constructor with detailed field information
+     *
+     * @param fieldInfo    detailed field information including table and alias
+     * @param operator     the comparison operator
+     * @param rightOperand the value or expression on the right side
+     */
     public WhereCondition(FieldInfo fieldInfo, String operator, Object rightOperand) {
         this.fieldInfo = fieldInfo;
         this.leftOperand = fieldInfo != null ? fieldInfo.getFullExpression() : null;
@@ -79,7 +110,7 @@ public class WhereCondition {
         this.valueCount = calculateValueCount(operator, rightOperand);
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public String getLeftOperand() {
         return leftOperand;
     }
@@ -148,14 +179,19 @@ public class WhereCondition {
     }
 
     /**
-     * 检查条件是否为空
+     * Checks if the condition is empty or invalid
+     *
+     * @return true if the left operand is null or empty
      */
     public boolean isEmpty() {
         return leftOperand == null || leftOperand.trim().isEmpty();
     }
 
     /**
-     * 检查条件是否包含指定文本
+     * Checks if the condition contains the specified text
+     *
+     * @param text the text to search for
+     * @return true if any part of the condition contains the text
      */
     public boolean contains(String text) {
         if (text == null) return false;
@@ -166,7 +202,11 @@ public class WhereCondition {
     }
 
     /**
-     * 计算值的数量
+     * Calculates the number of values based on the operator type
+     *
+     * @param operator     the comparison operator
+     * @param rightOperand the right side value(s)
+     * @return the count of values involved in the condition
      */
     private Integer calculateValueCount(String operator, Object rightOperand) {
         if (operator == null || rightOperand == null) {
@@ -191,14 +231,14 @@ public class WhereCondition {
 
             case "BETWEEN":
             case "NOT BETWEEN":
-                return 2; // BETWEEN 总是有两个值
+                return 2; // BETWEEN always has two values
 
             case "IS NULL":
             case "IS NOT NULL":
-                return 0; // NULL 检查不需要值
+                return 0; // NULL checks require no values
 
             default:
-                return 1; // 其他操作符通常有一个值
+                return 1; // Other operators typically have one value
         }
     }
 
@@ -217,16 +257,41 @@ public class WhereCondition {
     }
 
     /**
-     * 条件类型枚举
+     * Condition type enumeration for categorizing different types of WHERE conditions.
+     * This helps in processing and optimizing different condition patterns.
      */
     public enum ConditionType {
-        SIMPLE,     // 简单条件：field = value
-        COMPLEX,    // 复杂条件：包含子条件
-        IN,         // IN条件
-        BETWEEN,    // BETWEEN条件
-        LIKE,       // LIKE条件
-        EXISTS,     // EXISTS条件
-        IS_NULL,    // IS NULL条件
-        IS_NOT_NULL // IS NOT NULL条件
+        /**
+         * Simple condition: field = value
+         */
+        SIMPLE,
+        /**
+         * Complex condition: contains sub-conditions with parentheses
+         */
+        COMPLEX,
+        /**
+         * IN condition: field IN (value1, value2, ...)
+         */
+        IN,
+        /**
+         * BETWEEN condition: field BETWEEN value1 AND value2
+         */
+        BETWEEN,
+        /**
+         * LIKE condition: field LIKE pattern
+         */
+        LIKE,
+        /**
+         * EXISTS condition: EXISTS (subquery)
+         */
+        EXISTS,
+        /**
+         * IS NULL condition: field IS NULL
+         */
+        IS_NULL,
+        /**
+         * IS NOT NULL condition: field IS NOT NULL
+         */
+        IS_NOT_NULL
     }
 }

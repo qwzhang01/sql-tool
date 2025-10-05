@@ -1,38 +1,58 @@
 package io.github.qwzhang01.sql.tool.model;
 
 /**
- * 字段信息类
+ * Field information class providing detailed analysis of database field references.
+ * This class parses and stores information about field expressions including
+ * table names, aliases, and field names from SQL statements.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class FieldInfo {
 
     /**
-     * 表名
+     * The actual table name (may be null if only alias is used)
      */
     private String tableName;
 
     /**
-     * 表别名
+     * The table alias used in the SQL statement
      */
     private String tableAlias;
 
     /**
-     * 字段名
+     * The field/column name
      */
     private String fieldName;
 
     /**
-     * 完整字段表达式（如：t1.user_name, user.id等）
+     * Complete field expression as it appears in SQL (e.g., t1.user_name, user.id)
      */
     private String fullExpression;
 
+    /**
+     * Default constructor
+     */
     public FieldInfo() {
     }
 
+    /**
+     * Constructor that parses a field expression
+     *
+     * @param fullExpression the complete field expression to parse
+     */
     public FieldInfo(String fullExpression) {
         this.fullExpression = fullExpression;
         parseExpression(fullExpression);
     }
 
+    /**
+     * Constructor with explicit field components
+     *
+     * @param tableName  the table name
+     * @param tableAlias the table alias
+     * @param fieldName  the field name
+     */
     public FieldInfo(String tableName, String tableAlias, String fieldName) {
         this.tableName = tableName;
         this.tableAlias = tableAlias;
@@ -41,7 +61,9 @@ public class FieldInfo {
     }
 
     /**
-     * 解析字段表达式
+     * Parses a field expression to extract table and field components
+     *
+     * @param expression the field expression to parse
      */
     private void parseExpression(String expression) {
         if (expression == null || expression.trim().isEmpty()) {
@@ -50,7 +72,7 @@ public class FieldInfo {
 
         expression = expression.trim();
 
-        // 检查是否包含点号（表示有表名或别名）
+        // Check if expression contains dot (indicating table name or alias)
         if (expression.contains(".")) {
             String[] parts = expression.split("\\.", 2);
             this.tableAlias = parts[0].trim();
@@ -61,7 +83,9 @@ public class FieldInfo {
     }
 
     /**
-     * 构建完整表达式
+     * Builds the complete field expression from components
+     *
+     * @return the complete field expression
      */
     private String buildFullExpression() {
         if (tableAlias != null && !tableAlias.isEmpty()) {
@@ -73,7 +97,7 @@ public class FieldInfo {
         }
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public String getTableName() {
         return tableName;
     }

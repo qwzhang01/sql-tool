@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -9,8 +9,32 @@
     <artifactId>sql-tool</artifactId>
     <version>1.0.0</version>
 
-    <name>sql-tool</name>
-    <description>SQL解析工具，支持SQL与对象的双向转换</description>
+    <name>SQL Tool</name>
+    <description>A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with comprehensive MySQL syntax support</description>
+    <url>https://github.com/qwzhang01/sql-tool</url>
+    
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <developers>
+        <developer>
+            <id>qwzhang01</id>
+            <name>Avin Zhang</name>
+            <email>qwzhang01@gmail.com</email>
+            <url>https://github.com/qwzhang01</url>
+        </developer>
+    </developers>
+    
+    <scm>
+        <connection>scm:git:git://github.com/qwzhang01/sql-tool.git</connection>
+        <developerConnection>scm:git:ssh://github.com:qwzhang01/sql-tool.git</developerConnection>
+        <url>https://github.com/qwzhang01/sql-tool/tree/main</url>
+    </scm>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

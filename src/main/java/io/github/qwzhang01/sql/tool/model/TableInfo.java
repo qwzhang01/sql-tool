@@ -1,37 +1,56 @@
 package io.github.qwzhang01.sql.tool.model;
 
 /**
- * 表信息
+ * Table information class representing database table metadata and references.
+ * This class stores comprehensive information about tables including names,
+ * aliases, and hierarchical database/schema structure.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class TableInfo {
 
     /**
-     * 表名
+     * The table name as it appears in the database
      */
     private String tableName;
 
     /**
-     * 表别名
+     * The table alias used in SQL statements
      */
     private String alias;
 
     /**
-     * 数据库名（可选）
+     * The database name (optional, for multi-database environments)
      */
     private String database;
 
     /**
-     * 模式名（可选）
+     * The schema name (optional, for databases supporting schemas)
      */
     private String schema;
 
+    /**
+     * Default constructor
+     */
     public TableInfo() {
     }
 
+    /**
+     * Constructor with table name only
+     *
+     * @param tableName the name of the table
+     */
     public TableInfo(String tableName) {
         this.tableName = tableName;
     }
 
+    /**
+     * Constructor with table name and alias
+     *
+     * @param tableName the name of the table
+     * @param alias     the table alias
+     */
     public TableInfo(String tableName, String alias) {
         this.tableName = tableName;
         this.alias = alias;
@@ -70,7 +89,9 @@ public class TableInfo {
     }
 
     /**
-     * 获取完整表名
+     * Gets the fully qualified table name including database and schema
+     *
+     * @return the complete table name in format: [database].[schema].tableName
      */
     public String getFullTableName() {
         StringBuilder sb = new StringBuilder();

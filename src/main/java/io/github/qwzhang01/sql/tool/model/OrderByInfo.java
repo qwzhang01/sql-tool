@@ -1,57 +1,84 @@
 package io.github.qwzhang01.sql.tool.model;
 
 /**
- * ORDER BY信息
+ * ORDER BY clause information representing sorting specifications.
+ * This class contains details about column sorting including direction,
+ * table references, and position in the ORDER BY clause.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class OrderByInfo {
 
     /**
-     * 排序字段名
+     * The column name to sort by
      */
     private String columnName;
 
     /**
-     * 表名
+     * The table name containing the sort column
      */
     private String tableName;
 
     /**
-     * 表别名
+     * The table alias used in the SQL statement
      */
     private String tableAlias;
 
     /**
-     * 排序方向
+     * The sort direction (ASC or DESC)
      */
     private Direction direction;
 
     /**
-     * 排序位置（在ORDER BY子句中的位置）
+     * The position of this sort column in the ORDER BY clause (1-based)
      */
     private int position;
 
-    // 构造函数
+    // Constructors
+
+    /**
+     * Default constructor with ascending sort direction
+     */
     public OrderByInfo() {
-        this.direction = Direction.ASC; // 默认升序
+        this.direction = Direction.ASC; // Default to ascending
     }
 
+    /**
+     * Constructor with column name, defaults to ascending sort
+     *
+     * @param columnName the column to sort by
+     */
     public OrderByInfo(String columnName) {
         this.columnName = columnName;
         this.direction = Direction.ASC;
     }
 
+    /**
+     * Constructor with column name and sort direction
+     *
+     * @param columnName the column to sort by
+     * @param direction  the sort direction
+     */
     public OrderByInfo(String columnName, Direction direction) {
         this.columnName = columnName;
         this.direction = direction;
     }
 
+    /**
+     * Constructor with column name, table name, and sort direction
+     *
+     * @param columnName the column to sort by
+     * @param tableName  the table containing the column
+     * @param direction  the sort direction
+     */
     public OrderByInfo(String columnName, String tableName, Direction direction) {
         this.columnName = columnName;
         this.tableName = tableName;
         this.direction = direction;
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public String getColumnName() {
         return columnName;
     }
@@ -104,18 +131,36 @@ public class OrderByInfo {
     }
 
     /**
-     * 排序方向枚举
+     * Sort direction enumeration for ORDER BY clauses.
+     * Defines ascending and descending sort orders.
      */
     public enum Direction {
+        /**
+         * Ascending sort order (default)
+         */
         ASC("ASC"),
+        /**
+         * Descending sort order
+         */
         DESC("DESC");
 
         private final String sqlKeyword;
 
+        /**
+         * Constructor for Direction with SQL keyword
+         *
+         * @param sqlKeyword the SQL keyword representation
+         */
         Direction(String sqlKeyword) {
             this.sqlKeyword = sqlKeyword;
         }
 
+        /**
+         * Creates a Direction from string representation
+         *
+         * @param directionStr the string representation of direction
+         * @return the corresponding Direction, defaults to ASC if not found
+         */
         public static Direction fromString(String directionStr) {
             if (directionStr == null) return ASC;
 
@@ -125,9 +170,14 @@ public class OrderByInfo {
                     return dir;
                 }
             }
-            return ASC; // 默认升序
+            return ASC; // Default to ascending
         }
 
+        /**
+         * Gets the SQL keyword for this direction
+         *
+         * @return the SQL keyword string
+         */
         public String getSqlKeyword() {
             return sqlKeyword;
         }

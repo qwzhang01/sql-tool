@@ -1,49 +1,58 @@
 package io.github.qwzhang01.sql.tool.parser;
 
 /**
- * SQL清理器 - 用于清理SQL语句中的注释和多余空白字符
- * <p>
- * 支持的注释类型:
- * 1. 单行注释: -- 注释内容
- * 2. 多行注释:
- * <p>
- * 功能:
- * - 正确处理字符串字面量中的注释符号(不会误删)
- * - 清理多余的空白字符和换行符
- * - 保持SQL语句的语义完整性
+ * SQL Cleaner interface for removing comments and normalizing SQL statements.
+ * This interface provides methods to clean SQL statements by removing comments,
+ * extra whitespace, and formatting while preserving SQL semantics.
  *
- * @author avinzhang
+ * <p>Supported comment types:
+ * <ul>
+ * <li>Single-line comments: -- comment content</li>
+ * <li>Multi-line comments: "\/**\/" </li>
+ * </ul>
+ *
+ * <p>Features:
+ * <ul>
+ * <li>Correctly handles comment symbols within string literals (won't remove them)</li>
+ * <li>Removes excessive whitespace and line breaks</li>
+ * <li>Maintains SQL statement semantic integrity</li>
+ * <li>Supports database-specific escape character handling</li>
+ * </ul>
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public interface SqlCleaner {
+
     /**
-     * 清理SQL语句，移除注释和多余的空白字符
+     * Cleans SQL statement by removing comments and excessive whitespace
      *
-     * @param sql 原始SQL语句
-     * @return 清理后的SQL语句
+     * @param sql the original SQL statement
+     * @return the cleaned SQL statement
      */
     String cleanSql(String sql);
 
     /**
-     * 清理SQL并格式化为单行，在关键字周围添加适当空格
+     * Cleans and formats SQL as a single line with proper spacing around keywords
      *
-     * @param sql 原始SQL语句
-     * @return 清理并格式化后的SQL语句
+     * @param sql the original SQL statement
+     * @return the cleaned and formatted SQL statement
      */
     String cleanAndFormatSql(String sql);
 
     /**
-     * 检查SQL是否包含注释
+     * Checks if SQL contains any comments
      *
-     * @param sql SQL语句
-     * @return 如果包含注释返回true
+     * @param sql the SQL statement to check
+     * @return true if the SQL contains comments
      */
     boolean containsComments(String sql);
 
     /**
-     * 移除SQL中的所有注释但保留原始格式
+     * Removes all comments from SQL while preserving original formatting
      *
-     * @param sql 原始SQL语句
-     * @return 移除注释后的SQL语句
+     * @param sql the original SQL statement
+     * @return the SQL statement with comments removed
      */
     String removeCommentsOnly(String sql);
 }

@@ -1,28 +1,47 @@
 package io.github.qwzhang01.sql.tool.model;
 
 /**
- * LIMIT信息
+ * LIMIT clause information for result set pagination.
+ * This class represents the LIMIT and OFFSET values used to control
+ * the number of rows returned and the starting position.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class LimitInfo {
 
     /**
-     * 偏移量
+     * The number of rows to skip from the beginning (OFFSET value)
      */
     private long offset;
 
     /**
-     * 限制数量
+     * The maximum number of rows to return (LIMIT value)
      */
     private long limit;
 
+    /**
+     * Default constructor
+     */
     public LimitInfo() {
     }
 
+    /**
+     * Constructor with limit only, offset defaults to 0
+     *
+     * @param limit the maximum number of rows to return
+     */
     public LimitInfo(long limit) {
         this.limit = limit;
         this.offset = 0;
     }
 
+    /**
+     * Constructor with both offset and limit
+     *
+     * @param offset the number of rows to skip
+     * @param limit  the maximum number of rows to return
+     */
     public LimitInfo(long offset, long limit) {
         this.offset = offset;
         this.limit = limit;

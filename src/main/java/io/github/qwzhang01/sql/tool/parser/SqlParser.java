@@ -8,66 +8,75 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * SQL解析器接口
- * <p>
- * todo 目前只实现了 MySQL 的，未来需要实现 SQL Server、Oracle等主流数据库
+ * SQL Parser interface providing comprehensive SQL parsing capabilities.
+ * This interface defines the contract for parsing SQL statements into structured
+ * objects and converting them back to SQL strings.
  *
- * @author avinzhang
+ * <p>Currently implemented for MySQL syntax. Future versions will support
+ * SQL Server, Oracle, PostgreSQL, and other major database systems.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public interface SqlParser {
 
     /**
-     * 解析SQL语句
+     * Parses a SQL statement into a structured SqlInfo object
      *
-     * @param sql SQL语句
-     * @return SQL信息对象
+     * @param sql the SQL statement to parse
+     * @return SqlInfo object containing parsed SQL components
+     * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
     SqlInfo parse(String sql);
 
     /**
-     * 解析SQL语句（带参数）
+     * Parses a SQL statement with parameter mapping
      *
-     * @param sql        SQL语句
-     * @param parameters 参数映射
-     * @return SQL信息对象
+     * @param sql        the SQL statement to parse
+     * @param parameters parameter mapping for prepared statements
+     * @return SqlInfo object containing parsed SQL components and parameters
+     * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
     SqlInfo parse(String sql, Map<String, Object> parameters);
 
     /**
-     * 解析JOIN SQL语句片段
+     * Parses JOIN operations from a SQL statement or fragment
      *
-     * @param sql SQL语句
-     * @return SQL信息对象
+     * @param sql the SQL statement containing JOIN operations
+     * @return list of JoinInfo objects with detailed join analysis
+     * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
     List<JoinInfo> parseJoin(String sql);
 
     /**
-     * 解析WHERE SQL语句片段
+     * Parses WHERE conditions from a SQL statement or fragment
      *
-     * @param sql SQL语句
-     * @return SQL信息对象
+     * @param sql the SQL statement containing WHERE conditions
+     * @return list of WhereCondition objects with detailed field analysis
+     * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
     List<WhereCondition> parseWhere(String sql);
 
     /**
-     * 将SqlInfo对象转换为SQL语句
+     * Converts a SqlInfo object back to a SQL statement string
      *
-     * @param sqlInfo SQL信息对象
-     * @return SQL语句
+     * @param sqlInfo the SqlInfo object to convert
+     * @return the generated SQL statement
+     * @throws io.github.qwzhang01.sql.tool.exception.UnSuportedException if conversion is not supported
      */
     String toSql(SqlInfo sqlInfo);
 
     /**
-     * 获取SqlCleaner
+     * Gets the SQL cleaner instance for this parser
      *
-     * @return
+     * @return the SqlCleaner implementation
      */
     SqlCleaner getCleaner();
 
     /**
-     * 获取SqlCompare
+     * Gets the SQL comparison utility for this parser
      *
-     * @return
+     * @return the SqlCompare implementation
      */
     SqlCompare getCompare();
 }

@@ -3,55 +3,79 @@ package io.github.qwzhang01.sql.tool.model;
 import java.util.List;
 
 /**
- * JOIN信息
+ * JOIN operation information with detailed condition analysis.
+ * This class represents a JOIN operation in SQL, including the join type,
+ * target table information, and detailed analysis of join conditions.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class JoinInfo {
 
     /**
-     * JOIN类型
+     * Type of JOIN operation (INNER, LEFT, RIGHT, FULL, CROSS)
      */
     private JoinType joinType;
 
     /**
-     * 表名
+     * Name of the table being joined
      */
     private String tableName;
 
     /**
-     * 表别名
+     * Alias assigned to the joined table
      */
     private String alias;
 
     /**
-     * JOIN条件（原始字符串，保持向后兼容）
+     * JOIN condition as original string (maintained for backward compatibility)
      */
     private String condition;
 
     /**
-     * 解析后的JOIN条件列表
+     * Parsed JOIN conditions with detailed field analysis
      */
     private List<WhereCondition> joinConditions;
 
     /**
-     * 是否为子查询
+     * Whether the join target is a subquery
      */
     private boolean isSubQuery;
 
     /**
-     * 子查询SQL（如果是子查询）
+     * Subquery SQL statement (if joining with a subquery)
      */
     private String subQuerySql;
 
-    // 构造函数
+    // Constructors
+
+    /**
+     * Default constructor
+     */
     public JoinInfo() {
     }
 
+    /**
+     * Constructor with join type, table name, and condition
+     *
+     * @param joinType  the type of JOIN operation
+     * @param tableName the name of the table to join
+     * @param condition the join condition
+     */
     public JoinInfo(JoinType joinType, String tableName, String condition) {
         this.joinType = joinType;
         this.tableName = tableName;
         this.condition = condition;
     }
 
+    /**
+     * Constructor with join type, table name, alias, and condition
+     *
+     * @param joinType  the type of JOIN operation
+     * @param tableName the name of the table to join
+     * @param alias     the alias for the joined table
+     * @param condition the join condition
+     */
     public JoinInfo(JoinType joinType, String tableName, String alias, String condition) {
         this.joinType = joinType;
         this.tableName = tableName;
@@ -59,7 +83,7 @@ public class JoinInfo {
         this.condition = condition;
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public JoinType getJoinType() {
         return joinType;
     }
@@ -130,24 +154,60 @@ public class JoinInfo {
     }
 
     /**
-     * JOIN类型枚举
+     * JOIN type enumeration defining all supported JOIN operations.
+     * Each type corresponds to a specific SQL JOIN syntax and behavior.
      */
     public enum JoinType {
+        /**
+         * INNER JOIN - returns only matching rows from both tables
+         */
         INNER_JOIN("INNER JOIN"),
+        /**
+         * LEFT JOIN - returns all rows from left table and matching rows from right table
+         */
         LEFT_JOIN("LEFT JOIN"),
+        /**
+         * RIGHT JOIN - returns all rows from right table and matching rows from left table
+         */
         RIGHT_JOIN("RIGHT JOIN"),
+        /**
+         * FULL JOIN - returns all rows from both tables
+         */
         FULL_JOIN("FULL JOIN"),
+        /**
+         * CROSS JOIN - returns Cartesian product of both tables
+         */
         CROSS_JOIN("CROSS JOIN"),
+        /**
+         * LEFT OUTER JOIN - alias for LEFT JOIN
+         */
         LEFT_OUTER_JOIN("LEFT OUTER JOIN"),
+        /**
+         * RIGHT OUTER JOIN - alias for RIGHT JOIN
+         */
         RIGHT_OUTER_JOIN("RIGHT OUTER JOIN"),
+        /**
+         * FULL OUTER JOIN - alias for FULL JOIN
+         */
         FULL_OUTER_JOIN("FULL OUTER JOIN");
 
         private final String sqlKeyword;
 
+        /**
+         * Constructor for JOIN type with SQL keyword
+         *
+         * @param sqlKeyword the SQL keyword representation
+         */
         JoinType(String sqlKeyword) {
             this.sqlKeyword = sqlKeyword;
         }
 
+        /**
+         * Creates a JoinType from string representation
+         *
+         * @param joinTypeStr the string representation of join type
+         * @return the corresponding JoinType or null if not found
+         */
         public static JoinType fromString(String joinTypeStr) {
             if (joinTypeStr == null) {
                 return null;
@@ -163,6 +223,11 @@ public class JoinInfo {
             return null;
         }
 
+        /**
+         * Gets the SQL keyword for this join type
+         *
+         * @return the SQL keyword string
+         */
         public String getSqlKeyword() {
             return sqlKeyword;
         }

@@ -1,70 +1,97 @@
 package io.github.qwzhang01.sql.tool.model;
 
 /**
- * 字段信息
+ * Column information class representing database column metadata and SQL column references.
+ * This class stores comprehensive information about columns including names, types,
+ * constraints, and relationships to tables.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class ColumnInfo {
 
     /**
-     * 字段名
+     * The column name as it appears in the database or SQL statement
      */
     private String columnName;
 
     /**
-     * 表名
+     * The table name that contains this column
      */
     private String tableName;
 
     /**
-     * 表别名
+     * The table alias used in the SQL statement
      */
     private String tableAlias;
 
     /**
-     * 字段别名
+     * The column alias assigned in SELECT statements
      */
     private String alias;
 
     /**
-     * 字段类型
+     * The data type of the column (VARCHAR, INT, etc.)
      */
     private String dataType;
 
     /**
-     * 是否为主键
+     * Whether this column is part of the primary key
      */
     private boolean isPrimaryKey;
 
     /**
-     * 是否允许为空
+     * Whether this column allows NULL values
      */
     private boolean nullable;
 
     /**
-     * 默认值
+     * The default value for this column
      */
     private String defaultValue;
 
-    // 构造函数
+    // Constructors
+
+    /**
+     * Default constructor
+     */
     public ColumnInfo() {
     }
 
+    /**
+     * Constructor with column name only
+     *
+     * @param columnName the name of the column
+     */
     public ColumnInfo(String columnName) {
         this.columnName = columnName;
     }
 
+    /**
+     * Constructor with column name and table name
+     *
+     * @param columnName the name of the column
+     * @param tableName  the name of the table
+     */
     public ColumnInfo(String columnName, String tableName) {
         this.columnName = columnName;
         this.tableName = tableName;
     }
 
+    /**
+     * Constructor with column name, table name, and alias
+     *
+     * @param columnName the name of the column
+     * @param tableName  the name of the table
+     * @param alias      the column alias
+     */
     public ColumnInfo(String columnName, String tableName, String alias) {
         this.columnName = columnName;
         this.tableName = tableName;
         this.alias = alias;
     }
 
-    // Getter和Setter方法
+    // Getter and Setter methods
     public String getColumnName() {
         return columnName;
     }
