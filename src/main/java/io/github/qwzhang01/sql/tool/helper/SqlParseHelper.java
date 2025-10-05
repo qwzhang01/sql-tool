@@ -1,12 +1,12 @@
 package io.github.qwzhang01.sql.tool.helper;
 
+import io.github.qwzhang01.sql.tool.enums.SqlType;
 import io.github.qwzhang01.sql.tool.exception.ParseException;
 import io.github.qwzhang01.sql.tool.model.*;
 import io.github.qwzhang01.sql.tool.parser.MySqlPureSqlParser;
 import io.github.qwzhang01.sql.tool.parser.SqlParser;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Utility class providing convenient static methods for SQL parsing operations.
@@ -51,22 +51,8 @@ public class SqlParseHelper {
      * @throws IllegalArgumentException if the SQL syntax is invalid
      * @throws ParseException           if parsing fails
      */
-    public static SqlInfo parseSQL(String sql) {
+    public static SqlObj parseSQL(String sql) {
         return DEFAULT_PARSER.parse(sql);
-    }
-
-    /**
-     * Parses a SQL statement with parameters into a structured SqlInfo object.
-     * Comments are automatically cleaned during parsing.
-     *
-     * @param sql        the SQL statement to parse
-     * @param parameters parameter map for parameterized queries
-     * @return SqlInfo object containing parsed SQL components and parameters
-     * @throws IllegalArgumentException if the SQL syntax is invalid
-     * @throws ParseException           if parsing fails
-     */
-    public static SqlInfo parseSQL(String sql, Map<String, Object> parameters) {
-        return DEFAULT_PARSER.parse(sql, parameters);
     }
 
     /**
@@ -76,7 +62,7 @@ public class SqlParseHelper {
      * @return list of parsed WHERE conditions with detailed field information
      * @throws IllegalArgumentException if the input is not a valid WHERE clause
      */
-    public static List<WhereCondition> parseWhere(String sql) {
+    public static List<SqlCondition> parseWhere(String sql) {
         return DEFAULT_PARSER.parseWhere(sql);
     }
 
@@ -87,7 +73,7 @@ public class SqlParseHelper {
      * @param sql the SQL statement containing JOIN clauses
      * @return list of parsed JOIN information with detailed conditions
      */
-    public static List<JoinInfo> parseJoin(String sql) {
+    public static List<SqlJoin> parseJoin(String sql) {
         return DEFAULT_PARSER.parseJoin(sql);
     }
 
@@ -139,64 +125,64 @@ public class SqlParseHelper {
      * Converts a SqlInfo object back to a SQL statement string.
      * This is useful for reconstructing SQL after modifications to the SqlInfo object.
      *
-     * @param sqlInfo the SqlInfo object to convert
+     * @param sqlObj the SqlInfo object to convert
      * @return SQL statement string representation
      * @throws IllegalArgumentException if sqlInfo is null or invalid
      */
-    public static String toSQL(SqlInfo sqlInfo) {
-        return DEFAULT_PARSER.toSql(sqlInfo);
+    public static String toSQL(SqlObj sqlObj) {
+        return DEFAULT_PARSER.toSql(sqlObj);
     }
 
     /**
      * Checks if the SQL statement is a SELECT query.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return true if the SQL is a SELECT statement, false otherwise
      */
-    public static boolean isSelectSQL(SqlInfo sqlInfo) {
-        return sqlInfo.getSqlType() == SqlInfo.SqlType.SELECT;
+    public static boolean isSelectSQL(SqlObj sqlObj) {
+        return sqlObj.getSqlType() == SqlType.SELECT;
     }
 
     /**
      * Checks if the SQL statement is a data modification statement (INSERT/UPDATE/DELETE).
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return true if the SQL is an INSERT, UPDATE, or DELETE statement, false otherwise
      */
-    public static boolean isUpdateSQL(SqlInfo sqlInfo) {
-        SqlInfo.SqlType type = sqlInfo.getSqlType();
-        return type == SqlInfo.SqlType.INSERT ||
-                type == SqlInfo.SqlType.UPDATE ||
-                type == SqlInfo.SqlType.DELETE;
+    public static boolean isUpdateSQL(SqlObj sqlObj) {
+        SqlType type = sqlObj.getSqlType();
+        return type == SqlType.INSERT ||
+                type == SqlType.UPDATE ||
+                type == SqlType.DELETE;
     }
 
     /**
      * Extracts all table names referenced in the SQL statement.
      * This includes main tables, JOIN tables, and tables in subqueries.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return set of unique table names found in the SQL
      */
-    public static java.util.Set<String> getAllTableNames(SqlInfo sqlInfo) {
+    public static java.util.Set<String> getAllTableNames(SqlObj sqlObj) {
         java.util.Set<String> tableNames = new java.util.HashSet<>();
 
         // Main table
-        if (sqlInfo.getMainTable() != null) {
-            tableNames.add(sqlInfo.getMainTable().getTableName());
+        if (sqlObj.getMainTable() != null) {
+            tableNames.add(sqlObj.getMainTable().getTableName());
         }
 
         // JOIN tables
-        if (sqlInfo.getJoinTables() != null) {
-            for (JoinInfo joinInfo : sqlInfo.getJoinTables()) {
-                if (joinInfo.getTableName() != null) {
-                    tableNames.add(joinInfo.getTableName());
+        if (sqlObj.getJoinTables() != null) {
+            for (SqlJoin sqlJoin : sqlObj.getJoinTables()) {
+                if (sqlJoin.getTableName() != null) {
+                    tableNames.add(sqlJoin.getTableName());
                 }
             }
         }
 
         // Tables in subqueries
-        if (sqlInfo.getSubQueries() != null) {
-            for (SqlInfo subQuery : sqlInfo.getSubQueries()) {
+        if (sqlObj.getSubQueries() != null) {
+            for (SqlObj subQuery : sqlObj.getSubQueries()) {
                 tableNames.addAll(getAllTableNames(subQuery));
             }
         }
@@ -209,24 +195,24 @@ public class SqlParseHelper {
      * This includes SELECT columns, WHERE condition columns, GROUP BY columns,
      * ORDER BY columns, and INSERT/UPDATE columns.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return set of unique column names found in the SQL (excludes wildcard "*")
      */
-    public static java.util.Set<String> getAllColumnNames(SqlInfo sqlInfo) {
+    public static java.util.Set<String> getAllColumnNames(SqlObj sqlObj) {
         java.util.Set<String> columnNames = new java.util.HashSet<>();
 
         // SELECT columns
-        if (sqlInfo.getSelectColumns() != null) {
-            for (ColumnInfo columnInfo : sqlInfo.getSelectColumns()) {
-                if (!"*".equals(columnInfo.getColumnName())) {
-                    columnNames.add(columnInfo.getColumnName());
+        if (sqlObj.getSelectColumns() != null) {
+            for (SqlField columnInfo : sqlObj.getSelectColumns()) {
+                if (!"*".equals(columnInfo.getFieldName())) {
+                    columnNames.add(columnInfo.getFieldName());
                 }
             }
         }
 
         // Columns in WHERE conditions
-        if (sqlInfo.getWhereConditions() != null) {
-            for (WhereCondition condition : sqlInfo.getWhereConditions()) {
+        if (sqlObj.getWhereConditions() != null) {
+            for (SqlCondition condition : sqlObj.getWhereConditions()) {
                 collectColumnsFromCondition(condition, columnNames);
             }
         }
@@ -235,20 +221,20 @@ public class SqlParseHelper {
         // collectColumnsFromCondition(sqlInfo.getHavingCondition(), columnNames);
 
         // GROUP BY columns
-        if (sqlInfo.getGroupByColumns() != null) {
-            columnNames.addAll(sqlInfo.getGroupByColumns());
+        if (sqlObj.getGroupByColumns() != null) {
+            columnNames.addAll(sqlObj.getGroupByColumns());
         }
 
         // ORDER BY columns
-        if (sqlInfo.getOrderByColumns() != null) {
-            for (OrderByInfo orderByInfo : sqlInfo.getOrderByColumns()) {
-                columnNames.add(orderByInfo.getColumnName());
+        if (sqlObj.getOrderByColumns() != null) {
+            for (SqlOrderBy sqlOrderBy : sqlObj.getOrderByColumns()) {
+                columnNames.add(sqlOrderBy.getColumnName());
             }
         }
 
         // INSERT/UPDATE columns
-        if (sqlInfo.getColumnValues() != null) {
-            columnNames.addAll(sqlInfo.getColumnValues().keySet());
+        if (sqlObj.getUpdateValues() != null) {
+            columnNames.addAll(sqlObj.getUpdateValues().keySet());
         }
 
         return columnNames;
@@ -261,7 +247,7 @@ public class SqlParseHelper {
      * @param condition   the WHERE condition to analyze
      * @param columnNames the set to collect column names into
      */
-    private static void collectColumnsFromCondition(WhereCondition condition, java.util.Set<String> columnNames) {
+    private static void collectColumnsFromCondition(SqlCondition condition, java.util.Set<String> columnNames) {
         if (condition == null) {
             return;
         }
@@ -271,7 +257,7 @@ public class SqlParseHelper {
         }
 
         if (condition.getSubConditions() != null) {
-            for (WhereCondition subCondition : condition.getSubConditions()) {
+            for (SqlCondition subCondition : condition.getSubConditions()) {
                 collectColumnsFromCondition(subCondition, columnNames);
             }
         }
@@ -280,35 +266,35 @@ public class SqlParseHelper {
     /**
      * Checks if the SQL statement contains any JOIN clauses.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return true if the SQL contains JOIN clauses, false otherwise
      */
-    public static boolean hasJoin(SqlInfo sqlInfo) {
-        return sqlInfo.getJoinTables() != null && !sqlInfo.getJoinTables().isEmpty();
+    public static boolean hasJoin(SqlObj sqlObj) {
+        return sqlObj.getJoinTables() != null && !sqlObj.getJoinTables().isEmpty();
     }
 
     /**
      * Checks if the SQL statement contains any subqueries.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return true if the SQL contains subqueries, false otherwise
      */
-    public static boolean hasSubQuery(SqlInfo sqlInfo) {
-        return sqlInfo.getSubQueries() != null && !sqlInfo.getSubQueries().isEmpty();
+    public static boolean hasSubQuery(SqlObj sqlObj) {
+        return sqlObj.getSubQueries() != null && !sqlObj.getSubQueries().isEmpty();
     }
 
     /**
      * Checks if the SQL statement contains aggregate functions.
      * Detects common aggregate functions: COUNT, SUM, AVG, MAX, MIN.
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return true if the SQL contains aggregate functions, false otherwise
      */
-    public static boolean hasAggregateFunction(SqlInfo sqlInfo) {
-        if (sqlInfo.getSelectColumns() != null) {
-            for (ColumnInfo columnInfo : sqlInfo.getSelectColumns()) {
+    public static boolean hasAggregateFunction(SqlObj sqlObj) {
+        if (sqlObj.getSelectColumns() != null) {
+            for (SqlField columnInfo : sqlObj.getSelectColumns()) {
                 // Simple check if column name contains aggregate function keywords
-                String columnName = columnInfo.getColumnName();
+                String columnName = columnInfo.getFieldName();
                 if (columnName != null && (
                         columnName.toUpperCase().contains("COUNT(") ||
                                 columnName.toUpperCase().contains("SUM(") ||
@@ -339,52 +325,52 @@ public class SqlParseHelper {
      *   <li>Aggregate functions: +1 point</li>
      * </ul>
      *
-     * @param sqlInfo the parsed SQL information
+     * @param sqlObj the parsed SQL information
      * @return complexity score (higher values indicate more complex SQL)
      */
-    public static int getComplexityScore(SqlInfo sqlInfo) {
+    public static int getComplexityScore(SqlObj sqlObj) {
         int score = 0;
 
         // Base score
         score += 1;
 
         // JOINs increase complexity
-        if (sqlInfo.getJoinTables() != null) {
-            score += sqlInfo.getJoinTables().size() * 2;
+        if (sqlObj.getJoinTables() != null) {
+            score += sqlObj.getJoinTables().size() * 2;
         }
 
         // Subqueries increase complexity
-        if (sqlInfo.getSubQueries() != null) {
-            score += sqlInfo.getSubQueries().size() * 3;
-            for (SqlInfo subQuery : sqlInfo.getSubQueries()) {
+        if (sqlObj.getSubQueries() != null) {
+            score += sqlObj.getSubQueries().size() * 3;
+            for (SqlObj subQuery : sqlObj.getSubQueries()) {
                 score += getComplexityScore(subQuery);
             }
         }
 
         // WHERE conditions increase complexity
-        if (sqlInfo.getWhereConditions() != null) {
-            for (WhereCondition condition : sqlInfo.getWhereConditions()) {
+        if (sqlObj.getWhereConditions() != null) {
+            for (SqlCondition condition : sqlObj.getWhereConditions()) {
                 score += getConditionComplexity(condition);
             }
         }
 
         // HAVING conditions increase complexity - HAVING is a string, simple calculation
-        if (sqlInfo.getHavingCondition() != null && !sqlInfo.getHavingCondition().trim().isEmpty()) {
+        if (sqlObj.getHavingCondition() != null && !sqlObj.getHavingCondition().trim().isEmpty()) {
             score += 1;
         }
 
         // GROUP BY increases complexity
-        if (sqlInfo.getGroupByColumns() != null && !sqlInfo.getGroupByColumns().isEmpty()) {
+        if (sqlObj.getGroupByColumns() != null && !sqlObj.getGroupByColumns().isEmpty()) {
             score += 1;
         }
 
         // ORDER BY increases complexity
-        if (sqlInfo.getOrderByColumns() != null && !sqlInfo.getOrderByColumns().isEmpty()) {
+        if (sqlObj.getOrderByColumns() != null && !sqlObj.getOrderByColumns().isEmpty()) {
             score += 1;
         }
 
         // Aggregate functions increase complexity
-        if (hasAggregateFunction(sqlInfo)) {
+        if (hasAggregateFunction(sqlObj)) {
             score += 1;
         }
 
@@ -398,7 +384,7 @@ public class SqlParseHelper {
      * @param condition the WHERE condition to analyze
      * @return complexity score for the condition
      */
-    private static int getConditionComplexity(WhereCondition condition) {
+    private static int getConditionComplexity(SqlCondition condition) {
         if (condition == null) {
             return 0;
         }
@@ -406,7 +392,7 @@ public class SqlParseHelper {
         int complexity = 1;
 
         if (condition.getSubConditions() != null) {
-            for (WhereCondition subCondition : condition.getSubConditions()) {
+            for (SqlCondition subCondition : condition.getSubConditions()) {
                 complexity += getConditionComplexity(subCondition);
             }
         }
@@ -419,44 +405,44 @@ public class SqlParseHelper {
      * This method provides a comprehensive overview of the parsed SQL structure
      * including tables, columns, joins, and complexity metrics.
      *
-     * @param sqlInfo the parsed SQL information to format
+     * @param sqlObj the parsed SQL information to format
      * @return formatted string representation of the SQL information
      */
-    public static String formatSqlInfo(SqlInfo sqlInfo) {
+    public static String formatSqlInfo(SqlObj sqlObj) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("SQL Information:\n");
-        sb.append("  Type: ").append(sqlInfo.getSqlType()).append("\n");
-        sb.append("  Original SQL: ").append(sqlInfo.getOriginalSql()).append("\n");
+        sb.append("  Type: ").append(sqlObj.getSqlType()).append("\n");
+        sb.append("  Original SQL: ").append(sqlObj.getOriginalSql()).append("\n");
 
-        if (sqlInfo.getMainTable() != null) {
-            sb.append("  Main Table: ").append(sqlInfo.getMainTable().getTableName());
-            if (sqlInfo.getMainTable().getAlias() != null) {
-                sb.append(" AS ").append(sqlInfo.getMainTable().getAlias());
+        if (sqlObj.getMainTable() != null) {
+            sb.append("  Main Table: ").append(sqlObj.getMainTable().getTableName());
+            if (sqlObj.getMainTable().getAlias() != null) {
+                sb.append(" AS ").append(sqlObj.getMainTable().getAlias());
             }
             sb.append("\n");
         }
 
-        if (sqlInfo.getJoinTables() != null && !sqlInfo.getJoinTables().isEmpty()) {
+        if (sqlObj.getJoinTables() != null && !sqlObj.getJoinTables().isEmpty()) {
             sb.append("  JOIN Tables:\n");
-            for (JoinInfo joinInfo : sqlInfo.getJoinTables()) {
-                sb.append("    ").append(joinInfo.getJoinType())
-                        .append(" ").append(joinInfo.getTableName());
-                if (joinInfo.getAlias() != null) {
-                    sb.append(" AS ").append(joinInfo.getAlias());
+            for (SqlJoin sqlJoin : sqlObj.getJoinTables()) {
+                sb.append("    ").append(sqlJoin.getJoinType())
+                        .append(" ").append(sqlJoin.getTableName());
+                if (sqlJoin.getAlias() != null) {
+                    sb.append(" AS ").append(sqlJoin.getAlias());
                 }
                 sb.append("\n");
             }
         }
 
-        if (sqlInfo.getSelectColumns() != null && !sqlInfo.getSelectColumns().isEmpty()) {
+        if (sqlObj.getSelectColumns() != null && !sqlObj.getSelectColumns().isEmpty()) {
             sb.append("  Select Columns: ");
-            for (int i = 0; i < sqlInfo.getSelectColumns().size(); i++) {
+            for (int i = 0; i < sqlObj.getSelectColumns().size(); i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
-                ColumnInfo column = sqlInfo.getSelectColumns().get(i);
-                sb.append(column.getColumnName());
+                SqlField column = sqlObj.getSelectColumns().get(i);
+                sb.append(column.getFieldName());
                 if (column.getAlias() != null) {
                     sb.append(" AS ").append(column.getAlias());
                 }
@@ -464,11 +450,7 @@ public class SqlParseHelper {
             sb.append("\n");
         }
 
-        if (sqlInfo.getParameterMap() != null && !sqlInfo.getParameterMap().isEmpty()) {
-            sb.append("  Parameters: ").append(sqlInfo.getParameterMap()).append("\n");
-        }
-
-        sb.append("  Complexity Score: ").append(getComplexityScore(sqlInfo));
+        sb.append("  Complexity Score: ").append(getComplexityScore(sqlObj));
 
         return sb.toString();
     }

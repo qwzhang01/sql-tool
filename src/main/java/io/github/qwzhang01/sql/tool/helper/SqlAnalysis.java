@@ -1,9 +1,12 @@
 package io.github.qwzhang01.sql.tool.helper;
 
+import io.github.qwzhang01.sql.tool.enums.SqlType;
 import io.github.qwzhang01.sql.tool.model.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static io.github.qwzhang01.sql.tool.helper.SqlAnalysisInfo.FieldType.SELECT;
 
 /**
  * SQL信息转换工具类
@@ -26,33 +29,33 @@ public class SqlAnalysis {
             throw new IllegalArgumentException("SQL cannot be null");
         }
 
-        SqlInfo sqlInfo = SqlParseHelper.parseSQL(sql);
+        SqlObj sqlObj = SqlParseHelper.parseSQL(sql);
 
         SqlAnalysisInfo analysisInfo = new SqlAnalysisInfo();
 
         // 设置 SQL 类型
-        analysisInfo.setSqlType(convertSqlType(sqlInfo.getSqlType()));
+        analysisInfo.setSqlType(convertSqlType(sqlObj.getSqlType()));
 
         // 转换主表信息
-        convertMainTable(sqlInfo, analysisInfo);
+        convertMainTable(sqlObj, analysisInfo);
 
         // 转换 JOIN 表信息
-        convertJoinTables(sqlInfo, analysisInfo);
+        convertJoinTables(sqlObj, analysisInfo);
 
         // 转换 SELECT 字段
-        convertSelectFields(sqlInfo, analysisInfo);
+        convertSelectFields(sqlObj, analysisInfo);
 
         // 转换 WHERE 条件
-        convertWhereConditions(sqlInfo, analysisInfo);
+        convertWhereConditions(sqlObj, analysisInfo);
 
         // 转换 INSERT 字段
-        convertInsertFields(sqlInfo, analysisInfo);
+        convertInsertFields(sqlObj, analysisInfo);
 
         // 转换 UPDATE SET 字段
-        convertUpdateSetFields(sqlInfo, analysisInfo);
+        convertUpdateSetFields(sqlObj, analysisInfo);
 
         // 转换参数映射
-        convertParameterMappings(sqlInfo, analysisInfo);
+        convertParameterMappings(sqlObj, analysisInfo);
 
         return analysisInfo;
     }
@@ -60,7 +63,7 @@ public class SqlAnalysis {
     /**
      * 转换 SQL 类型
      */
-    private static SqlAnalysisInfo.SqlType convertSqlType(SqlInfo.SqlType sqlType) {
+    private static SqlAnalysisInfo.SqlType convertSqlType(SqlType sqlType) {
         if (sqlType == null) {
             return null;
         }
@@ -83,14 +86,10 @@ public class SqlAnalysis {
     /**
      * 转换主表信息
      */
-    private static void convertMainTable(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        TableInfo mainTable = sqlInfo.getMainTable();
+    private static void convertMainTable(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        SqlTable mainTable = sqlObj.getMainTable();
         if (mainTable != null) {
-            SqlAnalysisInfo.TableInfo tableInfo = new SqlAnalysisInfo.TableInfo(
-                    mainTable.getTableName(),
-                    mainTable.getAlias(),
-                    SqlAnalysisInfo.TableType.MAIN
-            );
+            SqlAnalysisInfo.TableInfo tableInfo = new SqlAnalysisInfo.TableInfo(mainTable.getTableName(), mainTable.getAlias(), SqlAnalysisInfo.TableType.MAIN);
             analysisInfo.addTable(tableInfo);
         }
     }
@@ -98,15 +97,11 @@ public class SqlAnalysis {
     /**
      * 转换 JOIN 表信息
      */
-    private static void convertJoinTables(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        List<JoinInfo> joinTables = sqlInfo.getJoinTables();
+    private static void convertJoinTables(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        List<SqlJoin> joinTables = sqlObj.getJoinTables();
         if (joinTables != null) {
-            for (JoinInfo joinInfo : joinTables) {
-                SqlAnalysisInfo.TableInfo tableInfo = new SqlAnalysisInfo.TableInfo(
-                        joinInfo.getTableName(),
-                        joinInfo.getAlias(),
-                        SqlAnalysisInfo.TableType.JOIN
-                );
+            for (SqlJoin sqlJoin : joinTables) {
+                SqlAnalysisInfo.TableInfo tableInfo = new SqlAnalysisInfo.TableInfo(sqlJoin.getTableName(), sqlJoin.getAlias(), SqlAnalysisInfo.TableType.JOIN);
                 analysisInfo.addTable(tableInfo);
             }
         }
@@ -115,21 +110,17 @@ public class SqlAnalysis {
     /**
      * 转换 SELECT 字段
      */
-    private static void convertSelectFields(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        List<ColumnInfo> selectColumns = sqlInfo.getSelectColumns();
+    private static void convertSelectFields(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        List<SqlField> selectColumns = sqlObj.getSelectColumns();
         if (selectColumns != null) {
-            for (ColumnInfo columnInfo : selectColumns) {
+            for (SqlField columnInfo : selectColumns) {
                 // 跳过 * 通配符
-                if ("*".equals(columnInfo.getColumnName())) {
+                if ("*".equals(columnInfo.getFieldName())) {
                     continue;
                 }
 
                 String tableAlias = determineTableAlias(columnInfo, analysisInfo);
-                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(
-                        tableAlias,
-                        columnInfo.getColumnName(),
-                        SqlAnalysisInfo.FieldType.SELECT
-                );
+                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(tableAlias, columnInfo.getFieldName(), SELECT);
                 analysisInfo.addSelectField(fieldCondition);
             }
         }
@@ -138,11 +129,11 @@ public class SqlAnalysis {
     /**
      * 转换 WHERE 条件
      */
-    private static void convertWhereConditions(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        List<WhereCondition> whereConditions = sqlInfo.getWhereConditions();
-        if (whereConditions != null) {
-            for (WhereCondition whereCondition : whereConditions) {
-                convertWhereCondition(whereCondition, analysisInfo);
+    private static void convertWhereConditions(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        List<SqlCondition> sqlConditions = sqlObj.getWhereConditions();
+        if (sqlConditions != null) {
+            for (SqlCondition sqlCondition : sqlConditions) {
+                convertWhereCondition(sqlCondition, analysisInfo);
             }
         }
     }
@@ -150,33 +141,27 @@ public class SqlAnalysis {
     /**
      * 递归转换单个 WHERE 条件
      */
-    private static void convertWhereCondition(WhereCondition whereCondition, SqlAnalysisInfo analysisInfo) {
-        if (whereCondition == null || whereCondition.isEmpty()) {
+    private static void convertWhereCondition(SqlCondition sqlCondition, SqlAnalysisInfo analysisInfo) {
+        if (sqlCondition == null || sqlCondition.isEmpty()) {
             return;
         }
 
         // 处理简单条件
-        if (whereCondition.getLeftOperand() != null) {
-            String fieldName = extractFieldName(whereCondition.getLeftOperand());
-            String tableAlias = extractTableAlias(whereCondition.getLeftOperand(), analysisInfo);
+        if (sqlCondition.getLeftOperand() != null) {
+            String fieldName = extractFieldName(sqlCondition.getLeftOperand());
+            String tableAlias = extractTableAlias(sqlCondition.getLeftOperand(), analysisInfo);
 
-            SqlAnalysisInfo.OperatorType operatorType = convertOperatorType(whereCondition.getOperator());
-            int paramCount = calculateParamCount(whereCondition);
+            SqlAnalysisInfo.OperatorType operatorType = convertOperatorType(sqlCondition.getOperator());
+            int paramCount = calculateParamCount(sqlCondition);
 
-            SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(
-                    tableAlias,
-                    fieldName,
-                    SqlAnalysisInfo.FieldType.CONDITION,
-                    operatorType,
-                    paramCount
-            );
+            SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(tableAlias, fieldName, SqlAnalysisInfo.FieldType.CONDITION, operatorType, paramCount);
             analysisInfo.addCondition(fieldCondition);
         }
 
         // 递归处理子条件
-        List<WhereCondition> subConditions = whereCondition.getSubConditions();
+        List<SqlCondition> subConditions = sqlCondition.getSubConditions();
         if (subConditions != null) {
-            for (WhereCondition subCondition : subConditions) {
+            for (SqlCondition subCondition : subConditions) {
                 convertWhereCondition(subCondition, analysisInfo);
             }
         }
@@ -185,16 +170,12 @@ public class SqlAnalysis {
     /**
      * 转换 INSERT 字段
      */
-    private static void convertInsertFields(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        List<String> insertColumns = sqlInfo.getInsertColumns();
+    private static void convertInsertFields(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        List<String> insertColumns = sqlObj.getInsertColumns();
         if (insertColumns != null) {
             String mainTableAlias = getMainTableAlias(analysisInfo);
             for (String columnName : insertColumns) {
-                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(
-                        mainTableAlias,
-                        columnName,
-                        SqlAnalysisInfo.FieldType.INSERT
-                );
+                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(mainTableAlias, columnName, SqlAnalysisInfo.FieldType.INSERT);
                 analysisInfo.addInsertField(fieldCondition);
             }
         }
@@ -203,16 +184,12 @@ public class SqlAnalysis {
     /**
      * 转换 UPDATE SET 字段
      */
-    private static void convertUpdateSetFields(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
-        Map<String, Object> updateValues = sqlInfo.getUpdateValues();
+    private static void convertUpdateSetFields(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
+        Map<String, Object> updateValues = sqlObj.getUpdateValues();
         if (updateValues != null) {
             String mainTableAlias = getMainTableAlias(analysisInfo);
             for (String columnName : updateValues.keySet()) {
-                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(
-                        mainTableAlias,
-                        columnName,
-                        SqlAnalysisInfo.FieldType.UPDATE_SET
-                );
+                SqlAnalysisInfo.FieldCondition fieldCondition = new SqlAnalysisInfo.FieldCondition(mainTableAlias, columnName, SqlAnalysisInfo.FieldType.UPDATE_SET);
                 analysisInfo.addSetField(fieldCondition);
             }
         }
@@ -221,7 +198,7 @@ public class SqlAnalysis {
     /**
      * 转换参数映射
      */
-    private static void convertParameterMappings(SqlInfo sqlInfo, SqlAnalysisInfo analysisInfo) {
+    private static void convertParameterMappings(SqlObj sqlObj, SqlAnalysisInfo analysisInfo) {
         // 根据字段顺序生成参数映射
         List<SqlAnalysisInfo.FieldCondition> allFields = analysisInfo.getAllFields();
         int parameterIndex = 0;
@@ -230,13 +207,7 @@ public class SqlAnalysis {
             int paramCount = field.getEffectiveParamCount();
             for (int i = 0; i < paramCount; i++) {
                 String tableName = analysisInfo.getRealTableName(field.tableAlias());
-                SqlAnalysisInfo.ParameterFieldMapping mapping = new SqlAnalysisInfo.ParameterFieldMapping(
-                        parameterIndex++,
-                        tableName,
-                        field.columnName(),
-                        field.tableAlias(),
-                        field.fieldType()
-                );
+                SqlAnalysisInfo.ParameterFieldMapping mapping = new SqlAnalysisInfo.ParameterFieldMapping(parameterIndex++, tableName, field.columnName(), field.tableAlias(), field.fieldType());
                 analysisInfo.addParameterMapping(mapping);
             }
         }
@@ -269,14 +240,14 @@ public class SqlAnalysis {
     /**
      * 计算参数个数
      */
-    private static int calculateParamCount(WhereCondition whereCondition) {
-        Integer valueCount = whereCondition.getValueCount();
+    private static int calculateParamCount(SqlCondition sqlCondition) {
+        Integer valueCount = sqlCondition.getValueCount();
         if (valueCount != null) {
             return valueCount;
         }
 
         // 根据操作符类型推断参数个数
-        String operator = whereCondition.getOperator();
+        String operator = sqlCondition.getOperator();
         if (operator != null) {
             String op = operator.toUpperCase().trim();
             switch (op) {
@@ -289,7 +260,7 @@ public class SqlAnalysis {
                 case "IN":
                 case "NOT IN":
                     // 尝试从右操作数推断
-                    Object rightOperand = whereCondition.getRightOperand();
+                    Object rightOperand = sqlCondition.getRightOperand();
                     if (rightOperand instanceof List) {
                         return ((List<?>) rightOperand).size();
                     } else if (rightOperand instanceof String) {
@@ -309,7 +280,7 @@ public class SqlAnalysis {
     /**
      * 确定表别名
      */
-    private static String determineTableAlias(ColumnInfo columnInfo, SqlAnalysisInfo analysisInfo) {
+    private static String determineTableAlias(SqlField columnInfo, SqlAnalysisInfo analysisInfo) {
         // 优先使用 ColumnInfo 中的表别名
         if (columnInfo.getTableAlias() != null && !columnInfo.getTableAlias().trim().isEmpty()) {
             return columnInfo.getTableAlias();

@@ -1,5 +1,7 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import io.github.qwzhang01.sql.tool.enums.JoinType;
+
 import java.util.List;
 
 /**
@@ -10,7 +12,7 @@ import java.util.List;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class JoinInfo {
+public class SqlJoin {
 
     /**
      * Type of JOIN operation (INNER, LEFT, RIGHT, FULL, CROSS)
@@ -35,7 +37,7 @@ public class JoinInfo {
     /**
      * Parsed JOIN conditions with detailed field analysis
      */
-    private List<WhereCondition> joinConditions;
+    private List<SqlCondition> joinConditions;
 
     /**
      * Whether the join target is a subquery
@@ -52,7 +54,7 @@ public class JoinInfo {
     /**
      * Default constructor
      */
-    public JoinInfo() {
+    public SqlJoin() {
     }
 
     /**
@@ -62,7 +64,7 @@ public class JoinInfo {
      * @param tableName the name of the table to join
      * @param condition the join condition
      */
-    public JoinInfo(JoinType joinType, String tableName, String condition) {
+    public SqlJoin(JoinType joinType, String tableName, String condition) {
         this.joinType = joinType;
         this.tableName = tableName;
         this.condition = condition;
@@ -76,7 +78,7 @@ public class JoinInfo {
      * @param alias     the alias for the joined table
      * @param condition the join condition
      */
-    public JoinInfo(JoinType joinType, String tableName, String alias, String condition) {
+    public SqlJoin(JoinType joinType, String tableName, String alias, String condition) {
         this.joinType = joinType;
         this.tableName = tableName;
         this.alias = alias;
@@ -132,11 +134,11 @@ public class JoinInfo {
         this.subQuerySql = subQuerySql;
     }
 
-    public List<WhereCondition> getJoinConditions() {
+    public List<SqlCondition> getJoinConditions() {
         return joinConditions;
     }
 
-    public void setJoinConditions(List<WhereCondition> joinConditions) {
+    public void setJoinConditions(List<SqlCondition> joinConditions) {
         this.joinConditions = joinConditions;
     }
 
@@ -151,85 +153,5 @@ public class JoinInfo {
                 ", isSubQuery=" + isSubQuery +
                 ", subQuerySql='" + subQuerySql + '\'' +
                 '}';
-    }
-
-    /**
-     * JOIN type enumeration defining all supported JOIN operations.
-     * Each type corresponds to a specific SQL JOIN syntax and behavior.
-     */
-    public enum JoinType {
-        /**
-         * INNER JOIN - returns only matching rows from both tables
-         */
-        INNER_JOIN("INNER JOIN"),
-        /**
-         * LEFT JOIN - returns all rows from left table and matching rows from right table
-         */
-        LEFT_JOIN("LEFT JOIN"),
-        /**
-         * RIGHT JOIN - returns all rows from right table and matching rows from left table
-         */
-        RIGHT_JOIN("RIGHT JOIN"),
-        /**
-         * FULL JOIN - returns all rows from both tables
-         */
-        FULL_JOIN("FULL JOIN"),
-        /**
-         * CROSS JOIN - returns Cartesian product of both tables
-         */
-        CROSS_JOIN("CROSS JOIN"),
-        /**
-         * LEFT OUTER JOIN - alias for LEFT JOIN
-         */
-        LEFT_OUTER_JOIN("LEFT OUTER JOIN"),
-        /**
-         * RIGHT OUTER JOIN - alias for RIGHT JOIN
-         */
-        RIGHT_OUTER_JOIN("RIGHT OUTER JOIN"),
-        /**
-         * FULL OUTER JOIN - alias for FULL JOIN
-         */
-        FULL_OUTER_JOIN("FULL OUTER JOIN");
-
-        private final String sqlKeyword;
-
-        /**
-         * Constructor for JOIN type with SQL keyword
-         *
-         * @param sqlKeyword the SQL keyword representation
-         */
-        JoinType(String sqlKeyword) {
-            this.sqlKeyword = sqlKeyword;
-        }
-
-        /**
-         * Creates a JoinType from string representation
-         *
-         * @param joinTypeStr the string representation of join type
-         * @return the corresponding JoinType or null if not found
-         */
-        public static JoinType fromString(String joinTypeStr) {
-            if (joinTypeStr == null) {
-                return null;
-            }
-
-            String normalized = joinTypeStr.toUpperCase().trim();
-            for (JoinType type : values()) {
-                if (type.getSqlKeyword().equals(normalized) ||
-                        type.name().equals(normalized.replace(" ", "_"))) {
-                    return type;
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Gets the SQL keyword for this join type
-         *
-         * @return the SQL keyword string
-         */
-        public String getSqlKeyword() {
-            return sqlKeyword;
-        }
     }
 }

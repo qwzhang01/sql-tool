@@ -1,6 +1,9 @@
 package io.github.qwzhang01.sql.tool.parser;
 
-import io.github.qwzhang01.sql.tool.exception.UnSuportedException;
+import io.github.qwzhang01.sql.tool.enums.Direction;
+import io.github.qwzhang01.sql.tool.enums.JoinType;
+import io.github.qwzhang01.sql.tool.enums.SqlType;
+import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
 import io.github.qwzhang01.sql.tool.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -8,9 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,9 +29,9 @@ class MySqlPureSqlParserTest {
     @Test
     @DisplayName("测试空SQL和null")
     void testNullAndEmptySql() {
-        assertNull(parser.parse(null));
-        assertNull(parser.parse(""));
-        assertNull(parser.parse("   "));
+        assertThrows(UnSupportedException.class, () -> parser.parse(null));
+        assertThrows(UnSupportedException.class, () -> parser.parse(""));
+        assertThrows(UnSupportedException.class, () -> parser.parse("   "));
     }
 
     @ParameterizedTest
@@ -39,34 +39,21 @@ class MySqlPureSqlParserTest {
     @ValueSource(strings = {"   ", "\t", "\n"})
     @DisplayName("测试各种空白字符SQL")
     void testWhitespaceSql(String sql) {
-        SqlInfo result = parser.parse(sql);
-        assertNull(result);
-    }
-
-    @Test
-    @DisplayName("测试带参数的parse方法")
-    void testParseWithParameters() {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        Map<String, Object> params = new HashMap<>();
-        params.put("id", 1);
-
-        SqlInfo result = parser.parse(sql, params);
-        assertNotNull(result);
-        assertEquals(params, result.getParameterMap());
+        assertThrows(UnSupportedException.class, () -> parser.parse(sql));
     }
 
     @Test
     @DisplayName("测试不支持的SQL类型")
     void testUnsupportedSqlType() {
-        assertThrows(UnSuportedException.class, () -> {
+        assertThrows(UnSupportedException.class, () -> {
             parser.parse("CREATE TABLE test (id INT)");
         });
 
-        assertThrows(UnSuportedException.class, () -> {
+        assertThrows(UnSupportedException.class, () -> {
             parser.parse("DROP TABLE test");
         });
 
-        assertThrows(UnSuportedException.class, () -> {
+        assertThrows(UnSupportedException.class, () -> {
             parser.parse("ALTER TABLE test ADD COLUMN name VARCHAR(50)");
         });
     }
@@ -76,10 +63,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试基础SELECT语句")
     void testBasicSelect() {
         String sql = "SELECT * FROM users";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+        assertEquals(SqlType.SELECT, result.getSqlType());
         assertEquals("users", result.getMainTable().getTableName());
         assertNull(result.getMainTable().getAlias());
     }
@@ -89,10 +76,10 @@ class MySqlPureSqlParserTest {
     void testQuotSelect() {
 //      String sql = "SELECT * FROM user_table  LEFT JOIN `order_table` ON `user_table`.`user_id` = `order_table`.`user_id`";
         String sql = "SELECT * FROM user LEFT JOIN unit_info ON user.id = unit_info.createBy ";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+        assertEquals(SqlType.SELECT, result.getSqlType());
         assertEquals("user", result.getMainTable().getTableName());
         assertNull(result.getMainTable().getAlias());
     }
@@ -101,35 +88,35 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试SELECT指定字段")
     void testSelectSpecificColumns() {
         String sql = "SELECT id, name, email FROM users";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(3, result.getSelectColumns().size());
-        assertEquals("id", result.getSelectColumns().get(0).getColumnName());
-        assertEquals("name", result.getSelectColumns().get(1).getColumnName());
-        assertEquals("email", result.getSelectColumns().get(2).getColumnName());
+        assertEquals("id", result.getSelectColumns().get(0).getFieldName());
+        assertEquals("name", result.getSelectColumns().get(1).getFieldName());
+        assertEquals("email", result.getSelectColumns().get(2).getFieldName());
     }
 
     @Test
     @DisplayName("测试SELECT带别名")
     void testSelectWithAlias() {
         String sql = "SELECT u.id, u.name AS user_name, email alias_email FROM users u";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(3, result.getSelectColumns().size());
 
-        ColumnInfo col1 = result.getSelectColumns().get(0);
-        assertEquals("id", col1.getColumnName());
+        SqlField col1 = result.getSelectColumns().get(0);
+        assertEquals("id", col1.getFieldName());
         assertEquals("u", col1.getTableAlias());
 
-        ColumnInfo col2 = result.getSelectColumns().get(1);
-        assertEquals("name", col2.getColumnName());
+        SqlField col2 = result.getSelectColumns().get(1);
+        assertEquals("name", col2.getFieldName());
         assertEquals("user_name", col2.getAlias());
         assertEquals("u", col2.getTableAlias());
 
-        ColumnInfo col3 = result.getSelectColumns().get(2);
-        assertEquals("email", col3.getColumnName());
+        SqlField col3 = result.getSelectColumns().get(2);
+        assertEquals("email", col3.getFieldName());
         assertEquals("alias_email", col3.getAlias());
 
         assertEquals("users", result.getMainTable().getTableName());
@@ -147,10 +134,10 @@ class MySqlPureSqlParserTest {
                 "ORDER BY u.name ASC, p.created_at DESC " +
                 "LIMIT 10 OFFSET 5";
 
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+        assertEquals(SqlType.SELECT, result.getSqlType());
 
         // 验证主表
         assertEquals("users", result.getMainTable().getTableName());
@@ -158,8 +145,8 @@ class MySqlPureSqlParserTest {
 
         // 验证JOIN
         assertEquals(1, result.getJoinTables().size());
-        JoinInfo join = result.getJoinTables().get(0);
-        assertEquals(JoinInfo.JoinType.LEFT_JOIN, join.getJoinType());
+        SqlJoin join = result.getJoinTables().get(0);
+        assertEquals(JoinType.LEFT_JOIN, join.getJoinType());
         assertEquals("posts", join.getTableName());
         assertEquals("p", join.getAlias());
         assertEquals("u.id = p.user_id", join.getCondition());
@@ -177,9 +164,9 @@ class MySqlPureSqlParserTest {
         // 验证ORDER BY
         assertEquals(2, result.getOrderByColumns().size());
         assertEquals("u.name", result.getOrderByColumns().get(0).getColumnName());
-        assertEquals(OrderByInfo.Direction.ASC, result.getOrderByColumns().get(0).getDirection());
+        assertEquals(Direction.ASC, result.getOrderByColumns().get(0).getDirection());
         assertEquals("p.created_at", result.getOrderByColumns().get(1).getColumnName());
-        assertEquals(OrderByInfo.Direction.DESC, result.getOrderByColumns().get(1).getDirection());
+        assertEquals(Direction.DESC, result.getOrderByColumns().get(1).getDirection());
 
         // 验证LIMIT
         assertNotNull(result.getLimitInfo());
@@ -199,17 +186,17 @@ class MySqlPureSqlParserTest {
                 "SELECT * FROM users u JOIN posts p ON u.id = p.user_id"
         };
 
-        JoinInfo.JoinType[] expectedTypes = {
-                JoinInfo.JoinType.INNER_JOIN,
-                JoinInfo.JoinType.LEFT_JOIN,
-                JoinInfo.JoinType.RIGHT_JOIN,
-                JoinInfo.JoinType.FULL_JOIN,
-                JoinInfo.JoinType.CROSS_JOIN,
-                JoinInfo.JoinType.INNER_JOIN
+        JoinType[] expectedTypes = {
+                JoinType.INNER_JOIN,
+                JoinType.LEFT_JOIN,
+                JoinType.RIGHT_JOIN,
+                JoinType.FULL_JOIN,
+                JoinType.CROSS_JOIN,
+                JoinType.INNER_JOIN
         };
 
         for (int i = 0; i < joinSqls.length; i++) {
-            SqlInfo result = parser.parse(joinSqls[i]);
+            SqlObj result = parser.parse(joinSqls[i]);
             assertNotNull(result);
             assertEquals(1, result.getJoinTables().size());
             assertEquals(expectedTypes[i], result.getJoinTables().get(0).getJoinType());
@@ -223,14 +210,14 @@ class MySqlPureSqlParserTest {
                 "LEFT JOIN posts p ON u.id = p.user_id " +
                 "INNER JOIN categories c ON p.category_id = c.id";
 
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
         assertNotNull(result);
         assertEquals(2, result.getJoinTables().size());
 
-        assertEquals(JoinInfo.JoinType.LEFT_JOIN, result.getJoinTables().get(0).getJoinType());
+        assertEquals(JoinType.LEFT_JOIN, result.getJoinTables().get(0).getJoinType());
         assertEquals("posts", result.getJoinTables().get(0).getTableName());
 
-        assertEquals(JoinInfo.JoinType.INNER_JOIN, result.getJoinTables().get(1).getJoinType());
+        assertEquals(JoinType.INNER_JOIN, result.getJoinTables().get(1).getJoinType());
         assertEquals("categories", result.getJoinTables().get(1).getTableName());
     }
 
@@ -240,12 +227,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试基本WHERE条件")
     void testBasicWhereConditions() {
         String sql = "SELECT * FROM users WHERE id = 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("id", condition.getLeftOperand());
         assertEquals("=", condition.getOperator());
         assertEquals("1", condition.getRightOperand());
@@ -258,7 +245,7 @@ class MySqlPureSqlParserTest {
 
         for (String op : operators) {
             String sql = "SELECT * FROM users WHERE age " + op + " 25";
-            SqlInfo result = parser.parse(sql);
+            SqlObj result = parser.parse(sql);
 
             assertNotNull(result);
             assertEquals(1, result.getWhereConditions().size());
@@ -270,12 +257,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试LIKE条件")
     void testLikeConditions() {
         String sql = "SELECT * FROM users WHERE name LIKE '%john%'";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("name", condition.getLeftOperand());
         assertEquals("LIKE", condition.getOperator());
         assertEquals("'%john%'", condition.getRightOperand());
@@ -285,12 +272,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试NOT LIKE条件")
     void testNotLikeConditions() {
         String sql = "SELECT * FROM users WHERE name NOT LIKE '%admin%'";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("name", condition.getLeftOperand());
         assertEquals("NOT LIKE", condition.getOperator());
         assertEquals("'%admin%'", condition.getRightOperand());
@@ -300,12 +287,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试IN条件")
     void testInConditions() {
         String sql = "SELECT * FROM users WHERE id IN (1, 2, 3)";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("id", condition.getLeftOperand());
         assertEquals("IN", condition.getOperator());
         assertEquals("(1, 2, 3)", condition.getRightOperand());
@@ -315,12 +302,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试NOT IN条件")
     void testNotInConditions() {
         String sql = "SELECT * FROM users WHERE status NOT IN ('deleted', 'banned')";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("status", condition.getLeftOperand());
         assertEquals("NOT IN", condition.getOperator());
         assertEquals("('deleted', 'banned')", condition.getRightOperand());
@@ -330,12 +317,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试BETWEEN条件")
     void testBetweenConditions() {
         String sql = "SELECT * FROM users WHERE age BETWEEN 18 AND 65";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("age", condition.getLeftOperand());
         assertEquals("BETWEEN", condition.getOperator());
         assertEquals("18 AND 65", condition.getRightOperand());
@@ -345,12 +332,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试NOT BETWEEN条件")
     void testNotBetweenConditions() {
         String sql = "SELECT * FROM users WHERE age NOT BETWEEN 0 AND 17";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("age", condition.getLeftOperand());
         assertEquals("NOT BETWEEN", condition.getOperator());
         assertEquals("0 AND 17", condition.getRightOperand());
@@ -360,12 +347,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试IS NULL条件")
     void testIsNullConditions() {
         String sql = "SELECT * FROM users WHERE deleted_at IS NULL";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("deleted_at", condition.getLeftOperand());
         assertEquals("IS NULL", condition.getOperator());
         assertNull(condition.getRightOperand());
@@ -375,12 +362,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试IS NOT NULL条件")
     void testIsNotNullConditions() {
         String sql = "SELECT * FROM users WHERE email IS NOT NULL";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("email", condition.getLeftOperand());
         assertEquals("IS NOT NULL", condition.getOperator());
         assertNull(condition.getRightOperand());
@@ -390,7 +377,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试复杂WHERE条件（AND/OR）")
     void testComplexWhereConditions() {
         String sql = "SELECT * FROM users WHERE (status = 'active' AND age > 18) OR (role = 'admin')";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertTrue(result.getWhereConditions().size() >= 2);
@@ -400,12 +387,12 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试带括号的WHERE条件")
     void testWhereConditionsWithParentheses() {
         String sql = "SELECT * FROM users WHERE (id = 1)";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getWhereConditions().size());
 
-        WhereCondition condition = result.getWhereConditions().get(0);
+        SqlCondition condition = result.getWhereConditions().get(0);
         assertEquals("id", condition.getLeftOperand());
         assertEquals("=", condition.getOperator());
         assertEquals("1", condition.getRightOperand());
@@ -417,7 +404,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试简单LIMIT")
     void testSimpleLimit() {
         String sql = "SELECT * FROM users LIMIT 10";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertNotNull(result.getLimitInfo());
@@ -429,7 +416,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试LIMIT OFFSET")
     void testLimitOffset() {
         String sql = "SELECT * FROM users LIMIT 10 OFFSET 5";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertNotNull(result.getLimitInfo());
@@ -441,7 +428,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试MySQL风格LIMIT")
     void testMySqlStyleLimit() {
         String sql = "SELECT * FROM users LIMIT 5, 10";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertNotNull(result.getLimitInfo());
@@ -455,61 +442,61 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试ORDER BY ASC")
     void testOrderByAsc() {
         String sql = "SELECT * FROM users ORDER BY name ASC";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getOrderByColumns().size());
 
-        OrderByInfo orderBy = result.getOrderByColumns().get(0);
+        SqlOrderBy orderBy = result.getOrderByColumns().get(0);
         assertEquals("name", orderBy.getColumnName());
-        assertEquals(OrderByInfo.Direction.ASC, orderBy.getDirection());
+        assertEquals(Direction.ASC, orderBy.getDirection());
     }
 
     @Test
     @DisplayName("测试ORDER BY DESC")
     void testOrderByDesc() {
         String sql = "SELECT * FROM users ORDER BY created_at DESC";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getOrderByColumns().size());
 
-        OrderByInfo orderBy = result.getOrderByColumns().get(0);
+        SqlOrderBy orderBy = result.getOrderByColumns().get(0);
         assertEquals("created_at", orderBy.getColumnName());
-        assertEquals(OrderByInfo.Direction.DESC, orderBy.getDirection());
+        assertEquals(Direction.DESC, orderBy.getDirection());
     }
 
     @Test
     @DisplayName("测试ORDER BY默认方向")
     void testOrderByDefault() {
         String sql = "SELECT * FROM users ORDER BY name";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getOrderByColumns().size());
 
-        OrderByInfo orderBy = result.getOrderByColumns().get(0);
+        SqlOrderBy orderBy = result.getOrderByColumns().get(0);
         assertEquals("name", orderBy.getColumnName());
-        assertEquals(OrderByInfo.Direction.ASC, orderBy.getDirection());
+        assertEquals(Direction.ASC, orderBy.getDirection());
     }
 
     @Test
     @DisplayName("测试多个ORDER BY")
     void testMultipleOrderBy() {
         String sql = "SELECT * FROM users ORDER BY name ASC, age DESC, created_at";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(3, result.getOrderByColumns().size());
 
         assertEquals("name", result.getOrderByColumns().get(0).getColumnName());
-        assertEquals(OrderByInfo.Direction.ASC, result.getOrderByColumns().get(0).getDirection());
+        assertEquals(Direction.ASC, result.getOrderByColumns().get(0).getDirection());
 
         assertEquals("age", result.getOrderByColumns().get(1).getColumnName());
-        assertEquals(OrderByInfo.Direction.DESC, result.getOrderByColumns().get(1).getDirection());
+        assertEquals(Direction.DESC, result.getOrderByColumns().get(1).getDirection());
 
         assertEquals("created_at", result.getOrderByColumns().get(2).getColumnName());
-        assertEquals(OrderByInfo.Direction.ASC, result.getOrderByColumns().get(2).getDirection());
+        assertEquals(Direction.ASC, result.getOrderByColumns().get(2).getDirection());
     }
 
     // ========== GROUP BY测试 ==========
@@ -518,7 +505,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试GROUP BY")
     void testGroupBy() {
         String sql = "SELECT department, COUNT(*) FROM employees GROUP BY department";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(1, result.getGroupByColumns().size());
@@ -529,7 +516,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试多个GROUP BY")
     void testMultipleGroupBy() {
         String sql = "SELECT department, position, COUNT(*) FROM employees GROUP BY department, position";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(2, result.getGroupByColumns().size());
@@ -543,10 +530,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试基础INSERT语句")
     void testBasicInsert() {
         String sql = "INSERT INTO users (name, email, age) VALUES ('John', 'john@example.com', 25)";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.INSERT, result.getSqlType());
+        assertEquals(SqlType.INSERT, result.getSqlType());
         assertEquals("users", result.getMainTable().getTableName());
 
         assertEquals(3, result.getInsertColumns().size());
@@ -564,7 +551,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试INSERT带NULL值")
     void testInsertWithNull() {
         String sql = "INSERT INTO users (name, email, deleted_at) VALUES ('John', 'john@example.com', NULL)";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(3, result.getInsertValues().size());
@@ -577,10 +564,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试基础UPDATE语句")
     void testBasicUpdate() {
         String sql = "UPDATE users SET name = 'John Doe', age = 26 WHERE id = 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.UPDATE, result.getSqlType());
+        assertEquals(SqlType.UPDATE, result.getSqlType());
         assertEquals("users", result.getMainTable().getTableName());
 
         assertNotNull(result.getUpdateValues());
@@ -595,7 +582,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试UPDATE带表别名")
     void testUpdateWithAlias() {
         String sql = "UPDATE users u SET u.name = 'John' WHERE u.id = 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals("users", result.getMainTable().getTableName());
@@ -606,7 +593,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试UPDATE带LIMIT")
     void testUpdateWithLimit() {
         String sql = "UPDATE users SET status = 'inactive' WHERE last_login < '2023-01-01' LIMIT 100";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertNotNull(result.getLimitInfo());
@@ -619,10 +606,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试基础DELETE语句")
     void testBasicDelete() {
         String sql = "DELETE FROM users WHERE id = 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.DELETE, result.getSqlType());
+        assertEquals(SqlType.DELETE, result.getSqlType());
         assertEquals("users", result.getMainTable().getTableName());
         assertEquals(1, result.getWhereConditions().size());
     }
@@ -631,7 +618,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试DELETE带表别名")
     void testDeleteWithAlias() {
         String sql = "DELETE FROM users u WHERE u.status = 'deleted'";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals("users", result.getMainTable().getTableName());
@@ -642,7 +629,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试DELETE带LIMIT")
     void testDeleteWithLimit() {
         String sql = "DELETE FROM logs WHERE created_at < '2023-01-01' LIMIT 1000";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertNotNull(result.getLimitInfo());
@@ -653,10 +640,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试DELETE全表")
     void testDeleteAll() {
         String sql = "DELETE FROM temp_table";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.DELETE, result.getSqlType());
+        assertEquals(SqlType.DELETE, result.getSqlType());
         assertEquals("temp_table", result.getMainTable().getTableName());
         assertTrue(result.getWhereConditions() == null || result.getWhereConditions().isEmpty());
     }
@@ -667,8 +654,8 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试SqlInfo转换为SELECT SQL")
     void testToSelectSql() {
         String originalSql = "SELECT u.id, u.name FROM users u WHERE u.status = 'active' ORDER BY u.name";
-        SqlInfo sqlInfo = parser.parse(originalSql);
-        String generatedSql = parser.toSql(sqlInfo);
+        SqlObj sqlObj = parser.parse(originalSql);
+        String generatedSql = parser.toSql(sqlObj);
 
         assertNotNull(generatedSql);
         assertTrue(generatedSql.toUpperCase().contains("SELECT"));
@@ -681,8 +668,8 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试SqlInfo转换为INSERT SQL")
     void testToInsertSql() {
         String originalSql = "INSERT INTO users (name, email) VALUES ('John', 'john@example.com')";
-        SqlInfo sqlInfo = parser.parse(originalSql);
-        String generatedSql = parser.toSql(sqlInfo);
+        SqlObj sqlObj = parser.parse(originalSql);
+        String generatedSql = parser.toSql(sqlObj);
 
         assertNotNull(generatedSql);
         assertTrue(generatedSql.toUpperCase().contains("INSERT INTO"));
@@ -693,8 +680,8 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试SqlInfo转换为UPDATE SQL")
     void testToUpdateSql() {
         String originalSql = "UPDATE users SET name = 'John' WHERE id = 1";
-        SqlInfo sqlInfo = parser.parse(originalSql);
-        String generatedSql = parser.toSql(sqlInfo);
+        SqlObj sqlObj = parser.parse(originalSql);
+        String generatedSql = parser.toSql(sqlObj);
 
         assertNotNull(generatedSql);
         assertTrue(generatedSql.toUpperCase().contains("UPDATE"));
@@ -706,8 +693,8 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试SqlInfo转换为DELETE SQL")
     void testToDeleteSql() {
         String originalSql = "DELETE FROM users WHERE id = 1";
-        SqlInfo sqlInfo = parser.parse(originalSql);
-        String generatedSql = parser.toSql(sqlInfo);
+        SqlObj sqlObj = parser.parse(originalSql);
+        String generatedSql = parser.toSql(sqlObj);
 
         assertNotNull(generatedSql);
         assertTrue(generatedSql.toUpperCase().contains("DELETE FROM"));
@@ -727,7 +714,7 @@ class MySqlPureSqlParserTest {
         }
         longSql.append(" FROM users");
 
-        SqlInfo result = parser.parse(longSql.toString());
+        SqlObj result = parser.parse(longSql.toString());
         assertNotNull(result);
         assertEquals(1000, result.getSelectColumns().size());
     }
@@ -743,9 +730,9 @@ class MySqlPureSqlParserTest {
         };
 
         for (String sql : sqls) {
-            SqlInfo result = parser.parse(sql);
+            SqlObj result = parser.parse(sql);
             assertNotNull(result);
-            assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+            assertEquals(SqlType.SELECT, result.getSqlType());
         }
     }
 
@@ -753,10 +740,10 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试带注释的SQL")
     void testSqlWithComments() {
         String sql = "SELECT * FROM users -- this is a comment\nWHERE id = 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+        assertEquals(SqlType.SELECT, result.getSqlType());
     }
 
     @Test
@@ -789,7 +776,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试包含特殊字符的SQL")
     void testSqlWithSpecialCharacters() {
         String sql = "SELECT * FROM users WHERE name = 'O\\'Reilly' AND description LIKE '%100%'";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(2, result.getWhereConditions().size());
@@ -799,7 +786,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试包含反引号的字段名")
     void testSqlWithBackticks() {
         String sql = "SELECT `user_id`, `user_name` FROM `user_table`";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
         assertEquals(2, result.getSelectColumns().size());
@@ -809,7 +796,7 @@ class MySqlPureSqlParserTest {
     @DisplayName("测试无效的操作符")
     void testInvalidOperator() {
         String sql = "SELECT * FROM users WHERE id === 1";
-        SqlInfo result = parser.parse(sql);
+        SqlObj result = parser.parse(sql);
         // 应该能解析，但可能无法正确识别操作符
         assertNotNull(result);
     }

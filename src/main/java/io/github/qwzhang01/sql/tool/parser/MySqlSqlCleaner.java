@@ -138,7 +138,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             if (inSingleLineComment && (current == '\n' || current == '\r')) {
                 inSingleLineComment = false;
                 // 保留一个空格代替换行
-                if (result.length() > 0 && !lastCharWasSpace) {
+                if (!result.isEmpty() && !lastCharWasSpace) {
                     result.append(' ');
                     lastCharWasSpace = true;
                 }
@@ -153,7 +153,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             // 处理空白字符
             if (Character.isWhitespace(current)) {
                 // 将连续的空白字符替换为单个空格
-                if (result.length() > 0 && !lastCharWasSpace) {
+                if (!result.isEmpty() && !lastCharWasSpace) {
                     result.append(' ');
                     lastCharWasSpace = true;
                 }

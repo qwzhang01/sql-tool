@@ -8,7 +8,7 @@ package io.github.qwzhang01.sql.tool.model;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class TableInfo {
+public class SqlTable {
 
     /**
      * The table name as it appears in the database
@@ -33,7 +33,7 @@ public class TableInfo {
     /**
      * Default constructor
      */
-    public TableInfo() {
+    public SqlTable() {
     }
 
     /**
@@ -41,7 +41,7 @@ public class TableInfo {
      *
      * @param tableName the name of the table
      */
-    public TableInfo(String tableName) {
+    public SqlTable(String tableName) {
         this.tableName = tableName;
     }
 
@@ -51,7 +51,7 @@ public class TableInfo {
      * @param tableName the name of the table
      * @param alias     the table alias
      */
-    public TableInfo(String tableName, String alias) {
+    public SqlTable(String tableName, String alias) {
         this.tableName = tableName;
         this.alias = alias;
     }

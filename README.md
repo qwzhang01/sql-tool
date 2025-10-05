@@ -33,20 +33,28 @@ A pure Java SQL parsing tool that supports bidirectional conversion between SQL 
 
 ```java
 import io.github.qwzhang01.sql.tool.parser.MySqlPureSqlParser;
-import io.github.qwzhang01.sql.tool.model.SqlInfo;
+import io.github.qwzhang01.sql.tool.model.SqlObj;
 
 // Create parser instance
 MySqlPureSqlParser parser = new MySqlPureSqlParser();
 
 // Parse SQL
 String sql = "SELECT u.id, u.name FROM users u WHERE u.age > 18 AND u.status = 'active'";
-SqlInfo sqlInfo = parser.parse(sql);
+SqlObj sqlObj = parser.parse(sql);
 
 // Access parsed information
-System.out.println("SQL Type: " + sqlInfo.getSqlType());
-System.out.println("Tables: " + sqlInfo.getTableNames());
-System.out.println("Columns: " + sqlInfo.getSelectColumns());
-System.out.println("WHERE Conditions: " + sqlInfo.getWhereConditions());
+System.out.
+
+println("SQL Type: "+sqlObj.getSqlType());
+        System.out.
+
+println("Tables: "+sqlObj.getTableNames());
+        System.out.
+
+println("Columns: "+sqlObj.getSelectColumns());
+        System.out.
+
+println("WHERE Conditions: "+sqlObj.getWhereConditions());
 ```
 
 ### JOIN Parsing

@@ -1,11 +1,11 @@
 package io.github.qwzhang01.sql.tool.parser;
 
-import io.github.qwzhang01.sql.tool.model.JoinInfo;
-import io.github.qwzhang01.sql.tool.model.SqlInfo;
-import io.github.qwzhang01.sql.tool.model.WhereCondition;
+import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
+import io.github.qwzhang01.sql.tool.model.SqlCondition;
+import io.github.qwzhang01.sql.tool.model.SqlJoin;
+import io.github.qwzhang01.sql.tool.model.SqlObj;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * SQL Parser interface providing comprehensive SQL parsing capabilities.
@@ -27,17 +27,7 @@ public interface SqlParser {
      * @return SqlInfo object containing parsed SQL components
      * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
-    SqlInfo parse(String sql);
-
-    /**
-     * Parses a SQL statement with parameter mapping
-     *
-     * @param sql        the SQL statement to parse
-     * @param parameters parameter mapping for prepared statements
-     * @return SqlInfo object containing parsed SQL components and parameters
-     * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
-     */
-    SqlInfo parse(String sql, Map<String, Object> parameters);
+    SqlObj parse(String sql);
 
     /**
      * Parses JOIN operations from a SQL statement or fragment
@@ -46,7 +36,7 @@ public interface SqlParser {
      * @return list of JoinInfo objects with detailed join analysis
      * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
-    List<JoinInfo> parseJoin(String sql);
+    List<SqlJoin> parseJoin(String sql);
 
     /**
      * Parses WHERE conditions from a SQL statement or fragment
@@ -55,16 +45,16 @@ public interface SqlParser {
      * @return list of WhereCondition objects with detailed field analysis
      * @throws io.github.qwzhang01.sql.tool.exception.ParseException if parsing fails
      */
-    List<WhereCondition> parseWhere(String sql);
+    List<SqlCondition> parseWhere(String sql);
 
     /**
      * Converts a SqlInfo object back to a SQL statement string
      *
-     * @param sqlInfo the SqlInfo object to convert
+     * @param sqlObj the SqlInfo object to convert
      * @return the generated SQL statement
-     * @throws io.github.qwzhang01.sql.tool.exception.UnSuportedException if conversion is not supported
+     * @throws UnSupportedException if conversion is not supported
      */
-    String toSql(SqlInfo sqlInfo);
+    String toSql(SqlObj sqlObj);
 
     /**
      * Gets the SQL cleaner instance for this parser

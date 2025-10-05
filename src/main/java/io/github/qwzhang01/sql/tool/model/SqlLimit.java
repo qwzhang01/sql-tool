@@ -8,7 +8,7 @@ package io.github.qwzhang01.sql.tool.model;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class LimitInfo {
+public class SqlLimit {
 
     /**
      * The number of rows to skip from the beginning (OFFSET value)
@@ -23,7 +23,7 @@ public class LimitInfo {
     /**
      * Default constructor
      */
-    public LimitInfo() {
+    public SqlLimit() {
     }
 
     /**
@@ -31,7 +31,7 @@ public class LimitInfo {
      *
      * @param limit the maximum number of rows to return
      */
-    public LimitInfo(long limit) {
+    public SqlLimit(long limit) {
         this.limit = limit;
         this.offset = 0;
     }
@@ -42,7 +42,7 @@ public class LimitInfo {
      * @param offset the number of rows to skip
      * @param limit  the maximum number of rows to return
      */
-    public LimitInfo(long offset, long limit) {
+    public SqlLimit(long offset, long limit) {
         this.offset = offset;
         this.limit = limit;
     }

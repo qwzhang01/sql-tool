@@ -8,7 +8,7 @@ package io.github.qwzhang01.sql.tool.model;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class FieldInfo {
+public class SqlField {
 
     /**
      * The actual table name (may be null if only alias is used)
@@ -24,6 +24,7 @@ public class FieldInfo {
      * The field/column name
      */
     private String fieldName;
+    private String alias;
 
     /**
      * Complete field expression as it appears in SQL (e.g., t1.user_name, user.id)
@@ -33,7 +34,7 @@ public class FieldInfo {
     /**
      * Default constructor
      */
-    public FieldInfo() {
+    public SqlField() {
     }
 
     /**
@@ -41,7 +42,7 @@ public class FieldInfo {
      *
      * @param fullExpression the complete field expression to parse
      */
-    public FieldInfo(String fullExpression) {
+    public SqlField(String fullExpression) {
         this.fullExpression = fullExpression;
         parseExpression(fullExpression);
     }
@@ -53,7 +54,7 @@ public class FieldInfo {
      * @param tableAlias the table alias
      * @param fieldName  the field name
      */
-    public FieldInfo(String tableName, String tableAlias, String fieldName) {
+    public SqlField(String tableName, String tableAlias, String fieldName) {
         this.tableName = tableName;
         this.tableAlias = tableAlias;
         this.fieldName = fieldName;
@@ -129,6 +130,14 @@ public class FieldInfo {
     public void setFullExpression(String fullExpression) {
         this.fullExpression = fullExpression;
         parseExpression(fullExpression);
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     @Override

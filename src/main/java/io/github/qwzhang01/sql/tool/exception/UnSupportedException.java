@@ -9,14 +9,14 @@ package io.github.qwzhang01.sql.tool.exception;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class UnSuportedException extends ParseException {
+public class UnSupportedException extends ParseException {
 
     /**
      * Constructs a new unsupported operation exception with the specified detail message
      *
      * @param message the detail message explaining what feature is not supported
      */
-    public UnSuportedException(String message) {
+    public UnSupportedException(String message) {
         super(message);
     }
 
@@ -26,7 +26,7 @@ public class UnSuportedException extends ParseException {
      * @param message the detail message explaining what feature is not supported
      * @param cause   the cause of the exception
      */
-    public UnSuportedException(String message, Throwable cause) {
+    public UnSupportedException(String message, Throwable cause) {
         super(message, cause);
     }
 }

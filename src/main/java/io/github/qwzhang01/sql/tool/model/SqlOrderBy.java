@@ -1,5 +1,7 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import io.github.qwzhang01.sql.tool.enums.Direction;
+
 /**
  * ORDER BY clause information representing sorting specifications.
  * This class contains details about column sorting including direction,
@@ -8,7 +10,7 @@ package io.github.qwzhang01.sql.tool.model;
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class OrderByInfo {
+public class SqlOrderBy {
 
     /**
      * The column name to sort by
@@ -40,7 +42,7 @@ public class OrderByInfo {
     /**
      * Default constructor with ascending sort direction
      */
-    public OrderByInfo() {
+    public SqlOrderBy() {
         this.direction = Direction.ASC; // Default to ascending
     }
 
@@ -49,7 +51,7 @@ public class OrderByInfo {
      *
      * @param columnName the column to sort by
      */
-    public OrderByInfo(String columnName) {
+    public SqlOrderBy(String columnName) {
         this.columnName = columnName;
         this.direction = Direction.ASC;
     }
@@ -60,7 +62,7 @@ public class OrderByInfo {
      * @param columnName the column to sort by
      * @param direction  the sort direction
      */
-    public OrderByInfo(String columnName, Direction direction) {
+    public SqlOrderBy(String columnName, Direction direction) {
         this.columnName = columnName;
         this.direction = direction;
     }
@@ -72,7 +74,7 @@ public class OrderByInfo {
      * @param tableName  the table containing the column
      * @param direction  the sort direction
      */
-    public OrderByInfo(String columnName, String tableName, Direction direction) {
+    public SqlOrderBy(String columnName, String tableName, Direction direction) {
         this.columnName = columnName;
         this.tableName = tableName;
         this.direction = direction;
@@ -130,56 +132,4 @@ public class OrderByInfo {
                 '}';
     }
 
-    /**
-     * Sort direction enumeration for ORDER BY clauses.
-     * Defines ascending and descending sort orders.
-     */
-    public enum Direction {
-        /**
-         * Ascending sort order (default)
-         */
-        ASC("ASC"),
-        /**
-         * Descending sort order
-         */
-        DESC("DESC");
-
-        private final String sqlKeyword;
-
-        /**
-         * Constructor for Direction with SQL keyword
-         *
-         * @param sqlKeyword the SQL keyword representation
-         */
-        Direction(String sqlKeyword) {
-            this.sqlKeyword = sqlKeyword;
-        }
-
-        /**
-         * Creates a Direction from string representation
-         *
-         * @param directionStr the string representation of direction
-         * @return the corresponding Direction, defaults to ASC if not found
-         */
-        public static Direction fromString(String directionStr) {
-            if (directionStr == null) return ASC;
-
-            String normalized = directionStr.toUpperCase().trim();
-            for (Direction dir : values()) {
-                if (dir.getSqlKeyword().equals(normalized) || dir.name().equals(normalized)) {
-                    return dir;
-                }
-            }
-            return ASC; // Default to ascending
-        }
-
-        /**
-         * Gets the SQL keyword for this direction
-         *
-         * @return the SQL keyword string
-         */
-        public String getSqlKeyword() {
-            return sqlKeyword;
-        }
-    }
 }

@@ -1,27 +1,23 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import io.github.qwzhang01.sql.tool.enums.ConditionType;
+
 import java.util.List;
 
 /**
- * WHERE condition information with detailed field analysis.
- * This class represents a single condition in a WHERE clause, providing
+ * WHERE & ON condition information with detailed field analysis.
+ * This class represents a single condition in a WHERE or ON clause, providing
  * comprehensive information about the field, operator, and values involved.
  *
  * @author Avin Zhang
  * @since 1.0.0
  */
-public class WhereCondition {
+public class SqlCondition {
 
     /**
      * Left operand (field name) - maintained for backward compatibility
      */
     private String leftOperand;
-
-    /**
-     * Detailed field information object containing table name, alias, and field name
-     */
-    private FieldInfo fieldInfo;
-
     /**
      * Comparison operator (=, >, <, >=, <=, !=, LIKE, IN, BETWEEN, etc.)
      */
@@ -31,6 +27,10 @@ public class WhereCondition {
      * Right operand (value or parameter) that the field is compared against
      */
     private Object rightOperand;
+    /**
+     * Detailed field information object containing table name, alias, and field name
+     */
+    private SqlField fieldInfo;
 
     /**
      * Number of values (for IN, BETWEEN and other multi-value operators)
@@ -50,14 +50,12 @@ public class WhereCondition {
     /**
      * Sub-conditions for complex nested conditions with parentheses
      */
-    private List<WhereCondition> subConditions;
-
-    // Constructors
+    private List<SqlCondition> subConditions;
 
     /**
      * Default constructor
      */
-    public WhereCondition() {
+    public SqlCondition() {
     }
 
     /**
@@ -67,9 +65,9 @@ public class WhereCondition {
      * @param operator     the comparison operator
      * @param rightOperand the value or expression on the right side
      */
-    public WhereCondition(String leftOperand, String operator, Object rightOperand) {
+    public SqlCondition(String leftOperand, String operator, Object rightOperand) {
         this.leftOperand = leftOperand;
-        this.fieldInfo = new FieldInfo(leftOperand);
+        this.fieldInfo = new SqlField(leftOperand);
         this.operator = operator;
         this.rightOperand = rightOperand;
         this.conditionType = ConditionType.SIMPLE;
@@ -84,9 +82,9 @@ public class WhereCondition {
      * @param rightOperand    the value or expression on the right side
      * @param logicalOperator the logical connector (AND/OR)
      */
-    public WhereCondition(String leftOperand, String operator, Object rightOperand, String logicalOperator) {
+    public SqlCondition(String leftOperand, String operator, Object rightOperand, String logicalOperator) {
         this.leftOperand = leftOperand;
-        this.fieldInfo = new FieldInfo(leftOperand);
+        this.fieldInfo = new SqlField(leftOperand);
         this.operator = operator;
         this.rightOperand = rightOperand;
         this.logicalOperator = logicalOperator;
@@ -101,7 +99,7 @@ public class WhereCondition {
      * @param operator     the comparison operator
      * @param rightOperand the value or expression on the right side
      */
-    public WhereCondition(FieldInfo fieldInfo, String operator, Object rightOperand) {
+    public SqlCondition(SqlField fieldInfo, String operator, Object rightOperand) {
         this.fieldInfo = fieldInfo;
         this.leftOperand = fieldInfo != null ? fieldInfo.getFullExpression() : null;
         this.operator = operator;
@@ -117,7 +115,7 @@ public class WhereCondition {
 
     public void setLeftOperand(String leftOperand) {
         this.leftOperand = leftOperand;
-        this.fieldInfo = new FieldInfo(leftOperand);
+        this.fieldInfo = new SqlField(leftOperand);
     }
 
     public String getOperator() {
@@ -153,19 +151,19 @@ public class WhereCondition {
         this.conditionType = conditionType;
     }
 
-    public List<WhereCondition> getSubConditions() {
+    public List<SqlCondition> getSubConditions() {
         return subConditions;
     }
 
-    public void setSubConditions(List<WhereCondition> subConditions) {
+    public void setSubConditions(List<SqlCondition> subConditions) {
         this.subConditions = subConditions;
     }
 
-    public FieldInfo getFieldInfo() {
+    public SqlField getFieldInfo() {
         return fieldInfo;
     }
 
-    public void setFieldInfo(FieldInfo fieldInfo) {
+    public void setFieldInfo(SqlField fieldInfo) {
         this.fieldInfo = fieldInfo;
         this.leftOperand = fieldInfo != null ? fieldInfo.getFullExpression() : null;
     }
@@ -256,42 +254,4 @@ public class WhereCondition {
                 '}';
     }
 
-    /**
-     * Condition type enumeration for categorizing different types of WHERE conditions.
-     * This helps in processing and optimizing different condition patterns.
-     */
-    public enum ConditionType {
-        /**
-         * Simple condition: field = value
-         */
-        SIMPLE,
-        /**
-         * Complex condition: contains sub-conditions with parentheses
-         */
-        COMPLEX,
-        /**
-         * IN condition: field IN (value1, value2, ...)
-         */
-        IN,
-        /**
-         * BETWEEN condition: field BETWEEN value1 AND value2
-         */
-        BETWEEN,
-        /**
-         * LIKE condition: field LIKE pattern
-         */
-        LIKE,
-        /**
-         * EXISTS condition: EXISTS (subquery)
-         */
-        EXISTS,
-        /**
-         * IS NULL condition: field IS NULL
-         */
-        IS_NULL,
-        /**
-         * IS NOT NULL condition: field IS NOT NULL
-         */
-        IS_NOT_NULL
-    }
 }
