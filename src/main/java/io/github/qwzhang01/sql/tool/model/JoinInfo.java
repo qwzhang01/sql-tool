@@ -1,5 +1,7 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import java.util.List;
+
 /**
  * JOIN信息
  */
@@ -21,9 +23,14 @@ public class JoinInfo {
     private String alias;
 
     /**
-     * JOIN条件
+     * JOIN条件（原始字符串，保持向后兼容）
      */
     private String condition;
+
+    /**
+     * 解析后的JOIN条件列表
+     */
+    private List<WhereCondition> joinConditions;
 
     /**
      * 是否为子查询
@@ -101,6 +108,14 @@ public class JoinInfo {
         this.subQuerySql = subQuerySql;
     }
 
+    public List<WhereCondition> getJoinConditions() {
+        return joinConditions;
+    }
+
+    public void setJoinConditions(List<WhereCondition> joinConditions) {
+        this.joinConditions = joinConditions;
+    }
+
     @Override
     public String toString() {
         return "JoinInfo{" +
@@ -108,6 +123,7 @@ public class JoinInfo {
                 ", tableName='" + tableName + '\'' +
                 ", alias='" + alias + '\'' +
                 ", condition='" + condition + '\'' +
+                ", joinConditions=" + joinConditions +
                 ", isSubQuery=" + isSubQuery +
                 ", subQuerySql='" + subQuerySql + '\'' +
                 '}';

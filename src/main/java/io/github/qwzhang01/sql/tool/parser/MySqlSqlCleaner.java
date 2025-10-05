@@ -41,7 +41,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 if (current == '\'' && !inDoubleQuote) {
                     // 检查是否是转义的单引号
                     boolean isEscaped = false;
-                    
+
                     // 检查反斜杠转义 \'
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
                         // 需要检查反斜杠本身是否被转义
@@ -52,7 +52,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         // 如果反斜杠数量是奇数，则当前引号被转义
                         isEscaped = (backslashCount % 2 == 1);
                     }
-                    
+
                     // 检查双单引号转义 ''
                     if (!isEscaped && inSingleQuote && next == '\'') {
                         // 这是双单引号转义，跳过这两个引号
@@ -62,7 +62,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         i++; // 跳过下一个引号
                         continue;
                     }
-                    
+
                     if (!isEscaped) {
                         inSingleQuote = !inSingleQuote;
                     }
@@ -75,7 +75,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 if (current == '"' && !inSingleQuote) {
                     // 检查是否是转义的双引号
                     boolean isEscaped = false;
-                    
+
                     // 检查反斜杠转义 \"
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
                         // 需要检查反斜杠本身是否被转义
@@ -86,7 +86,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         // 如果反斜杠数量是奇数，则当前引号被转义
                         isEscaped = (backslashCount % 2 == 1);
                     }
-                    
+
                     // 检查双双引号转义 ""
                     if (!isEscaped && inDoubleQuote && next == '"') {
                         // 这是双双引号转义，跳过这两个引号
@@ -96,7 +96,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         i++; // 跳过下一个引号
                         continue;
                     }
-                    
+
                     if (!isEscaped) {
                         inDoubleQuote = !inDoubleQuote;
                     }
@@ -163,7 +163,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             }
         }
 
-        return result.toString().trim();
+        return result.toString().trim().replace("`", "");
     }
 
     /**
@@ -220,7 +220,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             if (current == '\'' && !inDoubleQuote) {
                 // 检查是否是转义的单引号
                 boolean isEscaped = false;
-                
+
                 // 检查反斜杠转义
                 if (i > 0 && sql.charAt(i - 1) == '\\') {
                     int backslashCount = 0;
@@ -229,13 +229,13 @@ public class MySqlSqlCleaner implements SqlCleaner {
                     }
                     isEscaped = (backslashCount % 2 == 1);
                 }
-                
+
                 // 检查双单引号转义
                 if (!isEscaped && inSingleQuote && i + 1 < length && sql.charAt(i + 1) == '\'') {
                     i++; // 跳过下一个引号
                     continue;
                 }
-                
+
                 if (!isEscaped) {
                     inSingleQuote = !inSingleQuote;
                 }
@@ -244,7 +244,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             if (current == '"' && !inSingleQuote) {
                 // 检查是否是转义的双引号
                 boolean isEscaped = false;
-                
+
                 // 检查反斜杠转义
                 if (i > 0 && sql.charAt(i - 1) == '\\') {
                     int backslashCount = 0;
@@ -253,13 +253,13 @@ public class MySqlSqlCleaner implements SqlCleaner {
                     }
                     isEscaped = (backslashCount % 2 == 1);
                 }
-                
+
                 // 检查双双引号转义
                 if (!isEscaped && inDoubleQuote && i + 1 < length && sql.charAt(i + 1) == '"') {
                     i++; // 跳过下一个引号
                     continue;
                 }
-                
+
                 if (!isEscaped) {
                     inDoubleQuote = !inDoubleQuote;
                 }
@@ -308,7 +308,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 if (current == '\'' && !inDoubleQuote) {
                     // 检查是否是转义的单引号
                     boolean isEscaped = false;
-                    
+
                     // 检查反斜杠转义
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
                         int backslashCount = 0;
@@ -317,7 +317,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         }
                         isEscaped = (backslashCount % 2 == 1);
                     }
-                    
+
                     // 检查双单引号转义
                     if (!isEscaped && inSingleQuote && next == '\'') {
                         result.append(current);
@@ -325,7 +325,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         i++; // 跳过下一个引号
                         continue;
                     }
-                    
+
                     if (!isEscaped) {
                         inSingleQuote = !inSingleQuote;
                     }
@@ -335,7 +335,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 if (current == '"' && !inSingleQuote) {
                     // 检查是否是转义的双引号
                     boolean isEscaped = false;
-                    
+
                     // 检查反斜杠转义
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
                         int backslashCount = 0;
@@ -344,7 +344,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         }
                         isEscaped = (backslashCount % 2 == 1);
                     }
-                    
+
                     // 检查双双引号转义
                     if (!isEscaped && inDoubleQuote && next == '"') {
                         result.append(current);
@@ -352,7 +352,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
                         i++; // 跳过下一个引号
                         continue;
                     }
-                    
+
                     if (!isEscaped) {
                         inDoubleQuote = !inDoubleQuote;
                     }

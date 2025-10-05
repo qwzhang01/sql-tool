@@ -76,16 +76,30 @@ public class MySqlPureSqlParser implements SqlParser {
 
         sql = getCleaner().cleanSql(sql).trim();
 
-        if (!isJoin(sql)) {
-            throw new IllegalArgumentException("不支持的JOIN类型: " + sql);
+        // 如果是完整的SELECT语句，提取FROM子句
+        if (sql.toUpperCase().startsWith("SELECT")) {
+            Matcher matcher = SELECT_PATTERN.matcher(sql);
+            if (matcher.find()) {
+                String fromClause = matcher.group(2);
+                if (fromClause != null && containsJoin(fromClause)) {
+                    return parseJoinTables(fromClause);
+                }
+            }
+            return new ArrayList<>(); // 没有JOIN，返回空列表
+        }
+        
+        // 如果直接是JOIN语句
+        if (containsJoin(sql)) {
+            return parseJoinTables(sql);
         }
 
-        return parseJoinTables(sql);
+        return new ArrayList<>(); // 没有JOIN，返回空列表
     }
 
-    private boolean isJoin(String originalSql) {
+    private boolean containsJoin(String sql) {
+        String upperSql = sql.toUpperCase();
         for (String join : JOIN) {
-            if (originalSql.toUpperCase().startsWith(join)) {
+            if (upperSql.contains(join)) {
                 return true;
             }
         }
@@ -239,8 +253,8 @@ public class MySqlPureSqlParser implements SqlParser {
     private List<JoinInfo> parseJoinTables(String fromClause) {
         List<JoinInfo> joinTables = new ArrayList<>();
 
-        // 改进的JOIN正则表达式，支持多个JOIN
-        Pattern joinPattern = Pattern.compile("(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" + "(\\w+)(?:\\s+(\\w+))?(?:\\s+ON\\s+([^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?(?:\\s+AND\\s+[^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?)*?))?", Pattern.CASE_INSENSITIVE);
+        // 改进的JOIN正则表达式，支持多个JOIN和反引号标识符
+        Pattern joinPattern = Pattern.compile("(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" + "(`?\\w+`?)(?:\\s+(`?\\w+`?))?(?:\\s+ON\\s+(.+?))?(?=\\s+(?:INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN|WHERE|GROUP\\s+BY|ORDER\\s+BY|LIMIT|$))", Pattern.CASE_INSENSITIVE);
 
         Matcher matcher = joinPattern.matcher(fromClause);
 
@@ -263,18 +277,49 @@ public class MySqlPureSqlParser implements SqlParser {
             // 创建JOIN信息
             JoinInfo joinInfo = new JoinInfo();
             joinInfo.setJoinType(joinType);
-            joinInfo.setTableName(tableName);
-            joinInfo.setAlias(tableAlias);
+            // 去掉反引号
+            joinInfo.setTableName(tableName != null ? tableName.replaceAll("`", "") : null);
+            joinInfo.setAlias(tableAlias != null ? tableAlias.replaceAll("`", "") : null);
 
             // 解析JOIN条件
             if (joinConditionStr != null) {
                 joinInfo.setCondition(joinConditionStr.trim());
+                
+                // 解析详细的JOIN条件
+                List<WhereCondition> joinConditions = parseJoinConditions(joinConditionStr.trim());
+                joinInfo.setJoinConditions(joinConditions);
             }
 
             joinTables.add(joinInfo);
         }
 
         return joinTables;
+    }
+
+    /**
+     * 解析JOIN条件
+     */
+    private List<WhereCondition> parseJoinConditions(String joinConditionStr) {
+        List<WhereCondition> conditions = new ArrayList<>();
+
+        // 智能分割条件，避免破坏 BETWEEN...AND 结构
+        List<String> andParts = smartSplitByAnd(joinConditionStr);
+
+        for (String part : andParts) {
+            part = part.trim();
+
+            // 进一步按OR分割
+            String[] orParts = part.split("\\s+(?i)OR\\s+");
+
+            for (String orPart : orParts) {
+                WhereCondition condition = parseWhereCondition(orPart.trim());
+                if (condition != null) {
+                    conditions.add(condition);
+                }
+            }
+        }
+
+        return conditions;
     }
 
     /**
