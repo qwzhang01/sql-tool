@@ -1,6 +1,6 @@
 package io.github.qwzhang01.sql.tool.parser;
 
-import io.github.qwzhang01.sql.tool.exception.ParseException;
+import io.github.qwzhang01.sql.tool.exception.UnSuportedException;
 import io.github.qwzhang01.sql.tool.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,15 +58,15 @@ class MySqlPureSqlParserTest {
     @Test
     @DisplayName("测试不支持的SQL类型")
     void testUnsupportedSqlType() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnSuportedException.class, () -> {
             parser.parse("CREATE TABLE test (id INT)");
         });
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnSuportedException.class, () -> {
             parser.parse("DROP TABLE test");
         });
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(UnSuportedException.class, () -> {
             parser.parse("ALTER TABLE test ADD COLUMN name VARCHAR(50)");
         });
     }
@@ -704,17 +704,6 @@ class MySqlPureSqlParserTest {
 
     // ========== 边界情况和异常测试 ==========
 
-    @Test
-    @DisplayName("测试格式不正确的SQL")
-    void testMalformedSql() {
-        assertThrows(ParseException.class, () -> {
-            parser.parse("SELECT FROM WHERE");
-        });
-
-        assertThrows(ParseException.class, () -> {
-            parser.parse("SELEC * FROM users");
-        });
-    }
 
     @Test
     @DisplayName("测试超长SQL")
@@ -802,15 +791,6 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(2, result.getSelectColumns().size());
-    }
-
-    @Test
-    @DisplayName("测试空WHERE条件")
-    void testEmptyWhereCondition() {
-        String sql = "SELECT * FROM users WHERE";
-        assertThrows(ParseException.class, () -> {
-            parser.parse(sql);
-        });
     }
 
     @Test

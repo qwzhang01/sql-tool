@@ -1,7 +1,9 @@
 package io.github.qwzhang01.sql.tool.parser;
 
+import io.github.qwzhang01.sql.tool.model.JoinInfo;
 import io.github.qwzhang01.sql.tool.model.SqlInfo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,6 +31,22 @@ public interface SqlParser {
      * @return SQL信息对象
      */
     SqlInfo parse(String sql, Map<String, Object> parameters);
+
+    /**
+     * 解析JOIN SQL语句片段
+     *
+     * @param sql SQL语句
+     * @return SQL信息对象
+     */
+    List<JoinInfo> parseJoin(String sql);
+
+    /**
+     * 解析WHERE SQL语句片段
+     *
+     * @param sql SQL语句
+     * @return SQL信息对象
+     */
+    SqlInfo parseWhere(String sql);
 
     /**
      * 将SqlInfo对象转换为SQL语句

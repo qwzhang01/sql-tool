@@ -4,6 +4,7 @@ import io.github.qwzhang01.sql.tool.model.*;
 import io.github.qwzhang01.sql.tool.parser.MySqlPureSqlParser;
 import io.github.qwzhang01.sql.tool.parser.SqlParser;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +28,14 @@ public class SqlParserUtils {
      */
     public static SqlInfo parseSQL(String sql, Map<String, Object> parameters) {
         return DEFAULT_PARSER.parse(sql, parameters);
+    }
+
+    public static SqlInfo parseWhere(String sql) {
+        return DEFAULT_PARSER.parseWhere(sql);
+    }
+
+    public static List<JoinInfo> parseJoin(String sql) {
+        return DEFAULT_PARSER.parseJoin(sql);
     }
 
     /**

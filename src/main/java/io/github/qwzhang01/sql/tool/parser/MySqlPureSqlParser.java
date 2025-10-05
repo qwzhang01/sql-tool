@@ -1,12 +1,10 @@
 package io.github.qwzhang01.sql.tool.parser;
 
 import io.github.qwzhang01.sql.tool.exception.ParseException;
+import io.github.qwzhang01.sql.tool.exception.UnSuportedException;
 import io.github.qwzhang01.sql.tool.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,22 +14,10 @@ import java.util.regex.Pattern;
  */
 public class MySqlPureSqlParser implements SqlParser {
     // SQL关键字正则表达式
-    private static final Pattern SELECT_PATTERN = Pattern.compile(
-            "^\\s*SELECT\\s+(.+?)\\s+FROM\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+GROUP\\s+BY\\s+(.+?))?(?:\\s+HAVING\\s+(.+?))?(?:\\s+ORDER\\s+BY\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-    );
-    private static final Pattern INSERT_PATTERN = Pattern.compile(
-            "^\\s*INSERT\\s+INTO\\s+(\\w+)\\s*\\(([^)]+)\\)\\s*VALUES\\s*\\(([^)]+)\\)\\s*$",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-    );
-    private static final Pattern UPDATE_PATTERN = Pattern.compile(
-            "^\\s*UPDATE\\s+(\\w+(?:\\s+\\w+)?)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-    );
-    private static final Pattern DELETE_PATTERN = Pattern.compile(
-            "^\\s*DELETE\\s+FROM\\s+(\\w+(?:\\s+\\w+)?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-    );
+    private static final Pattern SELECT_PATTERN = Pattern.compile("^\\s*SELECT\\s+(.+?)\\s+FROM\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+GROUP\\s+BY\\s+(.+?))?(?:\\s+HAVING\\s+(.+?))?(?:\\s+ORDER\\s+BY\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern INSERT_PATTERN = Pattern.compile("^\\s*INSERT\\s+INTO\\s+(\\w+)\\s*\\(([^)]+)\\)\\s*VALUES\\s*\\(([^)]+)\\)\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern UPDATE_PATTERN = Pattern.compile("^\\s*UPDATE\\s+(\\w+(?:\\s+\\w+)?)\\s+SET\\s+(.+?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern DELETE_PATTERN = Pattern.compile("^\\s*DELETE\\s+FROM\\s+(\\w+(?:\\s+\\w+)?)(?:\\s+WHERE\\s+(.+?))?(?:\\s+LIMIT\\s+(.+?))?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private SqlCleaner sqlCleaner = null;
     private SqlCompare compare = null;
 
@@ -53,7 +39,7 @@ public class MySqlPureSqlParser implements SqlParser {
         sqlInfo.setOriginalSql(sql);
 
         // 清理SQL中的注释和多余空白字符
-        sqlInfo.setOriginalSql(getCleaner().cleanSql(sqlInfo.getOriginalSql()));
+        sqlInfo.setOriginalSql(getCleaner().cleanSql(sqlInfo.getOriginalSql()).trim());
 
         try {
             if (sqlInfo.getOriginalSql().toUpperCase().startsWith("SELECT")) {
@@ -73,9 +59,55 @@ public class MySqlPureSqlParser implements SqlParser {
             }
 
             return sqlInfo;
+        } catch (IllegalArgumentException e) {
+            throw new UnSuportedException(e.getMessage(), e);
         } catch (Exception e) {
             throw new ParseException("解析SQL失败: " + sql, e);
         }
+    }
+
+    private static final Set<String> JOIN = Set.of("INNER JOIN", "JOIN", "LEFT JOIN", "LEFT OUTER JOIN", "RIGHT JOIN", "RIGHT OUTER JOIN", "FULL JOIN", "FULL OUTER JOIN", "CROSS JOIN");
+
+    @Override
+    public List<JoinInfo> parseJoin(String sql) {
+        if (sql == null || sql.trim().isEmpty()) {
+            throw new IllegalArgumentException("SQL不能为空");
+        }
+
+        sql = getCleaner().cleanSql(sql).trim();
+
+        if (!isJoin(sql)) {
+            throw new IllegalArgumentException("不支持的JOIN类型: " + sql);
+        }
+
+        return parseJoinTables(sql);
+    }
+
+    private boolean isJoin(String originalSql) {
+        for (String join : JOIN) {
+            if (originalSql.toUpperCase().startsWith(join)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public SqlInfo parseWhere(String sql) {
+        if (sql == null || sql.trim().isEmpty()) {
+            throw new IllegalArgumentException("SQL不能为空");
+        }
+
+        SqlInfo sqlInfo = new SqlInfo();
+        sqlInfo.setOriginalSql(sql);
+        // 清理SQL中的注释和多余空白字符
+        sqlInfo.setOriginalSql(getCleaner().cleanSql(sqlInfo.getOriginalSql()).trim());
+        if (!sqlInfo.getOriginalSql().toUpperCase().startsWith("WHERE")) {
+            throw new IllegalArgumentException("不支持的JOIN类型: " + sql);
+        }
+
+        parseSelect("select * from a a " + sqlInfo.getOriginalSql(), sqlInfo);
+        return sqlInfo;
     }
 
     /**
@@ -208,11 +240,7 @@ public class MySqlPureSqlParser implements SqlParser {
         List<JoinInfo> joinTables = new ArrayList<>();
 
         // 改进的JOIN正则表达式，支持多个JOIN
-        Pattern joinPattern = Pattern.compile(
-                "(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" +
-                        "(\\w+)(?:\\s+(\\w+))?(?:\\s+ON\\s+([^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?(?:\\s+AND\\s+[^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?)*?))?",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern joinPattern = Pattern.compile("(INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)\\s+" + "(\\w+)(?:\\s+(\\w+))?(?:\\s+ON\\s+([^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?(?:\\s+AND\\s+[^\\s]+(?:\\s*[=<>!]+\\s*[^\\s]+)?)*?))?", Pattern.CASE_INSENSITIVE);
 
         Matcher matcher = joinPattern.matcher(fromClause);
 
@@ -223,30 +251,14 @@ public class MySqlPureSqlParser implements SqlParser {
             String joinConditionStr = matcher.group(4);
 
             // 解析JOIN类型
-            JoinInfo.JoinType joinType;
-            switch (joinTypeStr) {
-                case "INNER_JOIN":
-                case "JOIN":
-                    joinType = JoinInfo.JoinType.INNER_JOIN;
-                    break;
-                case "LEFT_JOIN":
-                case "LEFT_OUTER_JOIN":
-                    joinType = JoinInfo.JoinType.LEFT_JOIN;
-                    break;
-                case "RIGHT_JOIN":
-                case "RIGHT_OUTER_JOIN":
-                    joinType = JoinInfo.JoinType.RIGHT_JOIN;
-                    break;
-                case "FULL_JOIN":
-                case "FULL_OUTER_JOIN":
-                    joinType = JoinInfo.JoinType.FULL_JOIN;
-                    break;
-                case "CROSS_JOIN":
-                    joinType = JoinInfo.JoinType.CROSS_JOIN;
-                    break;
-                default:
-                    joinType = JoinInfo.JoinType.INNER_JOIN;
-            }
+            JoinInfo.JoinType joinType = switch (joinTypeStr) {
+                case "INNER_JOIN", "JOIN" -> JoinInfo.JoinType.INNER_JOIN;
+                case "LEFT_JOIN", "LEFT_OUTER_JOIN" -> JoinInfo.JoinType.LEFT_JOIN;
+                case "RIGHT_JOIN", "RIGHT_OUTER_JOIN" -> JoinInfo.JoinType.RIGHT_JOIN;
+                case "FULL_JOIN", "FULL_OUTER_JOIN" -> JoinInfo.JoinType.FULL_JOIN;
+                case "CROSS_JOIN" -> JoinInfo.JoinType.CROSS_JOIN;
+                default -> JoinInfo.JoinType.INNER_JOIN;
+            };
 
             // 创建JOIN信息
             JoinInfo joinInfo = new JoinInfo();
@@ -271,8 +283,8 @@ public class MySqlPureSqlParser implements SqlParser {
     private void parseWhereConditions(String whereClause, SqlInfo sqlInfo) {
         List<WhereCondition> conditions = new ArrayList<>();
 
-        // 按AND分割条件
-        String[] andParts = whereClause.split("\\s+(?i)AND\\s+");
+        // 智能分割条件，避免破坏 BETWEEN...AND 结构
+        List<String> andParts = smartSplitByAnd(whereClause);
 
         for (String part : andParts) {
             part = part.trim();
@@ -289,6 +301,76 @@ public class MySqlPureSqlParser implements SqlParser {
         }
 
         sqlInfo.setWhereConditions(conditions);
+    }
+
+    /**
+     * 智能分割 WHERE 子句，避免破坏 BETWEEN...AND 结构
+     */
+    private List<String> smartSplitByAnd(String whereClause) {
+        List<String> parts = new ArrayList<>();
+        StringBuilder currentPart = new StringBuilder();
+
+        String upperClause = whereClause.toUpperCase();
+        int i = 0;
+
+        while (i < whereClause.length()) {
+            // 检查是否遇到 AND
+            if (i <= whereClause.length() - 4 && upperClause.substring(i, i + 4).equals(" AND")) {
+                // 检查这个 AND 是否在 BETWEEN...AND 结构中
+                String beforeAnd = currentPart.toString().toUpperCase();
+
+                // 如果当前部分包含 BETWEEN 或 NOT BETWEEN，且没有对应的 AND，则这个 AND 属于 BETWEEN
+                boolean inBetween = false;
+                if (beforeAnd.contains(" BETWEEN ") || beforeAnd.contains(" NOT BETWEEN ")) {
+                    // 简单检查：如果已经有了一个 AND，则当前 AND 是逻辑连接符
+                    // 如果没有 AND，则当前 AND 是 BETWEEN 的一部分
+                    int betweenCount = countOccurrences(beforeAnd, " BETWEEN ");
+                    int notBetweenCount = countOccurrences(beforeAnd, " NOT BETWEEN ");
+                    int andCount = countOccurrences(beforeAnd, " AND ");
+
+                    // 如果 BETWEEN 的数量大于 AND 的数量，说明当前 AND 属于 BETWEEN
+                    inBetween = (betweenCount + notBetweenCount) > andCount;
+                }
+
+                if (inBetween) {
+                    // 这个 AND 是 BETWEEN 的一部分，添加到当前部分
+                    currentPart.append(whereClause.substring(i, i + 4));
+                    i += 4;
+                } else {
+                    // 这个 AND 是逻辑连接符，分割条件
+                    parts.add(currentPart.toString().trim());
+                    currentPart = new StringBuilder();
+                    i += 4; // 跳过 " AND"
+                    // 跳过后续空格
+                    while (i < whereClause.length() && Character.isWhitespace(whereClause.charAt(i))) {
+                        i++;
+                    }
+                }
+            } else {
+                currentPart.append(whereClause.charAt(i));
+                i++;
+            }
+        }
+
+        // 添加最后一部分
+        if (currentPart.length() > 0) {
+            parts.add(currentPart.toString().trim());
+        }
+
+        return parts;
+    }
+
+    /**
+     * 计算字符串中子串的出现次数
+     */
+    private int countOccurrences(String text, String pattern) {
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(pattern, index)) != -1) {
+            count++;
+            index += pattern.length();
+        }
+        return count;
     }
 
     /**
@@ -317,14 +399,14 @@ public class MySqlPureSqlParser implements SqlParser {
         }
         // NOT BETWEEN (必须在 BETWEEN 之前检查)
         else if (conditionStr.toUpperCase().contains(" NOT BETWEEN ")) {
-            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+BETWEEN\\s+");
+            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+BETWEEN\\s+", 2);
             condition.setLeftOperand(parts[0].trim());
             condition.setOperator("NOT BETWEEN");
             condition.setRightOperand(parts[1].trim());
         }
         // BETWEEN
         else if (conditionStr.toUpperCase().contains(" BETWEEN ")) {
-            String[] parts = conditionStr.split("\\s+(?i)BETWEEN\\s+");
+            String[] parts = conditionStr.split("\\s+(?i)BETWEEN\\s+", 2);
             condition.setLeftOperand(parts[0].trim());
             condition.setOperator("BETWEEN");
             condition.setRightOperand(parts[1].trim());

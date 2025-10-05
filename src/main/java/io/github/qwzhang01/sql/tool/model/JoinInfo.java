@@ -133,7 +133,9 @@ public class JoinInfo {
         }
 
         public static JoinType fromString(String joinTypeStr) {
-            if (joinTypeStr == null) return null;
+            if (joinTypeStr == null) {
+                return null;
+            }
 
             String normalized = joinTypeStr.toUpperCase().trim();
             for (JoinType type : values()) {
