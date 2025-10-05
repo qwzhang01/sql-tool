@@ -163,7 +163,7 @@ public class MySqlSqlCleaner implements SqlCleaner {
             }
         }
 
-        return result.toString().trim().replace("`", "");
+        return result.toString().trim().replaceAll("`", "");
     }
 
     /**

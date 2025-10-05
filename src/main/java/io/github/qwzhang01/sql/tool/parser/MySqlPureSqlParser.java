@@ -76,18 +76,6 @@ public class MySqlPureSqlParser implements SqlParser {
 
         sql = getCleaner().cleanSql(sql).trim();
 
-        // 如果是完整的SELECT语句，提取FROM子句
-        if (sql.toUpperCase().startsWith("SELECT")) {
-            Matcher matcher = SELECT_PATTERN.matcher(sql);
-            if (matcher.find()) {
-                String fromClause = matcher.group(2);
-                if (fromClause != null && containsJoin(fromClause)) {
-                    return parseJoinTables(fromClause);
-                }
-            }
-            return new ArrayList<>(); // 没有JOIN，返回空列表
-        }
-        
         // 如果直接是JOIN语句
         if (containsJoin(sql)) {
             return parseJoinTables(sql);

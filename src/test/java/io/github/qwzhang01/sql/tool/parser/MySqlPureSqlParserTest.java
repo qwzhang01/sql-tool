@@ -87,8 +87,8 @@ class MySqlPureSqlParserTest {
     @Test
     @DisplayName("测试基础SELECT语句")
     void testQuotSelect() {
-        String sql = "SELECT * FROM user_table  LEFT JOIN `order_table` ON `user_table`.`user_id` = `order_table`.`user_id`";
-
+//      String sql = "SELECT * FROM user_table  LEFT JOIN `order_table` ON `user_table`.`user_id` = `order_table`.`user_id`";
+        String sql = "SELECT * FROM user LEFT JOIN unit_info ON user.id = unit_info.createBy ";
         SqlInfo result = parser.parse(sql);
 
         assertNotNull(result);
