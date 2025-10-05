@@ -315,6 +315,13 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("IS NULL");
             condition.setRightOperand(null);
         }
+        // NOT BETWEEN (必须在 BETWEEN 之前检查)
+        else if (conditionStr.toUpperCase().contains(" NOT BETWEEN ")) {
+            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+BETWEEN\\s+");
+            condition.setLeftOperand(parts[0].trim());
+            condition.setOperator("NOT BETWEEN");
+            condition.setRightOperand(parts[1].trim());
+        }
         // BETWEEN
         else if (conditionStr.toUpperCase().contains(" BETWEEN ")) {
             String[] parts = conditionStr.split("\\s+(?i)BETWEEN\\s+");
@@ -322,11 +329,11 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("BETWEEN");
             condition.setRightOperand(parts[1].trim());
         }
-        // NOT BETWEEN
-        else if (conditionStr.toUpperCase().contains(" NOT BETWEEN ")) {
-            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+BETWEEN\\s+");
+        // NOT IN (必须在 IN 之前检查)
+        else if (conditionStr.toUpperCase().contains(" NOT IN ")) {
+            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+IN\\s+");
             condition.setLeftOperand(parts[0].trim());
-            condition.setOperator("NOT BETWEEN");
+            condition.setOperator("NOT IN");
             condition.setRightOperand(parts[1].trim());
         }
         // IN
@@ -336,11 +343,11 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("IN");
             condition.setRightOperand(parts[1].trim());
         }
-        // NOT IN
-        else if (conditionStr.toUpperCase().contains(" NOT IN ")) {
-            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+IN\\s+");
+        // NOT LIKE (必须在 LIKE 之前检查)
+        else if (conditionStr.toUpperCase().contains(" NOT LIKE ")) {
+            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+LIKE\\s+");
             condition.setLeftOperand(parts[0].trim());
-            condition.setOperator("NOT IN");
+            condition.setOperator("NOT LIKE");
             condition.setRightOperand(parts[1].trim());
         }
         // LIKE
@@ -348,13 +355,6 @@ public class MySqlPureSqlParser implements SqlParser {
             String[] parts = conditionStr.split("\\s+(?i)LIKE\\s+");
             condition.setLeftOperand(parts[0].trim());
             condition.setOperator("LIKE");
-            condition.setRightOperand(parts[1].trim());
-        }
-        // NOT LIKE
-        else if (conditionStr.toUpperCase().contains(" NOT LIKE ")) {
-            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+LIKE\\s+");
-            condition.setLeftOperand(parts[0].trim());
-            condition.setOperator("NOT LIKE");
             condition.setRightOperand(parts[1].trim());
         }
         // 基本比较操作符
