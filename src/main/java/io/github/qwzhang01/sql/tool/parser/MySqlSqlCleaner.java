@@ -40,14 +40,32 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 // 处理单引号字符串
                 if (current == '\'' && !inDoubleQuote) {
                     // 检查是否是转义的单引号
+                    boolean isEscaped = false;
+                    
+                    // 检查反斜杠转义 \'
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
-                        if (!inSingleQuote) {
-                            result.append(current);
-                            lastCharWasSpace = false;
+                        // 需要检查反斜杠本身是否被转义
+                        int backslashCount = 0;
+                        for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                            backslashCount++;
                         }
+                        // 如果反斜杠数量是奇数，则当前引号被转义
+                        isEscaped = (backslashCount % 2 == 1);
+                    }
+                    
+                    // 检查双单引号转义 ''
+                    if (!isEscaped && inSingleQuote && next == '\'') {
+                        // 这是双单引号转义，跳过这两个引号
+                        result.append(current);
+                        result.append(next);
+                        lastCharWasSpace = false;
+                        i++; // 跳过下一个引号
                         continue;
                     }
-                    inSingleQuote = !inSingleQuote;
+                    
+                    if (!isEscaped) {
+                        inSingleQuote = !inSingleQuote;
+                    }
                     result.append(current);
                     lastCharWasSpace = false;
                     continue;
@@ -56,14 +74,32 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 // 处理双引号字符串
                 if (current == '"' && !inSingleQuote) {
                     // 检查是否是转义的双引号
+                    boolean isEscaped = false;
+                    
+                    // 检查反斜杠转义 \"
                     if (i > 0 && sql.charAt(i - 1) == '\\') {
-                        if (!inDoubleQuote) {
-                            result.append(current);
-                            lastCharWasSpace = false;
+                        // 需要检查反斜杠本身是否被转义
+                        int backslashCount = 0;
+                        for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                            backslashCount++;
                         }
+                        // 如果反斜杠数量是奇数，则当前引号被转义
+                        isEscaped = (backslashCount % 2 == 1);
+                    }
+                    
+                    // 检查双双引号转义 ""
+                    if (!isEscaped && inDoubleQuote && next == '"') {
+                        // 这是双双引号转义，跳过这两个引号
+                        result.append(current);
+                        result.append(next);
+                        lastCharWasSpace = false;
+                        i++; // 跳过下一个引号
                         continue;
                     }
-                    inDoubleQuote = !inDoubleQuote;
+                    
+                    if (!isEscaped) {
+                        inDoubleQuote = !inDoubleQuote;
+                    }
                     result.append(current);
                     lastCharWasSpace = false;
                     continue;
@@ -84,14 +120,14 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 continue;
             }
 
-            // 处理多行注释开始 /*
-            if (!inSingleLineComment && current == '/' && next == '*') {
+            // 处理多行注释开始 /* (只有在不在单行注释中时才处理)
+            if (!inSingleLineComment && !inMultiLineComment && current == '/' && next == '*') {
                 inMultiLineComment = true;
                 i++; // 跳过下一个 *
                 continue;
             }
 
-            // 处理多行注释结束 */
+            // 处理多行注释结束 */ (只有在多行注释中时才处理)
             if (inMultiLineComment && current == '*' && next == '/') {
                 inMultiLineComment = false;
                 i++; // 跳过下一个 /
@@ -183,14 +219,48 @@ public class MySqlSqlCleaner implements SqlCleaner {
             // 处理字符串字面量
             if (current == '\'' && !inDoubleQuote) {
                 // 检查是否是转义的单引号
-                if (i > 0 && sql.charAt(i - 1) != '\\') {
+                boolean isEscaped = false;
+                
+                // 检查反斜杠转义
+                if (i > 0 && sql.charAt(i - 1) == '\\') {
+                    int backslashCount = 0;
+                    for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                        backslashCount++;
+                    }
+                    isEscaped = (backslashCount % 2 == 1);
+                }
+                
+                // 检查双单引号转义
+                if (!isEscaped && inSingleQuote && i + 1 < length && sql.charAt(i + 1) == '\'') {
+                    i++; // 跳过下一个引号
+                    continue;
+                }
+                
+                if (!isEscaped) {
                     inSingleQuote = !inSingleQuote;
                 }
                 continue;
             }
             if (current == '"' && !inSingleQuote) {
                 // 检查是否是转义的双引号
-                if (i > 0 && sql.charAt(i - 1) != '\\') {
+                boolean isEscaped = false;
+                
+                // 检查反斜杠转义
+                if (i > 0 && sql.charAt(i - 1) == '\\') {
+                    int backslashCount = 0;
+                    for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                        backslashCount++;
+                    }
+                    isEscaped = (backslashCount % 2 == 1);
+                }
+                
+                // 检查双双引号转义
+                if (!isEscaped && inDoubleQuote && i + 1 < length && sql.charAt(i + 1) == '"') {
+                    i++; // 跳过下一个引号
+                    continue;
+                }
+                
+                if (!isEscaped) {
                     inDoubleQuote = !inDoubleQuote;
                 }
                 continue;
@@ -236,14 +306,54 @@ public class MySqlSqlCleaner implements SqlCleaner {
             // 处理字符串字面量
             if (!inSingleLineComment && !inMultiLineComment) {
                 if (current == '\'' && !inDoubleQuote) {
-                    if (i == 0 || sql.charAt(i - 1) != '\\') {
+                    // 检查是否是转义的单引号
+                    boolean isEscaped = false;
+                    
+                    // 检查反斜杠转义
+                    if (i > 0 && sql.charAt(i - 1) == '\\') {
+                        int backslashCount = 0;
+                        for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                            backslashCount++;
+                        }
+                        isEscaped = (backslashCount % 2 == 1);
+                    }
+                    
+                    // 检查双单引号转义
+                    if (!isEscaped && inSingleQuote && next == '\'') {
+                        result.append(current);
+                        result.append(next);
+                        i++; // 跳过下一个引号
+                        continue;
+                    }
+                    
+                    if (!isEscaped) {
                         inSingleQuote = !inSingleQuote;
                     }
                     result.append(current);
                     continue;
                 }
                 if (current == '"' && !inSingleQuote) {
-                    if (i == 0 || sql.charAt(i - 1) != '\\') {
+                    // 检查是否是转义的双引号
+                    boolean isEscaped = false;
+                    
+                    // 检查反斜杠转义
+                    if (i > 0 && sql.charAt(i - 1) == '\\') {
+                        int backslashCount = 0;
+                        for (int j = i - 1; j >= 0 && sql.charAt(j) == '\\'; j--) {
+                            backslashCount++;
+                        }
+                        isEscaped = (backslashCount % 2 == 1);
+                    }
+                    
+                    // 检查双双引号转义
+                    if (!isEscaped && inDoubleQuote && next == '"') {
+                        result.append(current);
+                        result.append(next);
+                        i++; // 跳过下一个引号
+                        continue;
+                    }
+                    
+                    if (!isEscaped) {
                         inDoubleQuote = !inDoubleQuote;
                     }
                     result.append(current);
@@ -264,14 +374,14 @@ public class MySqlSqlCleaner implements SqlCleaner {
                 continue;
             }
 
-            // 处理多行注释开始 /*
-            if (!inSingleLineComment && current == '/' && next == '*') {
+            // 处理多行注释开始 /* (只有在不在单行注释中时才处理)
+            if (!inSingleLineComment && !inMultiLineComment && current == '/' && next == '*') {
                 inMultiLineComment = true;
                 i++; // 跳过下一个 *
                 continue;
             }
 
-            // 处理多行注释结束 */
+            // 处理多行注释结束 */ (只有在多行注释中时才处理)
             if (inMultiLineComment && current == '*' && next == '/') {
                 inMultiLineComment = false;
                 i++; // 跳过下一个 /

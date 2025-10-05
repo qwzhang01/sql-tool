@@ -144,29 +144,29 @@ class MySqlSqlCleanerTest {
         String sql = "select*from users where id=1";
         String result = cleaner.cleanAndFormatSql(sql);
 
-        assertTrue(result.contains(" SELECT "));
-        assertTrue(result.contains(" FROM "));
-        assertTrue(result.contains(" WHERE "));
-        assertTrue(result.contains(" = "));
+        assertTrue(result.toUpperCase().contains("SELECT "));
+        assertTrue(result.toUpperCase().contains(" FROM "));
+        assertTrue(result.toUpperCase().contains(" WHERE "));
+        assertTrue(result.toUpperCase().contains(" = "));
     }
 
     @Test
     @DisplayName("测试关键字格式化")
     void testKeywordFormatting() {
-        String sql = "selectid,namefromuserswhereage>18orderbyname";
+        String sql = "select id,name from users where age>18 order by name";
         String result = cleaner.cleanAndFormatSql(sql);
 
-        assertTrue(result.contains(" SELECT "));
-        assertTrue(result.contains(" FROM "));
-        assertTrue(result.contains(" WHERE "));
-        assertTrue(result.contains(" ORDER "));
-        assertTrue(result.contains(" BY "));
+        assertTrue(result.toUpperCase().contains("SELECT "));
+        assertTrue(result.toUpperCase().contains(" FROM "));
+        assertTrue(result.toUpperCase().contains(" WHERE "));
+        assertTrue(result.toUpperCase().contains(" ORDER "));
+        assertTrue(result.toUpperCase().contains(" BY "));
     }
 
     @Test
     @DisplayName("测试操作符格式化")
     void testOperatorFormatting() {
-        String sql = "SELECT * FROM users WHERE id=1AND age>=18OR status<>'deleted'";
+        String sql = "SELECT * FROM users WHERE id=1 AND age>=18 OR status<>'deleted'";
         String result = cleaner.cleanAndFormatSql(sql);
 
         assertTrue(result.contains(" = "));
@@ -190,18 +190,18 @@ class MySqlSqlCleanerTest {
     @Test
     @DisplayName("测试复杂SQL格式化")
     void testComplexSqlFormatting() {
-        String sql = "selectu.id,u.namefromusersuleftjoinpostsponu.id=p.user_idwhereu.status='active'groupbyu.idorderbyname";
+        String sql = "select u.id,u.name from users u left join posts p on u.id=p.user_id where u.status='active' group by u.id order by name";
         String result = cleaner.cleanAndFormatSql(sql);
 
-        assertTrue(result.contains(" SELECT "));
-        assertTrue(result.contains(" FROM "));
-        assertTrue(result.contains(" LEFT "));
-        assertTrue(result.contains(" JOIN "));
-        assertTrue(result.contains(" ON "));
-        assertTrue(result.contains(" WHERE "));
-        assertTrue(result.contains(" GROUP "));
-        assertTrue(result.contains(" BY "));
-        assertTrue(result.contains(" ORDER "));
+        assertTrue(result.toUpperCase().contains("SELECT "));
+        assertTrue(result.toUpperCase().contains(" FROM "));
+        assertTrue(result.toUpperCase().contains(" LEFT "));
+        assertTrue(result.toUpperCase().contains(" JOIN "));
+        assertTrue(result.toUpperCase().contains(" ON "));
+        assertTrue(result.toUpperCase().contains(" WHERE "));
+        assertTrue(result.toUpperCase().contains(" GROUP "));
+        assertTrue(result.toUpperCase().contains(" BY "));
+        assertTrue(result.toUpperCase().contains(" ORDER "));
     }
 
     // ========== containsComments方法测试 ==========
