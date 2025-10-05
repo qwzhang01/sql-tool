@@ -45,7 +45,7 @@ public class SqlObj {
     /**
      * List of WHERE conditions with detailed field analysis
      */
-    private List<SqlCondition> sqlConditions;
+    private List<SqlCondition> whereConditions;
 
     /**
      * List of GROUP BY columns
@@ -146,11 +146,11 @@ public class SqlObj {
     }
 
     public List<SqlCondition> getWhereConditions() {
-        return sqlConditions;
+        return whereConditions;
     }
 
-    public void setWhereConditions(List<SqlCondition> sqlConditions) {
-        this.sqlConditions = sqlConditions;
+    public void setWhereConditions(List<SqlCondition> whereConditions) {
+        this.whereConditions = whereConditions;
     }
 
     public List<String> getGroupByColumns() {

@@ -100,7 +100,7 @@ class MySqlPureSqlParserTest {
     @Test
     @DisplayName("测试SELECT带别名")
     void testSelectWithAlias() {
-        String sql = "SELECT u.id, u.name AS user_name, email alias_email FROM users u";
+        String sql = "SELECT u.id, u.name AS user_name, email alias_email FROM users as u";
         SqlObj result = parser.parse(sql);
 
         assertNotNull(result);

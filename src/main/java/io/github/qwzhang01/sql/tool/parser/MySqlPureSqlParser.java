@@ -230,7 +230,8 @@ public class MySqlPureSqlParser implements SqlParser {
      */
     private SqlTable parseTableInfo(String tablePart) {
         tablePart = tablePart.trim();
-        String[] parts = tablePart.split("\\s+");
+        String[] parts = tablePart.split("\\s+|(?i)AS");
+        parts = Arrays.stream(parts).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
 
         SqlTable table = new SqlTable();
         table.setTableName(parts[0]);
