@@ -72,11 +72,23 @@ class MySqlPureSqlParserTest {
     }
 
     // ========== SELECT语句测试 ==========
-
     @Test
     @DisplayName("测试基础SELECT语句")
     void testBasicSelect() {
         String sql = "SELECT * FROM users";
+        SqlInfo result = parser.parse(sql);
+
+        assertNotNull(result);
+        assertEquals(SqlInfo.SqlType.SELECT, result.getSqlType());
+        assertEquals("users", result.getMainTable().getTableName());
+        assertNull(result.getMainTable().getAlias());
+    }
+
+    @Test
+    @DisplayName("测试基础SELECT语句")
+    void testQuotSelect() {
+        String sql = "SELECT * FROM user_table  LEFT JOIN `order_table` ON `user_table`.`user_id` = `order_table`.`user_id`";
+
         SqlInfo result = parser.parse(sql);
 
         assertNotNull(result);
