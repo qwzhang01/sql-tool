@@ -454,9 +454,23 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("NOT IN");
             condition.setRightOperand(parts[1].trim());
         }
+        // NOT IN (must check before IN)
+        else if (conditionStr.toUpperCase().contains(" NOT IN(")) {
+            String[] parts = conditionStr.split("\\s+(?i)NOT\\s+IN");
+            condition.setLeftOperand(parts[0].trim());
+            condition.setOperator("NOT IN");
+            condition.setRightOperand(parts[1].trim());
+        }
         // IN
         else if (conditionStr.toUpperCase().contains(" IN ")) {
             String[] parts = conditionStr.split("\\s+(?i)IN\\s+");
+            condition.setLeftOperand(parts[0].trim());
+            condition.setOperator("IN");
+            condition.setRightOperand(parts[1].trim());
+        }
+        // IN
+        else if (conditionStr.toUpperCase().contains(" IN(")) {
+            String[] parts = conditionStr.split("\\s+(?i)IN");
             condition.setLeftOperand(parts[0].trim());
             condition.setOperator("IN");
             condition.setRightOperand(parts[1].trim());
