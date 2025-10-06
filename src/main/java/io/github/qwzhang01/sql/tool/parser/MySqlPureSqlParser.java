@@ -63,31 +63,31 @@ public class MySqlPureSqlParser implements SqlParser {
             } else if (sqlObj.getOriginalSql().toUpperCase().startsWith("DELETE")) {
                 parseDelete(sqlObj);
             } else {
-                throw new IllegalArgumentException("不支持的SQL类型: " + sql);
+                throw new IllegalArgumentException("Unsupported SQL type: " + sql);
             }
 
             return sqlObj;
         } catch (IllegalArgumentException e) {
             throw new UnSupportedException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new ParseException("解析SQL失败: " + sql, e);
+            throw new ParseException("Failed to parse SQL: " + sql, e);
         }
     }
 
     @Override
     public List<SqlJoin> parseJoin(String sql) {
         if (sql == null || sql.trim().isEmpty()) {
-            throw new IllegalArgumentException("SQL不能为空");
+            throw new IllegalArgumentException("SQL cannot be null or empty");
         }
 
         sql = getCleaner().cleanSql(sql).trim();
 
-        // 如果直接是JOIN语句
+        // If it's a direct JOIN statement
         if (containsJoin(sql)) {
             return parseJoinTables(sql);
         }
 
-        // 没有JOIN，返回空列表
+        // No JOIN, return empty list
         return new ArrayList<>();
     }
 
@@ -104,22 +104,22 @@ public class MySqlPureSqlParser implements SqlParser {
     @Override
     public List<SqlCondition> parseWhere(String sql) {
         if (sql == null || sql.trim().isEmpty()) {
-            throw new IllegalArgumentException("SQL不能为空");
+            throw new IllegalArgumentException("SQL cannot be null or empty");
         }
 
         SqlObj sqlObj = new SqlObj();
         sqlObj.setOriginalSql(sql);
-        // 清理SQL中的注释和多余空白字符
+        // Clean comments and extra whitespace in SQL
         sqlObj.setOriginalSql(getCleaner().cleanSql(sqlObj.getOriginalSql()).trim());
         if (!sqlObj.getOriginalSql().toUpperCase().startsWith("WHERE")) {
-            throw new IllegalArgumentException("不支持的JOIN类型: " + sql);
+            throw new IllegalArgumentException("Unsupported JOIN type: " + sql);
         }
         parseWhereConditions(sqlObj.getOriginalSql().substring(5).trim(), sqlObj);
         return sqlObj.getWhereConditions();
     }
 
     /**
-     * 解析SELECT语句
+     * Parse SELECT statement
      */
     private void parseSelect(SqlObj sqlObj) {
         String sql = sqlObj.getOriginalSql();
@@ -135,33 +135,33 @@ public class MySqlPureSqlParser implements SqlParser {
             String orderByClause = matcher.group(6);
             String limitClause = matcher.group(7);
 
-            // 解析SELECT字段
+            // Parse SELECT fields
             sqlObj.setSelectColumns(parseSelectColumns(selectClause));
 
-            // 解析FROM子句（包含JOIN）
+            // Parse FROM clause (including JOIN)
             parseFromClause(fromClause, sqlObj);
 
-            // 解析WHERE条件
+            // Parse WHERE conditions
             if (whereClause != null) {
                 parseWhereConditions(whereClause, sqlObj);
             }
 
-            // 解析GROUP BY
+            // Parse GROUP BY
             if (groupByClause != null) {
                 parseGroupBy(groupByClause, sqlObj);
             }
 
-            // 解析HAVING
+            // Parse HAVING
             if (havingClause != null) {
                 sqlObj.setHavingCondition(havingClause.trim());
             }
 
-            // 解析ORDER BY
+            // Parse ORDER BY
             if (orderByClause != null) {
                 parseOrderBy(orderByClause, sqlObj);
             }
 
-            // 解析LIMIT
+            // Parse LIMIT
             if (limitClause != null) {
                 parseLimit(limitClause, sqlObj);
             }
@@ -169,7 +169,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析SELECT字段
+     * Parse SELECT fields
      */
     private List<SqlField> parseSelectColumns(String selectClause) {
         List<SqlField> columns = new ArrayList<>();
@@ -179,13 +179,13 @@ public class MySqlPureSqlParser implements SqlParser {
             part = part.trim();
             SqlField column = new SqlField();
 
-            // 检查是否有别名
+            // Check if there's an alias
             if (part.toUpperCase().contains(" AS ")) {
                 String[] aliasParts = part.split("\\s+(?i)AS\\s+");
                 column.setFieldName(aliasParts[0].trim());
                 column.setAlias(aliasParts[1].trim());
             } else {
-                // 检查简单别名（空格分隔）
+                // Check simple alias (space separated)
                 String[] spaceParts = part.split("\\s+");
                 if (spaceParts.length == 2 && !spaceParts[1].toUpperCase().matches("FROM|WHERE|GROUP|ORDER|LIMIT")) {
                     column.setFieldName(spaceParts[0].trim());
@@ -195,7 +195,7 @@ public class MySqlPureSqlParser implements SqlParser {
                 }
             }
 
-            // 解析表别名
+            // Parse table alias
             if (column.getFieldName().contains(".")) {
                 String[] tableParts = column.getFieldName().split("\\.");
                 column.setTableAlias(tableParts[0]);
@@ -209,24 +209,24 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析FROM子句（包含JOIN）
+     * Parse FROM clause (including JOIN)
      */
     private void parseFromClause(String fromClause, SqlObj sqlObj) {
-        // 首先提取主表
+        // First extract the main table
         String[] parts = fromClause.split("\\s+(?i)(?:INNER\\s+JOIN|LEFT\\s+(?:OUTER\\s+)?JOIN|RIGHT\\s+(?:OUTER\\s+)?JOIN|FULL\\s+(?:OUTER\\s+)?JOIN|CROSS\\s+JOIN|JOIN)");
         String mainTablePart = parts[0].trim();
 
-        // 解析主表
+        // Parse main table
         SqlTable mainTable = parseTableInfo(mainTablePart);
         sqlObj.setMainTable(mainTable);
 
-        // 解析JOIN表
+        // Parse JOIN tables
         List<SqlJoin> joinTables = parseJoinTables(fromClause);
         sqlObj.setJoinTables(joinTables);
     }
 
     /**
-     * 解析表信息
+     * Parse table information
      */
     private SqlTable parseTableInfo(String tablePart) {
         tablePart = tablePart.trim();
@@ -244,7 +244,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析JOIN表
+     * Parse JOIN tables
      */
     private List<SqlJoin> parseJoinTables(String fromClause) {
         Matcher matcher = JOIN_PATTERN.matcher(fromClause);
@@ -255,7 +255,7 @@ public class MySqlPureSqlParser implements SqlParser {
             String tableAlias = matcher.group(3);
             String joinConditionStr = matcher.group(4);
 
-            // 解析JOIN类型
+            // Parse JOIN type
             JoinType joinType = switch (joinTypeStr) {
                 case "INNER_JOIN", "JOIN" -> JoinType.INNER_JOIN;
                 case "LEFT_JOIN", "LEFT_OUTER_JOIN" -> JoinType.LEFT_JOIN;
@@ -265,18 +265,18 @@ public class MySqlPureSqlParser implements SqlParser {
                 default -> JoinType.INNER_JOIN;
             };
 
-            // 创建JOIN信息
+            // Create JOIN information
             SqlJoin sqlJoin = new SqlJoin();
             sqlJoin.setJoinType(joinType);
-            // 去掉反引号
+            // Remove backticks
             sqlJoin.setTableName(tableName != null ? tableName.replaceAll("`", "") : null);
             sqlJoin.setAlias(tableAlias != null ? tableAlias.replaceAll("`", "") : null);
 
-            // 解析JOIN条件
+            // Parse JOIN conditions
             if (joinConditionStr != null) {
                 sqlJoin.setCondition(joinConditionStr.trim());
 
-                // 解析详细的JOIN条件
+                // Parse detailed JOIN conditions
                 List<SqlCondition> joinConditions = parseJoinConditions(joinConditionStr.trim());
                 sqlJoin.setJoinConditions(joinConditions);
             }
@@ -288,18 +288,18 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析JOIN条件
+     * Parse JOIN conditions
      */
     private List<SqlCondition> parseJoinConditions(String joinConditionStr) {
         List<SqlCondition> conditions = new ArrayList<>();
 
-        // 智能分割条件，避免破坏 BETWEEN...AND 结构
+        // Smart split conditions to avoid breaking BETWEEN...AND structure
         List<String> andParts = smartSplitByAnd(joinConditionStr);
 
         for (String part : andParts) {
             part = part.trim();
 
-            // 进一步按OR分割
+            // Further split by OR
             String[] orParts = part.split("\\s+(?i)OR\\s+");
 
             for (String orPart : orParts) {
@@ -314,18 +314,18 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析WHERE条件
+     * Parse WHERE conditions
      */
     private void parseWhereConditions(String whereClause, SqlObj sqlObj) {
         List<SqlCondition> conditions = new ArrayList<>();
 
-        // 智能分割条件，避免破坏 BETWEEN...AND 结构
+        // Smart split conditions to avoid breaking BETWEEN...AND structure
         List<String> andParts = smartSplitByAnd(whereClause);
 
         for (String part : andParts) {
             part = part.trim();
 
-            // 进一步按OR分割
+            // Further split by OR
             String[] orParts = part.split("\\s+(?i)OR\\s+");
 
             for (String orPart : orParts) {
@@ -340,7 +340,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 智能分割 WHERE 子句，避免破坏 BETWEEN...AND 结构
+     * Smart split WHERE clause to avoid breaking BETWEEN...AND structure
      */
     private List<String> smartSplitByAnd(String whereClause) {
         List<String> parts = new ArrayList<>();
@@ -350,34 +350,34 @@ public class MySqlPureSqlParser implements SqlParser {
         int i = 0;
 
         while (i < whereClause.length()) {
-            // 检查是否遇到 AND
+            // Check if we encounter AND
             if (i <= whereClause.length() - 4 && upperClause.substring(i, i + 4).equals(" AND")) {
-                // 检查这个 AND 是否在 BETWEEN...AND 结构中
+                // Check if this AND is within BETWEEN...AND structure
                 String beforeAnd = currentPart.toString().toUpperCase();
 
-                // 如果当前部分包含 BETWEEN 或 NOT BETWEEN，且没有对应的 AND，则这个 AND 属于 BETWEEN
+                // If current part contains BETWEEN or NOT BETWEEN without corresponding AND, then this AND belongs to BETWEEN
                 boolean inBetween = false;
                 if (beforeAnd.contains(" BETWEEN ") || beforeAnd.contains(" NOT BETWEEN ")) {
-                    // 简单检查：如果已经有了一个 AND，则当前 AND 是逻辑连接符
-                    // 如果没有 AND，则当前 AND 是 BETWEEN 的一部分
+                    // Simple check: if there's already an AND, then current AND is logical connector
+                    // If no AND, then current AND is part of BETWEEN
                     int betweenCount = countOccurrences(beforeAnd, " BETWEEN ");
                     int notBetweenCount = countOccurrences(beforeAnd, " NOT BETWEEN ");
                     int andCount = countOccurrences(beforeAnd, " AND ");
 
-                    // 如果 BETWEEN 的数量大于 AND 的数量，说明当前 AND 属于 BETWEEN
+                    // If BETWEEN count is greater than AND count, current AND belongs to BETWEEN
                     inBetween = (betweenCount + notBetweenCount) > andCount;
                 }
 
                 if (inBetween) {
-                    // 这个 AND 是 BETWEEN 的一部分，添加到当前部分
+                    // This AND is part of BETWEEN, add to current part
                     currentPart.append(whereClause.substring(i, i + 4));
                     i += 4;
                 } else {
-                    // 这个 AND 是逻辑连接符，分割条件
+                    // This AND is logical connector, split condition
                     parts.add(currentPart.toString().trim());
                     currentPart = new StringBuilder();
-                    i += 4; // 跳过 " AND"
-                    // 跳过后续空格
+                    i += 4; // Skip " AND"
+                    // Skip subsequent spaces
                     while (i < whereClause.length() && Character.isWhitespace(whereClause.charAt(i))) {
                         i++;
                     }
@@ -388,7 +388,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // 添加最后一部分
+        // Add last part
         if (currentPart.length() > 0) {
             parts.add(currentPart.toString().trim());
         }
@@ -397,7 +397,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 计算字符串中子串的出现次数
+     * Count occurrences of substring in text
      */
     private int countOccurrences(String text, String pattern) {
         int count = 0;
@@ -410,13 +410,13 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析单个WHERE条件
+     * Parse single WHERE condition
      */
     private SqlCondition parseWhereCondition(String conditionStr) {
         SqlCondition condition = new SqlCondition();
         conditionStr = conditionStr.trim();
 
-        // 去掉括号
+        // Remove parentheses
         if (conditionStr.startsWith("(") && conditionStr.endsWith(")")) {
             conditionStr = conditionStr.substring(1, conditionStr.length() - 1).trim();
         }
@@ -433,7 +433,7 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("IS NULL");
             condition.setRightOperand(null);
         }
-        // NOT BETWEEN (必须在 BETWEEN 之前检查)
+        // NOT BETWEEN (must check before BETWEEN)
         else if (conditionStr.toUpperCase().contains(" NOT BETWEEN ")) {
             String[] parts = conditionStr.split("\\s+(?i)NOT\\s+BETWEEN\\s+", 2);
             condition.setLeftOperand(parts[0].trim());
@@ -447,7 +447,7 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("BETWEEN");
             condition.setRightOperand(parts[1].trim());
         }
-        // NOT IN (必须在 IN 之前检查)
+        // NOT IN (must check before IN)
         else if (conditionStr.toUpperCase().contains(" NOT IN ")) {
             String[] parts = conditionStr.split("\\s+(?i)NOT\\s+IN\\s+");
             condition.setLeftOperand(parts[0].trim());
@@ -461,7 +461,7 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("IN");
             condition.setRightOperand(parts[1].trim());
         }
-        // NOT LIKE (必须在 LIKE 之前检查)
+        // NOT LIKE (must check before LIKE)
         else if (conditionStr.toUpperCase().contains(" NOT LIKE ")) {
             String[] parts = conditionStr.split("\\s+(?i)NOT\\s+LIKE\\s+");
             condition.setLeftOperand(parts[0].trim());
@@ -475,7 +475,7 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("LIKE");
             condition.setRightOperand(parts[1].trim());
         }
-        // 基本比较操作符
+        // Basic comparison operators
         else if (conditionStr.contains(">=")) {
             String[] parts = conditionStr.split(">=");
             condition.setLeftOperand(parts[0].trim());
@@ -512,7 +512,7 @@ public class MySqlPureSqlParser implements SqlParser {
             condition.setOperator("<");
             condition.setRightOperand(parts[1].trim());
         } else {
-            // 无法解析的条件
+            // Unparseable condition
             return null;
         }
 
@@ -520,7 +520,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析GROUP BY
+     * Parse GROUP BY
      */
     private void parseGroupBy(String groupByClause, SqlObj sqlObj) {
         List<String> groupByColumns = new ArrayList<>();
@@ -534,7 +534,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析ORDER BY
+     * Parse ORDER BY
      */
     private void parseOrderBy(String orderByClause, SqlObj sqlObj) {
         List<SqlOrderBy> orderByColumns = new ArrayList<>();
@@ -552,7 +552,7 @@ public class MySqlPureSqlParser implements SqlParser {
                 orderBy.setDirection(Direction.ASC);
             } else {
                 orderBy.setColumnName(part);
-                orderBy.setDirection(Direction.ASC); // 默认升序
+                orderBy.setDirection(Direction.ASC); // Default ascending
             }
 
             orderByColumns.add(orderBy);
@@ -562,24 +562,24 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析LIMIT
+     * Parse LIMIT
      */
     private void parseLimit(String limitClause, SqlObj sqlObj) {
         SqlLimit sqlLimit = new SqlLimit();
         limitClause = limitClause.trim();
 
         if (limitClause.contains("OFFSET")) {
-            // LIMIT n OFFSET m 格式
+            // LIMIT n OFFSET m format
             String[] parts = limitClause.split("\\s+(?i)OFFSET\\s+");
             sqlLimit.setLimit(Integer.parseInt(parts[0].trim()));
             sqlLimit.setOffset(Integer.parseInt(parts[1].trim()));
         } else if (limitClause.contains(",")) {
-            // LIMIT m, n 格式 (MySQL特有)
+            // LIMIT m, n format (MySQL specific)
             String[] parts = limitClause.split(",");
             sqlLimit.setOffset(Integer.parseInt(parts[0].trim()));
             sqlLimit.setLimit(Integer.parseInt(parts[1].trim()));
         } else {
-            // LIMIT n 格式
+            // LIMIT n format
             sqlLimit.setLimit(Integer.parseInt(limitClause));
             sqlLimit.setOffset(0);
         }
@@ -588,7 +588,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析INSERT语句
+     * Parse INSERT statement
      */
     private void parseInsert(SqlObj sqlObj) {
         String sql = sqlObj.getOriginalSql();
@@ -601,12 +601,12 @@ public class MySqlPureSqlParser implements SqlParser {
             String columnsStr = matcher.group(2);
             String valuesStr = matcher.group(3);
 
-            // 设置主表
+            // Set main table
             SqlTable mainTable = new SqlTable();
             mainTable.setTableName(tableName);
             sqlObj.setMainTable(mainTable);
 
-            // 解析字段
+            // Parse fields
             List<String> columnNames = new ArrayList<>();
             String[] columnArray = columnsStr.split(",");
             for (String columnName : columnArray) {
@@ -614,7 +614,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
             sqlObj.setInsertColumns(columnNames);
 
-            // 解析值
+            // Parse values
             List<Object> values = new ArrayList<>();
             String[] valueArray = valuesStr.split(",");
             for (String value : valueArray) {
@@ -625,7 +625,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析UPDATE语句
+     * Parse UPDATE statement
      */
     private void parseUpdate(SqlObj sqlObj) {
         String sql = sqlObj.getOriginalSql();
@@ -639,11 +639,11 @@ public class MySqlPureSqlParser implements SqlParser {
             String whereClause = matcher.group(3);
             String limitClause = matcher.group(4);
 
-            // 解析表信息
+            // Parse table information
             SqlTable mainTable = parseTableInfo(tableInfo);
             sqlObj.setMainTable(mainTable);
 
-            // 解析SET子句
+            // Parse SET clause
             Map<String, Object> updateValues = new HashMap<>();
             String[] setParts = setClause.split(",");
             for (String part : setParts) {
@@ -654,12 +654,12 @@ public class MySqlPureSqlParser implements SqlParser {
             }
             sqlObj.setUpdateValues(updateValues);
 
-            // 解析WHERE条件
+            // Parse WHERE conditions
             if (whereClause != null) {
                 parseWhereConditions(whereClause, sqlObj);
             }
 
-            // 解析LIMIT
+            // Parse LIMIT
             if (limitClause != null) {
                 parseLimit(limitClause, sqlObj);
             }
@@ -667,7 +667,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 解析DELETE语句
+     * Parse DELETE statement
      */
     private void parseDelete(SqlObj sqlObj) {
         String sql = sqlObj.getOriginalSql();
@@ -679,16 +679,16 @@ public class MySqlPureSqlParser implements SqlParser {
             String whereClause = matcher.group(2);
             String limitClause = matcher.group(3);
 
-            // 解析表信息
+            // Parse table information
             SqlTable mainTable = parseTableInfo(tableInfo);
             sqlObj.setMainTable(mainTable);
 
-            // 解析WHERE条件
+            // Parse WHERE conditions
             if (whereClause != null) {
                 parseWhereConditions(whereClause, sqlObj);
             }
 
-            // 解析LIMIT
+            // Parse LIMIT
             if (limitClause != null) {
                 parseLimit(limitClause, sqlObj);
             }
@@ -718,12 +718,12 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 构建SELECT SQL
+     * Build SELECT SQL
      */
     private void buildSelectSql(SqlObj sqlObj, StringBuilder sql) {
         sql.append("SELECT ");
 
-        // SELECT字段
+        // SELECT fields
         if (sqlObj.getSelectColumns() != null && !sqlObj.getSelectColumns().isEmpty()) {
             for (int i = 0; i < sqlObj.getSelectColumns().size(); i++) {
                 if (i > 0) {
@@ -744,13 +744,13 @@ public class MySqlPureSqlParser implements SqlParser {
             sql.append("*");
         }
 
-        // FROM子句
+        // FROM clause
         sql.append(" FROM ").append(sqlObj.getMainTable().getTableName());
         if (sqlObj.getMainTable().getAlias() != null) {
             sql.append(" ").append(sqlObj.getMainTable().getAlias());
         }
 
-        // JOIN子句
+        // JOIN clause
         if (sqlObj.getJoinTables() != null) {
             for (SqlJoin join : sqlObj.getJoinTables()) {
                 sql.append(" ").append(join.getJoinType().getSqlKeyword());
@@ -764,7 +764,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // WHERE子句
+        // WHERE clause
         if (sqlObj.getWhereConditions() != null && !sqlObj.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int i = 0; i < sqlObj.getWhereConditions().size(); i++) {
@@ -775,7 +775,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // GROUP BY子句
+        // GROUP BY clause
         if (sqlObj.getGroupByColumns() != null && !sqlObj.getGroupByColumns().isEmpty()) {
             sql.append(" GROUP BY ");
             for (int i = 0; i < sqlObj.getGroupByColumns().size(); i++) {
@@ -786,12 +786,12 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // HAVING子句
+        // HAVING clause
         if (sqlObj.getHavingCondition() != null) {
             sql.append(" HAVING ").append(sqlObj.getHavingCondition());
         }
 
-        // ORDER BY子句
+        // ORDER BY clause
         if (sqlObj.getOrderByColumns() != null && !sqlObj.getOrderByColumns().isEmpty()) {
             sql.append(" ORDER BY ");
             for (int i = 0; i < sqlObj.getOrderByColumns().size(); i++) {
@@ -803,7 +803,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // LIMIT子句
+        // LIMIT clause
         if (sqlObj.getLimitInfo() != null) {
             sql.append(" LIMIT ").append(sqlObj.getLimitInfo().getLimit());
             if (sqlObj.getLimitInfo().getOffset() > 0) {
@@ -813,7 +813,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 构建INSERT SQL
+     * Build INSERT SQL
      */
     private void buildInsertSql(SqlObj sqlObj, StringBuilder sql) {
         sql.append("INSERT INTO ").append(sqlObj.getMainTable().getTableName());
@@ -840,7 +840,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 构建UPDATE SQL
+     * Build UPDATE SQL
      */
     private void buildUpdateSql(SqlObj sqlObj, StringBuilder sql) {
         sql.append("UPDATE ").append(sqlObj.getMainTable().getTableName());
@@ -860,7 +860,7 @@ public class MySqlPureSqlParser implements SqlParser {
             }
         }
 
-        // WHERE子句
+        // WHERE clause
         if (sqlObj.getWhereConditions() != null && !sqlObj.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int j = 0; j < sqlObj.getWhereConditions().size(); j++) {
@@ -873,12 +873,12 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 构建DELETE SQL
+     * Build DELETE SQL
      */
     private void buildDeleteSql(SqlObj sqlObj, StringBuilder sql) {
         sql.append("DELETE FROM ").append(sqlObj.getMainTable().getTableName());
 
-        // WHERE子句
+        // WHERE clause
         if (sqlObj.getWhereConditions() != null && !sqlObj.getWhereConditions().isEmpty()) {
             sql.append(" WHERE ");
             for (int i = 0; i < sqlObj.getWhereConditions().size(); i++) {
@@ -891,7 +891,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * 构建条件字符串
+     * Build condition string
      */
     private String buildConditionString(SqlCondition condition) {
         StringBuilder sb = new StringBuilder();

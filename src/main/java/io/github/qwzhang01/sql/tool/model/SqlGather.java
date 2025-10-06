@@ -162,21 +162,23 @@ public class SqlGather {
         private final FieldType fieldType;
         private final OperatorType operatorType;
         private final int actualParamCount;
-
-        public FieldCondition(String tableAlias, String columnName) {
-            this(tableAlias, columnName, FieldType.CONDITION, OperatorType.SINGLE_PARAM, 1);
-        }
+        private final Object value;
 
         public FieldCondition(String tableAlias, String columnName, FieldType fieldType) {
-            this(tableAlias, columnName, fieldType, OperatorType.SINGLE_PARAM, 1);
+            this(tableAlias, columnName, fieldType, OperatorType.SINGLE_PARAM, 1, null);
         }
 
-        public FieldCondition(String tableAlias, String columnName, FieldType fieldType, OperatorType operatorType, int actualParamCount) {
+        public FieldCondition(String tableAlias, String columnName, FieldType fieldType, OperatorType operatorType, int actualParamCount, Object value) {
             this.tableAlias = tableAlias;
             this.columnName = columnName;
             this.fieldType = fieldType;
             this.operatorType = operatorType;
             this.actualParamCount = actualParamCount;
+            this.value = value;
+        }
+
+        public Object getValue() {
+            return value;
         }
 
         public String tableAlias() {
@@ -218,7 +220,8 @@ public class SqlGather {
             String tableName,       // Table name
             String fieldName,       // Field name
             String tableAlias,      // Table alias
-            FieldType fieldType     // Field type
+            FieldType fieldType,// Field type
+            Object value
     ) {
         /**
          * Gets the effective table identifier (prioritizes alias).

@@ -220,7 +220,7 @@ public class SqlCondition {
                     return ((List<?>) rightOperand).size();
                 } else if (rightOperand instanceof String) {
                     String str = (String) rightOperand;
-                    // 简单计算逗号分隔的值数量
+                    // Simple calculation of comma-separated value count
                     if (str.contains(",")) {
                         return str.split(",").length;
                     }

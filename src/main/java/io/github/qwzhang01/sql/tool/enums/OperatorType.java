@@ -15,10 +15,6 @@ public enum OperatorType {
         this.paramCount = paramCount;
     }
 
-    public int getParamCount() {
-        return paramCount;
-    }
-
     public static OperatorType convertOperatorType(String operator) {
         if (operator == null) {
             return OperatorType.SINGLE_PARAM;
@@ -31,5 +27,9 @@ public enum OperatorType {
             case "IS NULL", "IS NOT NULL" -> OperatorType.NO_PARAM;
             default -> OperatorType.SINGLE_PARAM;
         };
+    }
+
+    public int getParamCount() {
+        return paramCount;
     }
 }

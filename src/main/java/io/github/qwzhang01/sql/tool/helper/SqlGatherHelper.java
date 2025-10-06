@@ -5,10 +5,36 @@ import io.github.qwzhang01.sql.tool.enums.OperatorType;
 import io.github.qwzhang01.sql.tool.enums.TableType;
 import io.github.qwzhang01.sql.tool.model.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static io.github.qwzhang01.sql.tool.enums.OperatorType.SINGLE_PARAM;
+
 public class SqlGatherHelper {
+    public static List<SqlParam> param(String sql) {
+        SqlGather analysis = analysis(sql);
+        List<SqlGather.ParameterFieldMapping> parameterMappings = analysis.getParameterMappings();
+
+        List<SqlParam> list = parameterMappings.stream().filter(p -> {
+            if (p.value() != null) {
+                return String.valueOf(p.value()).contains("?");
+            }
+            return false;
+        }).map(p -> {
+            SqlParam sqlParam = new SqlParam();
+            sqlParam.setFieldName(p.fieldName());
+            sqlParam.setTableName(p.tableName());
+            sqlParam.setTableAlias(p.tableAlias());
+            sqlParam.setIndex(p.parameterIndex());
+            return sqlParam;
+        }).sorted(Comparator.comparing(SqlParam::getIndex)).toList();
+
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).setIndex(i);
+        }
+        return list;
+    }
 
     /**
      * 将 SqlInfo 对象转换为 SqlAnalysisInfo 对象
@@ -18,7 +44,7 @@ public class SqlGatherHelper {
      * @throws IllegalArgumentException 如果 sqlInfo 为 null
      */
     public static SqlGather analysis(String sql) {
-        if (sql == null || sql.isEmpty()) {
+        if (sql == null || sql.isEmpty() || sql.trim().isEmpty()) {
             throw new IllegalArgumentException("SQL cannot be null");
         }
 
@@ -48,7 +74,7 @@ public class SqlGatherHelper {
         convertUpdateSetFields(sqlObj, analysisInfo);
 
         // 转换参数映射
-        convertParameterMappings(sqlObj, analysisInfo);
+        convertParameterMappings(analysisInfo);
 
         return analysisInfo;
     }
@@ -124,7 +150,7 @@ public class SqlGatherHelper {
             OperatorType operatorType = OperatorType.convertOperatorType(sqlCondition.getOperator());
             int paramCount = calculateParamCount(sqlCondition);
 
-            SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(tableAlias, fieldName, FieldType.CONDITION, operatorType, paramCount);
+            SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(tableAlias, fieldName, FieldType.CONDITION, operatorType, paramCount, sqlCondition.getRightOperand());
             analysisInfo.addCondition(fieldCondition);
         }
 
@@ -142,10 +168,16 @@ public class SqlGatherHelper {
      */
     private static void convertInsertFields(SqlObj sqlObj, SqlGather analysisInfo) {
         List<String> insertColumns = sqlObj.getInsertColumns();
+        List<Object> insertValues = sqlObj.getInsertValues();
         if (insertColumns != null) {
+            if (insertValues == null || insertColumns.size() != insertValues.size()) {
+                throw new IllegalArgumentException("INSERT columns and values count not match");
+            }
             String mainTableAlias = getMainTableAlias(analysisInfo);
             for (String columnName : insertColumns) {
-                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName, FieldType.INSERT);
+                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName,
+                        FieldType.INSERT, SINGLE_PARAM, 1,
+                        insertValues.get(insertColumns.indexOf(columnName)));
                 analysisInfo.addInsertField(fieldCondition);
             }
         }
@@ -159,7 +191,7 @@ public class SqlGatherHelper {
         if (updateValues != null) {
             String mainTableAlias = getMainTableAlias(analysisInfo);
             for (String columnName : updateValues.keySet()) {
-                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName, FieldType.UPDATE_SET);
+                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName, FieldType.UPDATE_SET, SINGLE_PARAM, 1, updateValues.get(columnName));
                 analysisInfo.addSetField(fieldCondition);
             }
         }
@@ -168,7 +200,7 @@ public class SqlGatherHelper {
     /**
      * 转换参数映射
      */
-    private static void convertParameterMappings(SqlObj sqlObj, SqlGather analysisInfo) {
+    private static void convertParameterMappings(SqlGather analysisInfo) {
         // 根据字段顺序生成参数映射
         List<SqlGather.FieldCondition> allFields = analysisInfo.getAllFields();
         int parameterIndex = 0;
@@ -177,7 +209,7 @@ public class SqlGatherHelper {
             int paramCount = field.getEffectiveParamCount();
             for (int i = 0; i < paramCount; i++) {
                 String tableName = analysisInfo.getRealTableName(field.tableAlias());
-                SqlGather.ParameterFieldMapping mapping = new SqlGather.ParameterFieldMapping(parameterIndex++, tableName, field.columnName(), field.tableAlias(), field.fieldType());
+                SqlGather.ParameterFieldMapping mapping = new SqlGather.ParameterFieldMapping(parameterIndex++, tableName, field.columnName(), field.tableAlias(), field.fieldType(), field.getValue());
                 analysisInfo.addParameterMapping(mapping);
             }
         }
