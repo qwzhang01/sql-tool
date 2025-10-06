@@ -5,7 +5,7 @@ import io.github.qwzhang01.sql.tool.enums.ConditionType;
 import java.util.List;
 
 /**
- * WHERE & ON condition information with detailed field analysis.
+ * WHERE and ON condition information with detailed field analysis.
  * This class represents a single condition in a WHERE or ON clause, providing
  * comprehensive information about the field, operator, and values involved.
  *

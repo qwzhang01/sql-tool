@@ -213,7 +213,7 @@ class WhereTest {
         List<SqlCondition> result = SqlParseHelper.parseWhere(sql);
 
         assertEquals(3, result.size());
-        
+
         // 第一个条件
         assertEquals("user_id", result.get(0).getLeftOperand());
         assertEquals("=", result.get(0).getOperator());
@@ -237,7 +237,7 @@ class WhereTest {
         List<SqlCondition> result = SqlParseHelper.parseWhere(sql);
 
         assertEquals(2, result.size());
-        
+
         // 第一个条件
         assertEquals("status", result.get(0).getLeftOperand());
         assertEquals("=", result.get(0).getOperator());
@@ -266,7 +266,7 @@ class WhereTest {
         List<SqlCondition> result = SqlParseHelper.parseWhere(sql);
 
         assertEquals(2, result.size());
-        
+
         // BETWEEN条件
         assertEquals("age", result.get(0).getLeftOperand());
         assertEquals("BETWEEN", result.get(0).getOperator());
@@ -398,7 +398,7 @@ class WhereTest {
 
         assertEquals(1, result.size());
         SqlCondition condition = result.get(0);
-        
+
         assertNotNull(condition.getFieldInfo());
         assertEquals("users", condition.getFieldInfo().getTableAlias());
         assertEquals("user_id", condition.getFieldInfo().getFieldName());

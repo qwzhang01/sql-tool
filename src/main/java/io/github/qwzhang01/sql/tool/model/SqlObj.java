@@ -227,7 +227,7 @@ public class SqlObj {
                 ", mainTable=" + mainTable +
                 ", joinTables=" + joinTables +
                 ", selectColumns=" + selectColumns +
-                ", whereConditions=" + sqlConditions +
+                ", whereConditions=" + whereConditions +
                 ", groupByColumns=" + groupByColumns +
                 ", havingCondition=" + havingCondition +
                 ", orderByColumns=" + orderByColumns +

@@ -26,6 +26,15 @@ class MySqlPureSqlParserTest {
 
     // ========== 基础功能测试 ==========
 
+
+    @Test
+    @DisplayName("测试SELECT带别名")
+    void test1SelectWithAlias() {
+        String sql = " SELECT * FROM user , unit_info where user.id = unit_info.createBy";
+        SqlObj result = parser.parse(sql);
+        System.out.println("");
+    }
+
     @Test
     @DisplayName("测试空SQL和null")
     void testNullAndEmptySql() {
