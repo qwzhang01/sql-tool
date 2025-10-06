@@ -12,6 +12,34 @@ import java.util.Map;
 import static io.github.qwzhang01.sql.tool.enums.OperatorType.SINGLE_PARAM;
 
 public class SqlGatherHelper {
+    /**
+     * Extracts parameter placeholders from SQL statement and returns them as a list of SqlParam objects.
+     * This method analyzes the SQL statement to identify parameter placeholders (?) and creates
+     * corresponding SqlParam objects containing metadata about each parameter's position and context.
+     *
+     * <p>The method performs the following operations:
+     * <ul>
+     *   <li>Parses the SQL statement to extract parameter mappings</li>
+     *   <li>Filters parameter mappings that contain placeholder values ("?")</li>
+     *   <li>Creates SqlParam objects with field name, table name, table alias, and index information</li>
+     *   <li>Re-indexes the parameters sequentially starting from 0</li>
+     * </ul>
+     *
+     * <p>Example usage:
+     * <pre>
+     * String sql = "SELECT * FROM users WHERE id = ? AND name = ?";
+     * List&lt;SqlParam&gt; params = SqlGatherHelper.param(sql);
+     * // Returns 2 SqlParam objects with indexes 0 and 1
+     * </pre>
+     *
+     * @param sql the SQL statement to analyze for parameter placeholders
+     * @return a list of SqlParam objects representing the parameter placeholders in the SQL,
+     * ordered by their appearance in the statement with sequential indexes starting from 0
+     * @throws IllegalArgumentException if the SQL is null, empty, or contains only whitespace
+     * @see SqlParam
+     * @see #analysis(String)
+     * @since 1.0.0
+     */
     public static List<SqlParam> param(String sql) {
         SqlGather analysis = analysis(sql);
         List<SqlGather.ParameterFieldMapping> parameterMappings = analysis.getParameterMappings();

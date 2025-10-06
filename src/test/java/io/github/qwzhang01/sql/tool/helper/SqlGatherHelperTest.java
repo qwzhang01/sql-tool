@@ -5,11 +5,14 @@ import io.github.qwzhang01.sql.tool.enums.OperatorType;
 import io.github.qwzhang01.sql.tool.enums.SqlType;
 import io.github.qwzhang01.sql.tool.enums.TableType;
 import io.github.qwzhang01.sql.tool.model.SqlGather;
+import io.github.qwzhang01.sql.tool.model.SqlParam;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -523,5 +526,223 @@ class SqlGatherHelperTest {
         assertEquals(FieldType.CONDITION, result.getParameterMappings().get(4).fieldType());
         assertEquals(FieldType.CONDITION, result.getParameterMappings().get(5).fieldType());
         assertEquals(FieldType.CONDITION, result.getParameterMappings().get(6).fieldType());
+    }
+
+    // ========== SqlParam Method Tests ==========
+
+    @Test
+    @DisplayName("Test param method with null SQL")
+    void testParamMethodWithNullSql() {
+        assertThrows(IllegalArgumentException.class, () -> SqlGatherHelper.param(null));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "\t", "\n"})
+    @DisplayName("Test param method with empty SQL and whitespace characters")
+    void testParamMethodWithEmptyAndWhitespaceSql(String sql) {
+        assertThrows(IllegalArgumentException.class, () -> SqlGatherHelper.param(sql));
+    }
+
+    @Test
+    @DisplayName("Test param method with simple SELECT statement")
+    void testParamMethodWithSimpleSelect() {
+        String sql = "SELECT id, name FROM users WHERE id = ? AND status = ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(2, params.size());
+
+        // Verify first parameter
+        SqlParam firstParam = params.get(0);
+        assertEquals(0, firstParam.getIndex());
+        assertEquals("id", firstParam.getFieldName());
+        assertEquals("users", firstParam.getTableName());
+        assertEquals("users", firstParam.getTableAlias());
+
+        // Verify second parameter
+        SqlParam secondParam = params.get(1);
+        assertEquals(1, secondParam.getIndex());
+        assertEquals("status", secondParam.getFieldName());
+        assertEquals("users", secondParam.getTableName());
+        assertEquals("users", secondParam.getTableAlias());
+    }
+
+    @Test
+    @DisplayName("Test param method with INSERT statement")
+    void testParamMethodWithInsert() {
+        String sql = "INSERT INTO users (name, email, age) VALUES (?, ?, ?)";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(3, params.size());
+
+        // Verify parameter order and properties
+        String[] expectedFields = {"name", "email", "age"};
+        for (int i = 0; i < params.size(); i++) {
+            SqlParam param = params.get(i);
+            assertEquals(i, param.getIndex());
+            assertEquals(expectedFields[i], param.getFieldName());
+            assertEquals("users", param.getTableName());
+            assertEquals("users", param.getTableAlias());
+        }
+    }
+
+    @Test
+    @DisplayName("Test param method with UPDATE statement")
+    void testParamMethodWithUpdate() {
+        String sql = "UPDATE users SET name = ?, email = ? WHERE id = ? AND status = ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(4, params.size());
+
+        // Verify SET field parameters (should come first)
+        assertEquals(0, params.get(0).getIndex());
+        assertEquals("name", params.get(0).getFieldName());
+        assertEquals(1, params.get(1).getIndex());
+        assertEquals("email", params.get(1).getFieldName());
+
+        // Verify WHERE condition parameters (should come after SET fields)
+        assertEquals(2, params.get(2).getIndex());
+        assertEquals("id", params.get(2).getFieldName());
+        assertEquals(3, params.get(3).getIndex());
+        assertEquals("status", params.get(3).getFieldName());
+
+        // Verify all parameters belong to the same table
+        for (SqlParam param : params) {
+            assertEquals("users", param.getTableName());
+            assertEquals("users", param.getTableAlias());
+        }
+    }
+
+    @Test
+    @DisplayName("Test param method with DELETE statement")
+    void testParamMethodWithDelete() {
+        String sql = "DELETE FROM users WHERE id = ? AND created_at < ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(2, params.size());
+
+        // Verify first parameter
+        assertEquals(0, params.get(0).getIndex());
+        assertEquals("id", params.get(0).getFieldName());
+        assertEquals("users", params.get(0).getTableName());
+
+        // Verify second parameter
+        assertEquals(1, params.get(1).getIndex());
+        assertEquals("created_at", params.get(1).getFieldName());
+        assertEquals("users", params.get(1).getTableName());
+    }
+
+    @Test
+    @DisplayName("Test param method with table aliases")
+    void testParamMethodWithTableAliases() {
+        String sql = "SELECT u.name, d.dept_name FROM users u " +
+                "JOIN departments d ON u.dept_id = d.id " +
+                "WHERE u.active = ? AND d.status = ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(2, params.size());
+
+        // Verify first parameter (users table)
+        SqlParam firstParam = params.get(0);
+        assertEquals(0, firstParam.getIndex());
+        assertEquals("active", firstParam.getFieldName());
+        assertEquals("users", firstParam.getTableName());
+        assertEquals("u", firstParam.getTableAlias());
+
+        // Verify second parameter (departments table)
+        SqlParam secondParam = params.get(1);
+        assertEquals(1, secondParam.getIndex());
+        assertEquals("status", secondParam.getFieldName());
+        assertEquals("departments", secondParam.getTableName());
+        assertEquals("d", secondParam.getTableAlias());
+    }
+
+    @Test
+    @DisplayName("Test param method with complex WHERE conditions")
+    void testParamMethodWithComplexWhereConditions() {
+        String sql = "SELECT * FROM users WHERE age BETWEEN ? AND ? " +
+                "AND status IN (?, ?, ?) AND name LIKE ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(6, params.size());
+
+        // Verify BETWEEN parameters
+        assertEquals("age", params.get(0).getFieldName());
+        assertEquals("age", params.get(1).getFieldName());
+
+        // Verify IN parameters
+        assertEquals("status", params.get(2).getFieldName());
+        assertEquals("status", params.get(3).getFieldName());
+        assertEquals("status", params.get(4).getFieldName());
+
+        // Verify LIKE parameter
+        assertEquals("name", params.get(5).getFieldName());
+
+        // Verify sequential indexing
+        for (int i = 0; i < params.size(); i++) {
+            assertEquals(i, params.get(i).getIndex());
+        }
+    }
+
+    @Test
+    @DisplayName("Test param method with no parameters")
+    void testParamMethodWithNoParameters() {
+        String sql = "SELECT id, name FROM users WHERE status = 'active'";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(0, params.size());
+    }
+
+    @Test
+    @DisplayName("Test param method with mixed parameter types")
+    void testParamMethodWithMixedParameterTypes() {
+        String sql = "UPDATE users SET name = ?, status = 'active', email = ? " +
+                "WHERE id = ? AND created_at > '2023-01-01'";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(3, params.size());
+
+        // Verify SET field parameters
+        assertEquals(0, params.get(0).getIndex());
+        assertEquals("name", params.get(0).getFieldName());
+        assertEquals(1, params.get(1).getIndex());
+        assertEquals("email", params.get(1).getFieldName());
+
+        // Verify WHERE condition parameter
+        assertEquals(2, params.get(2).getIndex());
+        assertEquals("id", params.get(2).getFieldName());
+    }
+
+    @Test
+    @DisplayName("Test param method parameter index reordering")
+    void testParamMethodParameterIndexReordering() {
+        String sql = "INSERT INTO products (name, price, category_id) VALUES (?, ?, ?)";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(3, params.size());
+
+        // Verify that indexes are sequential starting from 0
+        for (int i = 0; i < params.size(); i++) {
+            assertEquals(i, params.get(i).getIndex());
+        }
+
+        // Verify field order is preserved
+        assertEquals("name", params.get(0).getFieldName());
+        assertEquals("price", params.get(1).getFieldName());
+        assertEquals("category_id", params.get(2).getFieldName());
+    }
+
+    @Test
+    @DisplayName("Test param method with subquery parameters")
+    void testParamMethodWithSubqueryParameters() {
+        String sql = "SELECT * FROM users WHERE department_id IN " +
+                "(SELECT id FROM departments WHERE status = ?) AND age > ?";
+        List<SqlParam> params = SqlGatherHelper.param(sql);
+
+        assertEquals(2, params.size());
+
+        // Verify parameters are extracted from both main query and subquery
+        assertEquals(0, params.get(0).getIndex());
+        assertEquals(1, params.get(1).getIndex());
     }
 }
