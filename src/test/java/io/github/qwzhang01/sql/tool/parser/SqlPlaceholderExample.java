@@ -1,4 +1,3 @@
-
 package io.github.qwzhang01.sql.tool.parser;
 
 import io.github.qwzhang01.sql.tool.helper.SqlParseHelper;

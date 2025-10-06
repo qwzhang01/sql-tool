@@ -10,9 +10,11 @@
     <version>1.0.0</version>
 
     <name>SQL Tool</name>
-    <description>A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with comprehensive MySQL syntax support</description>
+    <description>A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with
+        comprehensive MySQL syntax support
+    </description>
     <url>https://github.com/qwzhang01/sql-tool</url>
-    
+
     <licenses>
         <license>
             <name>MIT License</name>
@@ -20,7 +22,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <developers>
         <developer>
             <id>qwzhang01</id>
@@ -29,7 +31,7 @@
             <url>https://github.com/qwzhang01</url>
         </developer>
     </developers>
-    
+
     <scm>
         <connection>scm:git:git://github.com/qwzhang01/sql-tool.git</connection>
         <developerConnection>scm:git:ssh://github.com:qwzhang01/sql-tool.git</developerConnection>
@@ -45,11 +47,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.jsqlparser</groupId>
-            <artifactId>jsqlparser</artifactId>
-            <version>5.3</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
