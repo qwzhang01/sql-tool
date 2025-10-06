@@ -1,4 +1,9 @@
-package io.github.qwzhang01.sql.tool.helper;
+package io.github.qwzhang01.sql.tool.model;
+
+import io.github.qwzhang01.sql.tool.enums.FieldType;
+import io.github.qwzhang01.sql.tool.enums.OperatorType;
+import io.github.qwzhang01.sql.tool.enums.SqlType;
+import io.github.qwzhang01.sql.tool.enums.TableType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +17,7 @@ import java.util.Map;
  *
  * @author avinzhang
  */
-public class SqlAnalysisInfo {
+public class SqlGather {
 
     // Table information list
     private final List<TableInfo> tables = new ArrayList<>();
@@ -28,11 +33,9 @@ public class SqlAnalysisInfo {
     private final List<ParameterFieldMapping> parameterMappings = new ArrayList<>();
     // Table alias mapping
     private final Map<String, String> aliasToTableMap = new HashMap<>();
-    // SQL statement type
     private SqlType sqlType;
 
     // ========== Basic Operation Methods ==========
-
     public SqlType getSqlType() {
         return sqlType;
     }
@@ -133,58 +136,10 @@ public class SqlAnalysisInfo {
         return aliasToTableMap.getOrDefault(aliasOrTableName, aliasOrTableName);
     }
 
-    // ========== Inner Classes and Enums ==========
-
-    /**
-     * SQL statement type enumeration.
-     */
-    public enum SqlType {
-        SELECT, INSERT, UPDATE, DELETE
-    }
-
-    /**
-     * Table type enumeration.
-     */
-    public enum TableType {
-        MAIN,      // Main table
-        JOIN,      // JOIN table
-        SUBQUERY   // Subquery table
-    }
-
-    /**
-     * Field type enumeration.
-     */
-    public enum FieldType {
-        SELECT,     // SELECT field
-        INSERT,     // INSERT field
-        UPDATE_SET, // UPDATE SET field
-        CONDITION   // WHERE/HAVING condition field
-    }
-
-    /**
-     * Operator type enumeration.
-     */
-    public enum OperatorType {
-        SINGLE_PARAM(1),    // Single parameter operators: =, !=, <, >, <=, >=, LIKE
-        IN_OPERATOR(0),     // IN operator: parameter count dynamically determined
-        BETWEEN_OPERATOR(2), // BETWEEN operator: fixed 2 parameters
-        NO_PARAM(0);        // No parameter operators: IS NULL, IS NOT NULL
-
-        private final int paramCount;
-
-        OperatorType(int paramCount) {
-            this.paramCount = paramCount;
-        }
-
-        public int getParamCount() {
-            return paramCount;
-        }
-    }
-
     /**
      * Table information record.
      */
-    public static record TableInfo(String tableName, String alias, TableType tableType) {
+    public record TableInfo(String tableName, String alias, TableType tableType) {
 
         public TableInfo(String tableName, String alias) {
             this(tableName, alias, TableType.MAIN);
@@ -265,7 +220,6 @@ public class SqlAnalysisInfo {
             String tableAlias,      // Table alias
             FieldType fieldType     // Field type
     ) {
-
         /**
          * Gets the effective table identifier (prioritizes alias).
          */
