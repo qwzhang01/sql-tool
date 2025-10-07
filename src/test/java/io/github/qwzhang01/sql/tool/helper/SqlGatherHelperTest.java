@@ -802,4 +802,18 @@ class SqlGatherHelperTest {
         assertEquals("id", mappings.get(5).fieldName());
         assertEquals("id", mappings.get(6).fieldName());
     }
+
+    @Test
+    @DisplayName("测试无别名时的表名解析")
+    public void testParameterMappingWithoutAlias() {
+        String sql = "SELECT name FROM user WHERE phone = ?";
+
+        SqlGather result = SqlGatherHelper.analysis(sql);
+
+        assertEquals(1, result.getParameterMappings().size());
+        SqlGather.ParameterFieldMapping mapping = result.getParameterMappings().get(0);
+        assertEquals("user", mapping.tableName());
+        assertEquals("phone", mapping.fieldName());
+        assertEquals("user", mapping.tableAlias());
+    }
 }
