@@ -10,7 +10,7 @@ package io.github.qwzhang01.sql.tool.enums;
 public enum OperatorType {
     /**
      * Single parameter operators that require exactly one parameter value.
-     * Examples: =, !=, <, >, <=, >=, LIKE, NOT LIKE
+     * Examples: "=, !=, "&lt;", "&gt;", "&lt;=", "&gt;=", LIKE, NOT LIKE"
      * Usage: field = ? or field LIKE ?
      */
     SINGLE_PARAM(1),

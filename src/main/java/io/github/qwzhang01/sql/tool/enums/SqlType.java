@@ -32,7 +32,7 @@ public enum SqlType {
     /**
      * DELETE statement for data removal.
      * Used to remove records from a table based on specified conditions.
-     * Example: DELETE FROM users WHERE age < 18
+     * Example: DELETE FROM users WHERE age &gt;= 18
      */
     DELETE,
 
