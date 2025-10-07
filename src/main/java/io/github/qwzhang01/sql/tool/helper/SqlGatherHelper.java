@@ -91,8 +91,9 @@ public class SqlGatherHelper {
         // 转换 SELECT 字段
         convertSelectFields(sqlObj, analysisInfo);
 
+        convertJoinConditions(sqlObj, analysisInfo);
         // 转换 WHERE 条件
-        convertWhereConditions(sqlObj, analysisInfo);
+        convertWhereConditions(sqlObj, analysisInfo, FieldType.CONDITION_WHERE);
 
         // 转换 INSERT 字段
         convertInsertFields(sqlObj, analysisInfo);
@@ -112,8 +113,8 @@ public class SqlGatherHelper {
     private static void convertMainTable(SqlObj sqlObj, SqlGather analysisInfo) {
         SqlTable mainTable = sqlObj.getMainTable();
         if (mainTable != null) {
-            SqlGather.TableInfo tableInfo = new SqlGather.TableInfo(mainTable.getTableName(), mainTable.getAlias(), TableType.MAIN);
-            analysisInfo.addTable(tableInfo);
+            SqlGather.Table table = new SqlGather.Table(mainTable.getTableName(), mainTable.getAlias(), TableType.MAIN);
+            analysisInfo.addTable(table);
         }
     }
 
@@ -124,8 +125,8 @@ public class SqlGatherHelper {
         List<SqlJoin> joinTables = sqlObj.getJoinTables();
         if (joinTables != null) {
             for (SqlJoin sqlJoin : joinTables) {
-                SqlGather.TableInfo tableInfo = new SqlGather.TableInfo(sqlJoin.getTableName(), sqlJoin.getAlias(), TableType.JOIN);
-                analysisInfo.addTable(tableInfo);
+                SqlGather.Table table = new SqlGather.Table(sqlJoin.getTableName(), sqlJoin.getAlias(), TableType.JOIN);
+                analysisInfo.addTable(table);
             }
         }
     }
@@ -143,8 +144,25 @@ public class SqlGatherHelper {
                 }
 
                 String tableAlias = determineTableAlias(columnInfo, analysisInfo);
-                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(tableAlias, columnInfo.getFieldName(), FieldType.SELECT);
-                analysisInfo.addSelectField(fieldCondition);
+                SqlGather.Field field = new SqlGather.Field(tableAlias, columnInfo.getFieldName(), FieldType.SELECT);
+                analysisInfo.addSelectField(field);
+            }
+        }
+    }
+
+    private static void convertJoinConditions(SqlObj sqlObj, SqlGather analysisInfo) {
+        List<SqlJoin> joinTables = sqlObj.getJoinTables();
+        if (joinTables == null || joinTables.isEmpty()) {
+            return;
+        }
+        for (SqlJoin joinTable : joinTables) {
+            List<SqlCondition> joinConditions = joinTable.getJoinConditions();
+            if (joinConditions != null && !joinConditions.isEmpty()) {
+                for (SqlCondition joinCondition : joinConditions) {
+                    if (joinCondition.getRightFieldInfo() == null) {
+                        convertWhereCondition(joinCondition, analysisInfo, FieldType.CONDITION_JOIN);
+                    }
+                }
             }
         }
     }
@@ -152,11 +170,11 @@ public class SqlGatherHelper {
     /**
      * 转换 WHERE 条件
      */
-    private static void convertWhereConditions(SqlObj sqlObj, SqlGather analysisInfo) {
+    private static void convertWhereConditions(SqlObj sqlObj, SqlGather analysisInfo, FieldType fieldType) {
         List<SqlCondition> sqlConditions = sqlObj.getWhereConditions();
         if (sqlConditions != null) {
             for (SqlCondition sqlCondition : sqlConditions) {
-                convertWhereCondition(sqlCondition, analysisInfo);
+                convertWhereCondition(sqlCondition, analysisInfo, fieldType);
             }
         }
     }
@@ -164,7 +182,7 @@ public class SqlGatherHelper {
     /**
      * 递归转换单个 WHERE 条件
      */
-    private static void convertWhereCondition(SqlCondition sqlCondition, SqlGather analysisInfo) {
+    private static void convertWhereCondition(SqlCondition sqlCondition, SqlGather analysisInfo, FieldType fieldType) {
         if (sqlCondition == null || sqlCondition.isEmpty()) {
             return;
         }
@@ -177,15 +195,19 @@ public class SqlGatherHelper {
             OperatorType operatorType = OperatorType.convertOperatorType(sqlCondition.getOperator());
             int paramCount = calculateParamCount(sqlCondition);
 
-            SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(tableAlias, fieldName, FieldType.CONDITION, operatorType, paramCount, sqlCondition.getRightOperand());
-            analysisInfo.addCondition(fieldCondition);
+            analysisInfo.addCondition(new SqlGather.Field(tableAlias,
+                    fieldName,
+                    fieldType,
+                    operatorType,
+                    paramCount,
+                    sqlCondition.getRightOperand()));
         }
 
         // 递归处理子条件
         List<SqlCondition> subConditions = sqlCondition.getSubConditions();
         if (subConditions != null) {
             for (SqlCondition subCondition : subConditions) {
-                convertWhereCondition(subCondition, analysisInfo);
+                convertWhereCondition(subCondition, analysisInfo, fieldType);
             }
         }
     }
@@ -200,7 +222,7 @@ public class SqlGatherHelper {
         String mainTableAlias = getMainTableAlias(analysisInfo);
         for (int i = 0; i < sqlObj.getInsertValues().size(); i++) {
             SqlUpdateColumn column = sqlObj.getInsertValues().get(i);
-            analysisInfo.addInsertField(new SqlGather.FieldCondition(mainTableAlias,
+            analysisInfo.addInsertField(new SqlGather.Field(mainTableAlias,
                     column.columnName(),
                     FieldType.INSERT, SINGLE_PARAM,
                     1,
@@ -219,7 +241,7 @@ public class SqlGatherHelper {
         List<SqlUpdateColumn> updateValues = sqlObj.getUpdateValues();
         String mainTableAlias = getMainTableAlias(analysisInfo);
         for (SqlUpdateColumn column : updateValues) {
-            analysisInfo.addSetField(new SqlGather.FieldCondition(mainTableAlias,
+            analysisInfo.addSetField(new SqlGather.Field(mainTableAlias,
                     column.columnName(),
                     FieldType.UPDATE_SET,
                     SINGLE_PARAM,
@@ -233,14 +255,22 @@ public class SqlGatherHelper {
      */
     private static void convertParameterMappings(SqlGather analysisInfo) {
         // 根据字段顺序生成参数映射
-        List<SqlGather.FieldCondition> allFields = analysisInfo.getAllFields();
+        List<SqlGather.Field> allFields = analysisInfo.getAllFields();
         int parameterIndex = 0;
 
-        for (SqlGather.FieldCondition field : allFields) {
+        for (SqlGather.Field field : allFields) {
             int paramCount = field.getEffectiveParamCount();
             for (int i = 0; i < paramCount; i++) {
                 String tableName = analysisInfo.getRealTableName(field.tableAlias());
-                SqlGather.ParameterFieldMapping mapping = new SqlGather.ParameterFieldMapping(parameterIndex++, tableName, field.columnName(), field.tableAlias(), field.fieldType(), field.getValue());
+
+                SqlGather.ParameterFieldMapping mapping =
+                        new SqlGather.ParameterFieldMapping(parameterIndex++,
+                                tableName,
+                                field.columnName(),
+                                field.tableAlias(),
+                                field.fieldType(),
+                                field.getValue());
+
                 analysisInfo.addParameterMapping(mapping);
             }
         }
@@ -346,8 +376,8 @@ public class SqlGatherHelper {
      * 获取主表别名
      */
     private static String getMainTableAlias(SqlGather analysisInfo) {
-        List<SqlGather.TableInfo> tables = analysisInfo.getTables();
-        for (SqlGather.TableInfo table : tables) {
+        List<SqlGather.Table> tables = analysisInfo.getTables();
+        for (SqlGather.Table table : tables) {
             if (table.tableType() == TableType.MAIN) {
                 return table.getEffectiveAlias();
             }

@@ -20,15 +20,15 @@ import java.util.Map;
 public class SqlGather {
 
     // Table information list
-    private final List<TableInfo> tables = new ArrayList<>();
+    private final List<Table> tables = new ArrayList<>();
     // WHERE condition fields
-    private final List<FieldCondition> conditions = new ArrayList<>();
+    private final List<Field> conditions = new ArrayList<>();
     // UPDATE statement SET fields
-    private final List<FieldCondition> setFields = new ArrayList<>();
+    private final List<Field> setFields = new ArrayList<>();
     // INSERT statement fields
-    private final List<FieldCondition> insertFields = new ArrayList<>();
+    private final List<Field> insertFields = new ArrayList<>();
     // SELECT statement fields
-    private final List<FieldCondition> selectFields = new ArrayList<>();
+    private final List<Field> selectFields = new ArrayList<>();
     // Parameter placeholder to field mapping relationships (in order)
     private final List<ParameterFieldMapping> parameterMappings = new ArrayList<>();
     // Table alias mapping
@@ -44,27 +44,27 @@ public class SqlGather {
         this.sqlType = sqlType;
     }
 
-    public void addTable(TableInfo tableInfo) {
-        tables.add(tableInfo);
+    public void addTable(Table table) {
+        tables.add(table);
         // Maintain alias mapping
-        if (tableInfo.alias() != null && !tableInfo.alias().trim().isEmpty()) {
-            aliasToTableMap.put(tableInfo.alias(), tableInfo.tableName());
+        if (table.alias() != null && !table.alias().trim().isEmpty()) {
+            aliasToTableMap.put(table.alias(), table.tableName());
         }
     }
 
-    public void addCondition(FieldCondition condition) {
+    public void addCondition(Field condition) {
         conditions.add(condition);
     }
 
-    public void addSetField(FieldCondition setField) {
+    public void addSetField(Field setField) {
         setFields.add(setField);
     }
 
-    public void addInsertField(FieldCondition insertField) {
+    public void addInsertField(Field insertField) {
         insertFields.add(insertField);
     }
 
-    public void addSelectField(FieldCondition selectField) {
+    public void addSelectField(Field selectField) {
         selectFields.add(selectField);
     }
 
@@ -74,23 +74,23 @@ public class SqlGather {
 
     // ========== Getter Methods ==========
 
-    public List<TableInfo> getTables() {
+    public List<Table> getTables() {
         return tables;
     }
 
-    public List<FieldCondition> getConditions() {
+    public List<Field> getConditions() {
         return conditions;
     }
 
-    public List<FieldCondition> getSetFields() {
+    public List<Field> getSetFields() {
         return setFields;
     }
 
-    public List<FieldCondition> getInsertFields() {
+    public List<Field> getInsertFields() {
         return insertFields;
     }
 
-    public List<FieldCondition> getSelectFields() {
+    public List<Field> getSelectFields() {
         return selectFields;
     }
 
@@ -109,8 +109,8 @@ public class SqlGather {
      * - UPDATE: setFields + conditions
      * - SELECT/DELETE: conditions
      */
-    public List<FieldCondition> getAllFields() {
-        List<FieldCondition> allFields = new ArrayList<>();
+    public List<Field> getAllFields() {
+        List<Field> allFields = new ArrayList<>();
 
         switch (sqlType) {
             case INSERT:
@@ -139,9 +139,9 @@ public class SqlGather {
     /**
      * Table information record.
      */
-    public record TableInfo(String tableName, String alias, TableType tableType) {
+    public record Table(String tableName, String alias, TableType tableType) {
 
-        public TableInfo(String tableName, String alias) {
+        public Table(String tableName, String alias) {
             this(tableName, alias, TableType.MAIN);
         }
 
@@ -156,19 +156,19 @@ public class SqlGather {
     /**
      * Field condition information class.
      */
-    public static class FieldCondition {
+    public static class Field {
+        private final FieldType fieldType;
         private final String tableAlias;
         private final String columnName;
-        private final FieldType fieldType;
         private final OperatorType operatorType;
         private final int actualParamCount;
         private final Object value;
 
-        public FieldCondition(String tableAlias, String columnName, FieldType fieldType) {
+        public Field(String tableAlias, String columnName, FieldType fieldType) {
             this(tableAlias, columnName, fieldType, OperatorType.SINGLE_PARAM, 1, null);
         }
 
-        public FieldCondition(String tableAlias, String columnName, FieldType fieldType, OperatorType operatorType, int actualParamCount, Object value) {
+        public Field(String tableAlias, String columnName, FieldType fieldType, OperatorType operatorType, int actualParamCount, Object value) {
             this.tableAlias = tableAlias;
             this.columnName = columnName;
             this.fieldType = fieldType;

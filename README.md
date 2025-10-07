@@ -78,23 +78,41 @@ String sql = "SELECT u.name, u.email FROM users u WHERE u.age > ? AND u.status =
 SqlGather analysis = SqlGatherHelper.analysis(sql);
 
 // Get table information
-List<SqlGather.TableInfo> tables = analysis.getTables();
-System.out.println("Main table: " + tables.get(0).tableName());
+List<SqlGather.Table> tables = analysis.getTables();
+System.out.
+
+println("Main table: "+tables.get(0).
+
+tableName());
 
 // Get field conditions
-List<SqlGather.FieldCondition> conditions = analysis.getConditions();
-for (SqlGather.FieldCondition condition : conditions) {
-    System.out.println("Field: " + condition.columnName() + 
-                      ", Operator: " + condition.operatorType() + 
-                      ", Param Count: " + condition.paramCount());
-}
+List<SqlGather.Field> conditions = analysis.getConditions();
+for(
+SqlGather.Field condition :conditions){
+        System.out.
+
+println("Field: "+condition.columnName() +
+        ", Operator: "+condition.
+
+operatorType() +
+        ", Param Count: "+condition.
+
+paramCount());
+        }
 
 // Get parameter mappings
 List<SqlGather.ParameterFieldMapping> parameters = analysis.getParameterMappings();
-for (SqlGather.ParameterFieldMapping param : parameters) {
-    System.out.println("Parameter " + param.index() + 
-                      " -> " + param.tableName() + "." + param.fieldName());
-}
+for(
+SqlGather.ParameterFieldMapping param :parameters){
+        System.out.
+
+println("Parameter "+param.index() +
+        " -> "+param.
+
+tableName() +"."+param.
+
+fieldName());
+        }
 ```
 
 ### Parameter Extraction

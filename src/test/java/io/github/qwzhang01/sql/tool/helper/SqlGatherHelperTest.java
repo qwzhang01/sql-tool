@@ -53,7 +53,7 @@ class SqlGatherHelperTest {
 
         // Verify table information
         assertEquals(1, result.getTables().size());
-        SqlGather.TableInfo table = result.getTables().get(0);
+        SqlGather.Table table = result.getTables().get(0);
         assertEquals("users", table.tableName());
         assertEquals("users", table.getEffectiveAlias());
         assertEquals(TableType.MAIN, table.tableType());
@@ -65,9 +65,9 @@ class SqlGatherHelperTest {
 
         // Verify WHERE conditions
         assertEquals(1, result.getConditions().size());
-        SqlGather.FieldCondition condition = result.getConditions().get(0);
+        SqlGather.Field condition = result.getConditions().get(0);
         assertEquals("id", condition.columnName());
-        assertEquals(FieldType.CONDITION, condition.fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, condition.fieldType());
         assertEquals(OperatorType.SINGLE_PARAM, condition.operatorType());
 
         // Verify parameter mappings
@@ -105,14 +105,14 @@ class SqlGatherHelperTest {
         assertEquals(SqlType.SELECT, result.getSqlType());
 
         // Verify table information
-        SqlGather.TableInfo table = result.getTables().get(0);
+        SqlGather.Table table = result.getTables().get(0);
         assertEquals("users", table.tableName());
         assertEquals("u", table.alias());
         assertEquals("u", table.getEffectiveAlias());
 
         // Verify SELECT fields
         assertEquals(3, result.getSelectFields().size());
-        for (SqlGather.FieldCondition field : result.getSelectFields()) {
+        for (SqlGather.Field field : result.getSelectFields()) {
             assertEquals("u", field.tableAlias());
         }
 
@@ -135,12 +135,12 @@ class SqlGatherHelperTest {
         // Verify table information
         assertEquals(2, result.getTables().size());
 
-        SqlGather.TableInfo mainTable = result.getTables().get(0);
+        SqlGather.Table mainTable = result.getTables().get(0);
         assertEquals("users", mainTable.tableName());
         assertEquals("u", mainTable.alias());
         assertEquals(TableType.MAIN, mainTable.tableType());
 
-        SqlGather.TableInfo joinTable = result.getTables().get(1);
+        SqlGather.Table joinTable = result.getTables().get(1);
         assertEquals("departments", joinTable.tableName());
         assertEquals("d", joinTable.alias());
         assertEquals(TableType.JOIN, joinTable.tableType());
@@ -170,25 +170,25 @@ class SqlGatherHelperTest {
         assertEquals(4, result.getConditions().size());
 
         // Verify BETWEEN condition
-        SqlGather.FieldCondition betweenCondition = result.getConditions().get(0);
+        SqlGather.Field betweenCondition = result.getConditions().get(0);
         assertEquals("age", betweenCondition.columnName());
         assertEquals(OperatorType.BETWEEN_OPERATOR, betweenCondition.operatorType());
         assertEquals(2, betweenCondition.getEffectiveParamCount());
 
         // Verify IN condition
-        SqlGather.FieldCondition inCondition = result.getConditions().get(1);
+        SqlGather.Field inCondition = result.getConditions().get(1);
         assertEquals("status", inCondition.columnName());
         assertEquals(OperatorType.IN_OPERATOR, inCondition.operatorType());
         assertEquals(3, inCondition.actualParamCount());
 
         // Verify IS NOT NULL condition
-        SqlGather.FieldCondition nullCondition = result.getConditions().get(2);
+        SqlGather.Field nullCondition = result.getConditions().get(2);
         assertEquals("name", nullCondition.columnName());
         assertEquals(OperatorType.NO_PARAM, nullCondition.operatorType());
         assertEquals(0, nullCondition.getEffectiveParamCount());
 
         // Verify LIKE condition
-        SqlGather.FieldCondition likeCondition = result.getConditions().get(3);
+        SqlGather.Field likeCondition = result.getConditions().get(3);
         assertEquals("email", likeCondition.columnName());
         assertEquals(OperatorType.SINGLE_PARAM, likeCondition.operatorType());
         assertEquals(1, likeCondition.getEffectiveParamCount());
@@ -218,7 +218,7 @@ class SqlGatherHelperTest {
         assertEquals("age", result.getInsertFields().get(2).columnName());
 
         // Verify field types
-        for (SqlGather.FieldCondition field : result.getInsertFields()) {
+        for (SqlGather.Field field : result.getInsertFields()) {
             assertEquals(FieldType.INSERT, field.fieldType());
         }
 
@@ -239,7 +239,7 @@ class SqlGatherHelperTest {
         assertEquals(SqlType.INSERT, result.getSqlType());
 
         // Verify table information
-        SqlGather.TableInfo table = result.getTables().get(0);
+        SqlGather.Table table = result.getTables().get(0);
         assertEquals("users", table.tableName());
 
         // Verify INSERT fields
@@ -266,20 +266,20 @@ class SqlGatherHelperTest {
         assertEquals("email", result.getSetFields().get(1).columnName());
 
         // Verify field types
-        for (SqlGather.FieldCondition field : result.getSetFields()) {
+        for (SqlGather.Field field : result.getSetFields()) {
             assertEquals(FieldType.UPDATE_SET, field.fieldType());
         }
 
         // Verify WHERE conditions
         assertEquals(3, result.getConditions().size());
         assertEquals("id", result.getConditions().get(0).columnName());
-        assertEquals(FieldType.CONDITION, result.getConditions().get(0).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getConditions().get(0).fieldType());
 
         // Verify parameter mapping order: SET fields first, WHERE conditions second
         assertEquals(9, result.getParameterMappings().size());
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(0).fieldType());
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(1).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(2).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(2).fieldType());
     }
 
     @Test
@@ -303,10 +303,10 @@ class SqlGatherHelperTest {
         // Verify parameter order
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(0).fieldType());
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(1).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(2).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(3).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(4).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(5).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(2).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(3).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(4).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(5).fieldType());
     }
 
     // ========== DELETE Statement Tests ==========
@@ -334,7 +334,7 @@ class SqlGatherHelperTest {
 
         // Verify parameter mappings
         assertEquals(1, result.getParameterMappings().size());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(0).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(0).fieldType());
     }
 
     @Test
@@ -352,7 +352,7 @@ class SqlGatherHelperTest {
         // Verify parameter mappings: 1 status + 1 created_at + 3 IN = 5 parameters
         assertEquals(5, result.getParameterMappings().size());
         for (SqlGather.ParameterFieldMapping mapping : result.getParameterMappings()) {
-            assertEquals(FieldType.CONDITION, mapping.fieldType());
+            assertEquals(FieldType.CONDITION_WHERE, mapping.fieldType());
         }
     }
 
@@ -426,20 +426,20 @@ class SqlGatherHelperTest {
         assertEquals(3, updateResult.getAllFields().size());
         assertEquals(FieldType.UPDATE_SET, updateResult.getAllFields().get(0).fieldType());
         assertEquals(FieldType.UPDATE_SET, updateResult.getAllFields().get(1).fieldType());
-        assertEquals(FieldType.CONDITION, updateResult.getAllFields().get(2).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, updateResult.getAllFields().get(2).fieldType());
 
         // SELECT statement: only returns conditions
         String selectSql = "SELECT * FROM users WHERE id = ? AND name = ?";
         SqlGather selectResult = SqlGatherHelper.analysis(selectSql);
         assertEquals(2, selectResult.getAllFields().size());
-        assertEquals(FieldType.CONDITION, selectResult.getAllFields().get(0).fieldType());
-        assertEquals(FieldType.CONDITION, selectResult.getAllFields().get(1).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, selectResult.getAllFields().get(0).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, selectResult.getAllFields().get(1).fieldType());
 
         // DELETE statement: only returns conditions
         String deleteSql = "DELETE FROM users WHERE id = ?";
         SqlGather deleteResult = SqlGatherHelper.analysis(deleteSql);
         assertEquals(1, deleteResult.getAllFields().size());
-        assertEquals(FieldType.CONDITION, deleteResult.getAllFields().get(0).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, deleteResult.getAllFields().get(0).fieldType());
     }
 
     // ========== Edge Cases Tests ==========
@@ -473,7 +473,7 @@ class SqlGatherHelperTest {
         SqlGather result = SqlGatherHelper.analysis(sql);
 
         // Verify table information
-        SqlGather.TableInfo table = result.getTables().get(0);
+        SqlGather.Table table = result.getTables().get(0);
         assertTrue(table.tableName().contains("schema") || table.tableName().contains("users"));
         assertEquals("u", table.alias());
 
@@ -522,10 +522,10 @@ class SqlGatherHelperTest {
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(0).fieldType());
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(1).fieldType());
         assertEquals(FieldType.UPDATE_SET, result.getParameterMappings().get(2).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(3).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(4).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(5).fieldType());
-        assertEquals(FieldType.CONDITION, result.getParameterMappings().get(6).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(3).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(4).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(5).fieldType());
+        assertEquals(FieldType.CONDITION_WHERE, result.getParameterMappings().get(6).fieldType());
     }
 
     // ========== SqlParam Method Tests ==========
@@ -758,32 +758,32 @@ class SqlGatherHelperTest {
         assertEquals("u", result.getTables().get(0).alias());
 
         // 验证条件字段 - 只有包含参数的条件会被解析
-        List<SqlGather.FieldCondition> conditions = result.getConditions();
+        List<SqlGather.Field> conditions = result.getConditions();
         assertEquals(6, conditions.size());
 
         // u.phone like ?
-        SqlGather.FieldCondition phoneCondition = conditions.get(1);
+        SqlGather.Field phoneCondition = conditions.get(1);
         assertEquals("u", phoneCondition.tableAlias());
         assertEquals("phone", phoneCondition.columnName());
         assertEquals(OperatorType.SINGLE_PARAM, phoneCondition.operatorType());
         assertEquals(1, phoneCondition.actualParamCount());
 
         // u.status IN(?, ?)
-        SqlGather.FieldCondition statusCondition = conditions.get(2);
+        SqlGather.Field statusCondition = conditions.get(2);
         assertEquals("u", statusCondition.tableAlias());
         assertEquals("status", statusCondition.columnName());
         assertEquals(OperatorType.IN_OPERATOR, statusCondition.operatorType());
         assertEquals(2, statusCondition.actualParamCount());
 
         // u.age > ?
-        SqlGather.FieldCondition ageCondition = conditions.get(3);
+        SqlGather.Field ageCondition = conditions.get(3);
         assertEquals("u", ageCondition.tableAlias());
         assertEquals("age", ageCondition.columnName());
         assertEquals(OperatorType.SINGLE_PARAM, ageCondition.operatorType());
         assertEquals(1, ageCondition.actualParamCount());
 
         // u.id BETWEEN(?, ?) - 这是关键测试点
-        SqlGather.FieldCondition idCondition = conditions.get(5);
+        SqlGather.Field idCondition = conditions.get(5);
         assertEquals("u", idCondition.tableAlias());
         assertEquals("id", idCondition.columnName());
         assertEquals(OperatorType.BETWEEN_OPERATOR, idCondition.operatorType());
@@ -815,5 +815,225 @@ class SqlGatherHelperTest {
         assertEquals("user", mapping.tableName());
         assertEquals("phone", mapping.fieldName());
         assertEquals("user", mapping.tableAlias());
+    }
+
+    @Test
+    @DisplayName("测试复杂 JOIN ON 条件")
+    public void testComplexJoinOnConditions() {
+        String sql = "SELECT u.name FROM user u "
+                + "LEFT JOIN profile p ON u.id = p.user_id AND p.status IN (?, ?) "
+                + "INNER JOIN department d ON u.dept_id = d.id AND d.active = ? "
+                + "WHERE u.phone = ?";
+
+        SqlGather result = SqlGatherHelper.analysis(sql);
+
+        assertEquals(SqlType.SELECT, result.getSqlType());
+        assertEquals(3, result.getTables().size());
+        assertEquals(3, result.getConditions().size());
+
+        // 验证 IN 操作符的参数计数
+        SqlGather.Field inCondition = result.getConditions().stream().filter(c -> c.operatorType() == OperatorType.IN_OPERATOR).findFirst().orElse(null);
+        assertNotNull(inCondition);
+        assertEquals(2, inCondition.getEffectiveParamCount());
+
+        // 验证总参数映射数量：IN(2个) + 普通条件(1个) + WHERE条件(1个) = 4个
+        assertEquals(4, result.getParameterMappings().size());
+    }
+
+    @Test
+    void testComplexSql() {
+        String sql = """
+                SELECT
+                	*
+                FROM
+                	(
+                	SELECT
+                		form.id AS formId
+                ,
+                		form.createTime
+                ,
+                		form.id
+                ,
+                		form.flowMainId
+                ,
+                		form.candidateId
+                ,
+                		form.candidateExtId
+                ,
+                		form.candidateRidId
+                ,
+                		form.postId
+                ,
+                		postData.recruit_type_id recruitType
+                ,
+                		flow.currentStageTypeCode
+                ,
+                		flow.currentStageId
+                ,
+                		flow.currentActraceId
+                ,
+                		form.name,
+                		form.email,
+                		form.mobile,
+                		'currentStatus' as currentStatus
+                ,
+                		postData.post_name postName
+                ,
+                		post.recruit_location_name baseCity
+                ,
+                		postData.department_name deptName
+                ,
+                		form.school
+                ,
+                		form.education
+                ,
+                		CONCAT(form.lastCompany, '/r/n', form.currentJobTitle) AS lastEmployment
+                ,
+                		resume.channelSource
+                ,
+                		flow.currentHandler
+                ,
+                		form.createTime applyTime
+                ,
+                		form.hrUserId AS hrName
+                ,
+                		form.updateTime
+                ,
+                		post.is_disabled postStatus
+                ,
+                		IF(
+                form.status IN('done', 'deny'),
+                form.durationDays,
+                DATEDIFF(NOW(), form.createTime)
+                ) AS durationDays
+                ,
+                		IF(resume.startWorkTime > 0, resume.startWorkTime, null) workYears
+                ,
+                		IF(resume.birthday is not null and resume.birthday <> '', resume.birthday, null) as birthday
+                ,
+                		resume.speciality
+                ,
+                		IF(resume.graduateDate > 0, FROM_UNIXTIME(resume.graduateDate), null) as graduateDate
+                	FROM
+                		recruit_form form
+                	LEFT JOIN recruit_flow_main flow ON
+                		flow.enableFlag = true
+                		AND form.flowMainId = flow.id
+                		AND flow.type = 'recruit'
+                	LEFT JOIN
+                (
+                		SELECT
+                			m.resumeId,
+                			ext.startWorkTime,
+                			m.birthday,
+                			edu.eduMajorName as speciality,
+                			edu.endDate as graduateDate,
+                			ext.expectWorkCities as workCity,
+                			channel.channel_text as channelSource
+                		FROM
+                			resume_main m
+                		LEFT JOIN resume_ext ext ON
+                			ext.resumeId = m.resumeId
+                		LEFT JOIN resume_edu edu ON
+                			edu.resumeId = m.resumeId
+                			AND edu.eduFlag IN (1, 3)
+                		LEFT JOIN resume_work_exp works ON
+                			works.resumeId = m.resumeId
+                				AND works.workFlag IN (1, 3)
+                			LEFT JOIN bresume_channel channel ON
+                				m.channelSource = channel.channel
+                					AND channel.enable_flag = 1
+                				WHERE
+                					m.enableFlag = 1
+                ) AS resume ON
+                		resume.resumeId = form.candidateId
+                	LEFT JOIN post_recruit_post post ON
+                		post.enable_flag = 1
+                		AND post.recruit_post_id = form.postId
+                	LEFT JOIN post_data postData ON
+                		post.post_data_id = postData.post_data_id
+                	LEFT JOIN baseconfig_unit_info unit ON
+                		postData.department_id = unit.id
+                	LEFT JOIN (
+                		SELECT
+                			obc.id,
+                			obc.formId,
+                			obc.status bcStatus,
+                			obc.judgeResult
+                		FROM
+                			(
+                			SELECT
+                				MAX(bc.id) id,
+                				bc.formId
+                			FROM
+                				`recruit_offer_bc` bc
+                			WHERE
+                				bc.enableFlag = true
+                			GROUP BY
+                				bc.formId) AS bc
+                		INNER JOIN recruit_offer_bc obc ON
+                			obc.id = bc.id
+                		WHERE
+                			obc.enableFlag = true
+                ) AS bc ON
+                		bc.formId = form.id
+                	LEFT JOIN (
+                		SELECT
+                			obc.id,
+                			obc.candidateId,
+                			obc.status as assessStatus,
+                			obc.judgeResult as assessResult
+                		FROM
+                			(
+                			SELECT
+                				MAX(bc.id) id,
+                				bc.candidateId
+                			FROM
+                				`recruit_flow_assess` bc
+                			WHERE
+                				bc.enableFlag = true
+                			GROUP BY
+                				bc.candidateId) AS bc
+                		INNER JOIN recruit_flow_assess obc ON
+                			obc.id = bc.id
+                		WHERE
+                			obc.enableFlag = true
+                ) AS assess ON
+                		assess.candidateId = form.candidateId
+                	WHERE
+                		form.enableFlag = true
+                		AND NOT EXISTS(
+                SELECT * FROM
+                recruit_form notForm
+                WHERE notForm.enableFlag = true
+                AND form.candidateId = notForm.candidateId
+                AND notForm.status IN ('processing', 'done')
+                )
+                		AND form.status <> 'deny'
+                		AND flow.currentStageId = 1
+                		AND form.postId IN
+                (
+                1947181402117427202
+                ,
+                1958101280874942466
+                ,
+                1928008030838497281
+                ,
+                1947182074707628034
+                ,
+                1947207413714440193
+                )
+                ) as tmp
+                ORDER BY
+                	tmp.updateTime DESC
+                ,
+                	tmp.createTime DESC
+                ,
+                	tmp.id DESC
+                LIMIT 20;
+                """;
+
+        SqlGather result = SqlGatherHelper.analysis(sql);
+        System.out.println(result);
     }
 }

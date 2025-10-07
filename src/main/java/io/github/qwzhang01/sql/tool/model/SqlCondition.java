@@ -51,6 +51,8 @@ public class SqlCondition {
      * Sub-conditions for complex nested conditions with parentheses
      */
     private List<SqlCondition> subConditions;
+    private SqlField rightFieldInfo;
+
 
     /**
      * Default constructor
@@ -108,6 +110,14 @@ public class SqlCondition {
         this.valueCount = calculateValueCount(operator, rightOperand);
     }
 
+    public SqlField getRightFieldInfo() {
+        return rightFieldInfo;
+    }
+
+    public void setRightFieldInfo(SqlField rightFieldInfo) {
+        this.rightFieldInfo = rightFieldInfo;
+    }
+
     // Getter and Setter methods
     public String getLeftOperand() {
         return leftOperand;
@@ -133,6 +143,11 @@ public class SqlCondition {
     public void setRightOperand(Object rightOperand) {
         this.rightOperand = rightOperand;
         this.valueCount = calculateValueCount(this.operator, rightOperand);
+        if (rightOperand instanceof String rightField) {
+            if (rightField.contains(".") && !rightField.contains("?")) {
+                this.rightFieldInfo = new SqlField(String.valueOf(rightOperand));
+            }
+        }
     }
 
     public String getLogicalOperator() {
@@ -192,7 +207,9 @@ public class SqlCondition {
      * @return true if any part of the condition contains the text
      */
     public boolean contains(String text) {
-        if (text == null) return false;
+        if (text == null) {
+            return false;
+        }
 
         return (leftOperand != null && leftOperand.contains(text)) ||
                 (operator != null && operator.contains(text)) ||
@@ -213,31 +230,29 @@ public class SqlCondition {
 
         String op = operator.toUpperCase().trim();
 
-        switch (op) {
-            case "IN":
-            case "NOT IN":
+        return switch (op) {
+            case "IN", "NOT IN" -> {
                 if (rightOperand instanceof List) {
-                    return ((List<?>) rightOperand).size();
-                } else if (rightOperand instanceof String) {
-                    String str = (String) rightOperand;
+                    yield ((List<?>) rightOperand).size();
+                } else if (rightOperand instanceof String str) {
                     // Simple calculation of comma-separated value count
                     if (str.contains(",")) {
-                        return str.split(",").length;
+                        yield str.split(",").length;
                     }
                 }
-                return 1;
-
-            case "BETWEEN":
-            case "NOT BETWEEN":
-                return 2; // BETWEEN always has two values
-
-            case "IS NULL":
-            case "IS NOT NULL":
-                return 0; // NULL checks require no values
-
-            default:
-                return 1; // Other operators typically have one value
-        }
+                yield 1;
+                // Simple calculation of comma-separated value count
+            }
+            case "BETWEEN", "NOT BETWEEN" ->
+                // BETWEEN always has two values
+                    2;
+            case "IS NULL", "IS NOT NULL" ->
+                // NULL checks require no values
+                    0;
+            default ->
+                // Other operators typically have one value
+                    1;
+        };
     }
 
     @Override
@@ -253,5 +268,4 @@ public class SqlCondition {
                 ", subConditions=" + subConditions +
                 '}';
     }
-
 }

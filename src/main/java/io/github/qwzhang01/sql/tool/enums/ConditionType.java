@@ -3,6 +3,8 @@ package io.github.qwzhang01.sql.tool.enums;
 /**
  * Condition type enumeration for categorizing different types of WHERE conditions.
  * This helps in processing and optimizing different condition patterns.
+ *
+ * @author avinzhang
  */
 public enum ConditionType {
     /**

@@ -49,7 +49,6 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sql == null || sql.isEmpty() || sql.trim().isEmpty()) {
             throw new UnSupportedException("SQL cannot be null or empty");
         }
-
         SqlObj sqlObj = new SqlObj();
         sqlObj.setOriginalSql(sql);
 
