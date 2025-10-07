@@ -7,7 +7,10 @@ import io.github.qwzhang01.sql.tool.exception.ParseException;
 import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
 import io.github.qwzhang01.sql.tool.model.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -621,20 +624,14 @@ public class MySqlPureSqlParser implements SqlParser {
             sqlObj.setMainTable(mainTable);
 
             // Parse fields
-            List<String> columnNames = new ArrayList<>();
+            sqlObj.setInsertValues(new ArrayList<>());
             String[] columnArray = columnsStr.split(",");
-            for (String columnName : columnArray) {
-                columnNames.add(columnName.trim());
-            }
-            sqlObj.setInsertColumns(columnNames);
-
-            // Parse values
-            List<Object> values = new ArrayList<>();
             String[] valueArray = valuesStr.split(",");
-            for (String value : valueArray) {
-                values.add(value.trim());
+            for (int i = 0; i < columnArray.length; i++) {
+                sqlObj.getInsertValues()
+                        .add(new SqlUpdateColumn(columnArray[i].trim(),
+                                valueArray[i].trim()));
             }
-            sqlObj.setInsertValues(values);
         }
     }
 
@@ -658,15 +655,16 @@ public class MySqlPureSqlParser implements SqlParser {
             sqlObj.setMainTable(mainTable);
 
             // Parse SET clause
-            Map<String, Object> updateValues = new HashMap<>();
+            sqlObj.setUpdateValues(new ArrayList<>());
             String[] setParts = setClause.split(",");
             for (String part : setParts) {
                 String[] keyValue = part.split("=");
                 if (keyValue.length == 2) {
-                    updateValues.put(keyValue[0].trim(), keyValue[1].trim());
+                    sqlObj.getUpdateValues()
+                            .add(new SqlUpdateColumn(keyValue[0].trim(),
+                                    keyValue[1].trim()));
                 }
             }
-            sqlObj.setUpdateValues(updateValues);
 
             // Parse WHERE conditions
             if (whereClause != null) {
@@ -832,13 +830,13 @@ public class MySqlPureSqlParser implements SqlParser {
     private void buildInsertSql(SqlObj sqlObj, StringBuilder sql) {
         sql.append("INSERT INTO ").append(sqlObj.getMainTable().getTableName());
 
-        if (sqlObj.getInsertColumns() != null && !sqlObj.getInsertColumns().isEmpty()) {
+        if (sqlObj.getInsertValues() != null && !sqlObj.getInsertValues().isEmpty()) {
             sql.append(" (");
-            for (int i = 0; i < sqlObj.getInsertColumns().size(); i++) {
+            for (int i = 0; i < sqlObj.getInsertValues().size(); i++) {
                 if (i > 0) {
                     sql.append(", ");
                 }
-                sql.append(sqlObj.getInsertColumns().get(i));
+                sql.append(sqlObj.getInsertValues().get(i).columnName());
             }
             sql.append(") VALUES (");
 
@@ -846,7 +844,7 @@ public class MySqlPureSqlParser implements SqlParser {
                 if (i > 0) {
                     sql.append(", ");
                 }
-                Object value = sqlObj.getInsertValues().get(i);
+                Object value = sqlObj.getInsertValues().get(i).value();
                 sql.append(value != null ? value.toString() : "NULL");
             }
             sql.append(")");
@@ -865,11 +863,11 @@ public class MySqlPureSqlParser implements SqlParser {
         if (sqlObj.getUpdateValues() != null && !sqlObj.getUpdateValues().isEmpty()) {
             sql.append(" SET ");
             int i = 0;
-            for (Map.Entry<String, Object> entry : sqlObj.getUpdateValues().entrySet()) {
+            for (SqlUpdateColumn entry : sqlObj.getUpdateValues()) {
                 if (i > 0) {
                     sql.append(", ");
                 }
-                sql.append(entry.getKey()).append(" = ").append(entry.getValue());
+                sql.append(entry.columnName()).append(" = ").append(entry.value());
                 i++;
             }
         }

@@ -234,7 +234,7 @@ public class SqlParseHelper {
 
         // INSERT/UPDATE columns
         if (sqlObj.getUpdateValues() != null) {
-            columnNames.addAll(sqlObj.getUpdateValues().keySet());
+            columnNames.addAll(sqlObj.getUpdateValues().stream().map(SqlUpdateColumn::columnName).toList());
         }
 
         return columnNames;

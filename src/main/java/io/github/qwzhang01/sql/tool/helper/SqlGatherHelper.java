@@ -7,7 +7,6 @@ import io.github.qwzhang01.sql.tool.model.*;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import static io.github.qwzhang01.sql.tool.enums.OperatorType.SINGLE_PARAM;
 
@@ -195,19 +194,18 @@ public class SqlGatherHelper {
      * 转换 INSERT 字段
      */
     private static void convertInsertFields(SqlObj sqlObj, SqlGather analysisInfo) {
-        List<String> insertColumns = sqlObj.getInsertColumns();
-        List<Object> insertValues = sqlObj.getInsertValues();
-        if (insertColumns != null) {
-            if (insertValues == null || insertColumns.size() != insertValues.size()) {
-                throw new IllegalArgumentException("INSERT columns and values count not match");
-            }
-            String mainTableAlias = getMainTableAlias(analysisInfo);
-            for (String columnName : insertColumns) {
-                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName,
-                        FieldType.INSERT, SINGLE_PARAM, 1,
-                        insertValues.get(insertColumns.indexOf(columnName)));
-                analysisInfo.addInsertField(fieldCondition);
-            }
+        if (sqlObj.getInsertValues() == null || sqlObj.getInsertValues().isEmpty()) {
+            return;
+        }
+        String mainTableAlias = getMainTableAlias(analysisInfo);
+        for (int i = 0; i < sqlObj.getInsertValues().size(); i++) {
+            SqlUpdateColumn column = sqlObj.getInsertValues().get(i);
+            analysisInfo.addInsertField(new SqlGather.FieldCondition(mainTableAlias,
+                    column.columnName(),
+                    FieldType.INSERT, SINGLE_PARAM,
+                    1,
+                    column.value()));
+
         }
     }
 
@@ -215,13 +213,18 @@ public class SqlGatherHelper {
      * 转换 UPDATE SET 字段
      */
     private static void convertUpdateSetFields(SqlObj sqlObj, SqlGather analysisInfo) {
-        Map<String, Object> updateValues = sqlObj.getUpdateValues();
-        if (updateValues != null) {
-            String mainTableAlias = getMainTableAlias(analysisInfo);
-            for (String columnName : updateValues.keySet()) {
-                SqlGather.FieldCondition fieldCondition = new SqlGather.FieldCondition(mainTableAlias, columnName, FieldType.UPDATE_SET, SINGLE_PARAM, 1, updateValues.get(columnName));
-                analysisInfo.addSetField(fieldCondition);
-            }
+        if (sqlObj.getUpdateValues() == null || sqlObj.getUpdateValues().isEmpty()) {
+            return;
+        }
+        List<SqlUpdateColumn> updateValues = sqlObj.getUpdateValues();
+        String mainTableAlias = getMainTableAlias(analysisInfo);
+        for (SqlUpdateColumn column : updateValues) {
+            analysisInfo.addSetField(new SqlGather.FieldCondition(mainTableAlias,
+                    column.columnName(),
+                    FieldType.UPDATE_SET,
+                    SINGLE_PARAM,
+                    1,
+                    column.value()));
         }
     }
 

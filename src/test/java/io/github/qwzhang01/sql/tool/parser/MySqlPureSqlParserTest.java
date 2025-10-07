@@ -545,15 +545,15 @@ class MySqlPureSqlParserTest {
         assertEquals(SqlType.INSERT, result.getSqlType());
         assertEquals("users", result.getMainTable().getTableName());
 
-        assertEquals(3, result.getInsertColumns().size());
-        assertEquals("name", result.getInsertColumns().get(0));
-        assertEquals("email", result.getInsertColumns().get(1));
-        assertEquals("age", result.getInsertColumns().get(2));
+        assertEquals(3, result.getInsertValues().size());
+        assertEquals("name", result.getInsertValues().get(0).columnName());
+        assertEquals("email", result.getInsertValues().get(1).columnName());
+        assertEquals("age", result.getInsertValues().get(2).columnName());
 
         assertEquals(3, result.getInsertValues().size());
-        assertEquals("'John'", result.getInsertValues().get(0));
-        assertEquals("'john@example.com'", result.getInsertValues().get(1));
-        assertEquals("25", result.getInsertValues().get(2));
+        assertEquals("'John'", result.getInsertValues().get(0).value());
+        assertEquals("'john@example.com'", result.getInsertValues().get(1).value());
+        assertEquals("25", result.getInsertValues().get(2).value());
     }
 
     @Test
@@ -564,7 +564,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(3, result.getInsertValues().size());
-        assertEquals("NULL", result.getInsertValues().get(2));
+        assertEquals("NULL", result.getInsertValues().get(2).value());
     }
 
     // ========== UPDATE语句测试 ==========
@@ -581,8 +581,8 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result.getUpdateValues());
         assertEquals(2, result.getUpdateValues().size());
-        assertEquals("'John Doe'", result.getUpdateValues().get("name"));
-        assertEquals("26", result.getUpdateValues().get("age"));
+        assertEquals("'John Doe'", result.getUpdateValues().get(0).value());
+        assertEquals("26", result.getUpdateValues().get(1).value());
 
         assertEquals(1, result.getWhereConditions().size());
     }

@@ -3,7 +3,6 @@ package io.github.qwzhang01.sql.tool.model;
 import io.github.qwzhang01.sql.tool.enums.SqlType;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * SQL information object containing detailed information after SQL parsing.
@@ -74,18 +73,14 @@ public class SqlObj {
 
     /**
      * List of column names for INSERT statements
-     */
-    private List<String> insertColumns;
-
-    /**
      * List of values for INSERT statements
      */
-    private List<Object> insertValues;
+    private List<SqlUpdateColumn> insertValues;
 
     /**
      * Update value mapping for UPDATE statements
      */
-    private Map<String, Object> updateValues;
+    private List<SqlUpdateColumn> updateValues;
 
     /**
      * Default constructor
@@ -194,28 +189,19 @@ public class SqlObj {
         this.subQueries = subQueries;
     }
 
-
-    public List<String> getInsertColumns() {
-        return insertColumns;
-    }
-
-    public void setInsertColumns(List<String> insertColumns) {
-        this.insertColumns = insertColumns;
-    }
-
-    public List<Object> getInsertValues() {
+    public List<SqlUpdateColumn> getInsertValues() {
         return insertValues;
     }
 
-    public void setInsertValues(List<Object> insertValues) {
+    public void setInsertValues(List<SqlUpdateColumn> insertValues) {
         this.insertValues = insertValues;
     }
 
-    public Map<String, Object> getUpdateValues() {
+    public List<SqlUpdateColumn> getUpdateValues() {
         return updateValues;
     }
 
-    public void setUpdateValues(Map<String, Object> updateValues) {
+    public void setUpdateValues(List<SqlUpdateColumn> updateValues) {
         this.updateValues = updateValues;
     }
 
@@ -233,7 +219,6 @@ public class SqlObj {
                 ", orderByColumns=" + orderByColumns +
                 ", limitInfo=" + sqlLimit +
                 ", subQueries=" + subQueries +
-                ", insertColumns=" + insertColumns +
                 ", insertValues=" + insertValues +
                 ", updateValues=" + updateValues +
                 '}';
