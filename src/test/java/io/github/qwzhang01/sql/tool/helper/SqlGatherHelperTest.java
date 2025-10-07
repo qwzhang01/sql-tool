@@ -848,71 +848,41 @@ class SqlGatherHelperTest {
                 FROM
                 	(
                 	SELECT
-                		form.id AS formId
-                ,
-                		form.createTime
-                ,
-                		form.id
-                ,
-                		form.flowMainId
-                ,
-                		form.candidateId
-                ,
-                		form.candidateExtId
-                ,
-                		form.candidateRidId
-                ,
-                		form.postId
-                ,
-                		postData.recruit_type_id recruitType
-                ,
-                		flow.currentStageTypeCode
-                ,
-                		flow.currentStageId
-                ,
-                		flow.currentActraceId
-                ,
+                		form.id AS formId,
+                		form.createTime,
+                		form.id,
+                		form.flowMainId,
+                		form.candidateId,
+                		form.candidateExtId,
+                		form.candidateRidId,
+                		form.postId,
+                		postData.recruit_type_id recruitType,
+                		flow.currentStageTypeCode,
+                		flow.currentStageId,
+                		flow.currentActraceId,
                 		form.name,
                 		form.email,
                 		form.mobile,
-                		'currentStatus' as currentStatus
-                ,
-                		postData.post_name postName
-                ,
-                		post.recruit_location_name baseCity
-                ,
-                		postData.department_name deptName
-                ,
-                		form.school
-                ,
-                		form.education
-                ,
-                		CONCAT(form.lastCompany, '/r/n', form.currentJobTitle) AS lastEmployment
-                ,
-                		resume.channelSource
-                ,
-                		flow.currentHandler
-                ,
-                		form.createTime applyTime
-                ,
-                		form.hrUserId AS hrName
-                ,
-                		form.updateTime
-                ,
-                		post.is_disabled postStatus
-                ,
-                		IF(
-                form.status IN('done', 'deny'),
-                form.durationDays,
-                DATEDIFF(NOW(), form.createTime)
-                ) AS durationDays
-                ,
-                		IF(resume.startWorkTime > 0, resume.startWorkTime, null) workYears
-                ,
-                		IF(resume.birthday is not null and resume.birthday <> '', resume.birthday, null) as birthday
-                ,
-                		resume.speciality
-                ,
+                		'currentStatus' as currentStatus,
+                		postData.post_name postName,
+                		post.recruit_location_name baseCity,
+                		postData.department_name deptName,
+                		form.school,
+                		form.education,
+                		CONCAT(form.lastCompany, '/r/n', form.currentJobTitle) AS lastEmployment,
+                		resume.channelSource,
+                		flow.currentHandler,
+                		form.createTime applyTime,
+                		form.hrUserId AS hrName,
+                		form.updateTime,
+                		post.is_disabled postStatus,
+                		IF(form.status IN('done', 'deny'),
+                                            form.durationDays,
+                                            DATEDIFF(NOW(), form.createTime)
+                                        ) AS durationDays,
+                		IF(resume.startWorkTime > 0, resume.startWorkTime, null) workYears,
+                		IF(resume.birthday is not null and resume.birthday <> '', resume.birthday, null) as birthday,
+                		resume.speciality,
                 		IF(resume.graduateDate > 0, FROM_UNIXTIME(resume.graduateDate), null) as graduateDate
                 	FROM
                 		recruit_form form
@@ -921,7 +891,7 @@ class SqlGatherHelperTest {
                 		AND form.flowMainId = flow.id
                 		AND flow.type = 'recruit'
                 	LEFT JOIN
-                (
+                                    (
                 		SELECT
                 			m.resumeId,
                 			ext.startWorkTime,
@@ -945,7 +915,7 @@ class SqlGatherHelperTest {
                 					AND channel.enable_flag = 1
                 				WHERE
                 					m.enableFlag = 1
-                ) AS resume ON
+                                ) AS resume ON
                 		resume.resumeId = form.candidateId
                 	LEFT JOIN post_recruit_post post ON
                 		post.enable_flag = 1
@@ -975,7 +945,7 @@ class SqlGatherHelperTest {
                 			obc.id = bc.id
                 		WHERE
                 			obc.enableFlag = true
-                ) AS bc ON
+                                ) AS bc ON
                 		bc.formId = form.id
                 	LEFT JOIN (
                 		SELECT
@@ -998,37 +968,28 @@ class SqlGatherHelperTest {
                 			obc.id = bc.id
                 		WHERE
                 			obc.enableFlag = true
-                ) AS assess ON
+                                ) AS assess ON
                 		assess.candidateId = form.candidateId
                 	WHERE
                 		form.enableFlag = true
                 		AND NOT EXISTS(
-                SELECT * FROM
-                recruit_form notForm
-                WHERE notForm.enableFlag = true
-                AND form.candidateId = notForm.candidateId
-                AND notForm.status IN ('processing', 'done')
-                )
+                                SELECT * FROM
+                                recruit_form notForm
+                                WHERE notForm.enableFlag = true
+                                AND form.candidateId = notForm.candidateId
+                                AND notForm.status IN ('processing', 'done'))
                 		AND form.status <> 'deny'
                 		AND flow.currentStageId = 1
-                		AND form.postId IN
-                (
-                1947181402117427202
-                ,
-                1958101280874942466
-                ,
-                1928008030838497281
-                ,
-                1947182074707628034
-                ,
-                1947207413714440193
-                )
-                ) as tmp
+                		AND form.postId IN (
+                                                        1947181402117427202,
+                                                        1958101280874942466,
+                                                        1928008030838497281,
+                                                        1947182074707628034,
+                                                        1947207413714440193)
+                                ) as tmp
                 ORDER BY
-                	tmp.updateTime DESC
-                ,
-                	tmp.createTime DESC
-                ,
+                	tmp.updateTime DESC,
+                	tmp.createTime DESC,
                 	tmp.id DESC
                 LIMIT 20;
                 """;

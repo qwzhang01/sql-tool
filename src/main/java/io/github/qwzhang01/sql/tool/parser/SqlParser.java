@@ -56,6 +56,8 @@ public interface SqlParser {
      */
     String toSql(SqlObj sqlObj);
 
+    String toSql(List<SqlJoin> joins);
+
     /**
      * Gets the SQL cleaner instance for this parser
      *

@@ -781,6 +781,34 @@ public class MySqlPureSqlParser implements SqlParser {
         return sql.toString();
     }
 
+    @Override
+    public String toSql(List<SqlJoin> joins) {
+        StringBuilder sql = new StringBuilder();
+
+        for (SqlJoin join : joins) {
+            sql.append(" ").append(join.getJoinType().getSqlKeyword());
+            sql.append(" ").append(join.getTableName());
+            if (join.getAlias() != null) {
+                sql.append(" ").append(join.getAlias());
+            }
+            if (join.getCondition() != null) {
+                String conditionSql = join.getCondition();
+                for (SqlCondition condition : join.getJoinConditions()) {
+                    SqlField leftFieldInfo = condition.getFieldInfo();
+                    if (leftFieldInfo != null && leftFieldInfo.getTableName() != null && !leftFieldInfo.getTableName().isEmpty()) {
+                        conditionSql = conditionSql.replace(" " + leftFieldInfo.getTableName() + ".", " " + leftFieldInfo.getTableAlias() + ".");
+                    }
+                    SqlField rightFieldInfo = condition.getRightFieldInfo();
+                    if (rightFieldInfo != null && rightFieldInfo.getTableName() != null && !rightFieldInfo.getTableName().isEmpty()) {
+                        conditionSql = conditionSql.replace(" " + rightFieldInfo.getTableName() + ".", " " + rightFieldInfo.getTableAlias() + ".");
+                    }
+                }
+                sql.append(" ON ").append(conditionSql);
+            }
+        }
+        return sql.toString();
+    }
+
     /**
      * Build SELECT SQL
      */

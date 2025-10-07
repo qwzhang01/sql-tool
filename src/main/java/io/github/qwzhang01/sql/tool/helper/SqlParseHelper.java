@@ -133,6 +133,10 @@ public class SqlParseHelper {
         return DEFAULT_PARSER.toSql(sqlObj);
     }
 
+    public static String toSQL(List<SqlJoin> joins) {
+        return DEFAULT_PARSER.toSql(joins);
+    }
+
     /**
      * Checks if the SQL statement is a SELECT query.
      *
