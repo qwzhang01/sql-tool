@@ -93,7 +93,7 @@ public class SqlGatherHelper {
 
         convertJoinConditions(sqlObj, analysisInfo);
         // 转换 WHERE 条件
-        convertWhereConditions(sqlObj, analysisInfo, FieldType.CONDITION_WHERE);
+        convertWhereConditions(sqlObj, analysisInfo);
 
         // 转换 INSERT 字段
         convertInsertFields(sqlObj, analysisInfo);
@@ -170,11 +170,11 @@ public class SqlGatherHelper {
     /**
      * 转换 WHERE 条件
      */
-    private static void convertWhereConditions(SqlObj sqlObj, SqlGather analysisInfo, FieldType fieldType) {
+    private static void convertWhereConditions(SqlObj sqlObj, SqlGather analysisInfo) {
         List<SqlCondition> sqlConditions = sqlObj.getWhereConditions();
         if (sqlConditions != null) {
             for (SqlCondition sqlCondition : sqlConditions) {
-                convertWhereCondition(sqlCondition, analysisInfo, fieldType);
+                convertWhereCondition(sqlCondition, analysisInfo, FieldType.CONDITION_WHERE);
             }
         }
     }
@@ -187,8 +187,18 @@ public class SqlGatherHelper {
             return;
         }
 
+        // 处理exists
+        if (sqlCondition.getExists() != null) {
+            SqlObj exists = sqlCondition.getExists();
+            List<SqlCondition> whereConditions = exists.getWhereConditions();
+            if (whereConditions != null && !whereConditions.isEmpty()) {
+                for (SqlCondition whereCondition : whereConditions) {
+                    convertWhereCondition(whereCondition, analysisInfo, fieldType);
+                }
+            }
+        }
         // 处理简单条件
-        if (sqlCondition.getLeftOperand() != null) {
+        else if (sqlCondition.getLeftOperand() != null) {
             String fieldName = extractFieldName(sqlCondition.getLeftOperand());
             String tableAlias = extractTableAlias(sqlCondition.getLeftOperand(), analysisInfo);
 

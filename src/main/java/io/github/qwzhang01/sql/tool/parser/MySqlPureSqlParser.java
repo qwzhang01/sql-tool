@@ -342,7 +342,7 @@ public class MySqlPureSqlParser implements SqlParser {
     }
 
     /**
-     * Smart split WHERE clause to avoid breaking BETWEEN...AND structure
+     * Smart split WHERE clause to avoid breaking BETWEEN...AND structure and EXISTS/NOT EXISTS subqueries
      */
     private List<String> smartSplitByAnd(String whereClause) {
         List<String> parts = new ArrayList<>();
@@ -350,15 +350,51 @@ public class MySqlPureSqlParser implements SqlParser {
 
         String upperClause = whereClause.toUpperCase();
         int i = 0;
+        int parenthesesDepth = 0;
 
         while (i < whereClause.length()) {
-            // Check if we encounter AND
+            char currentChar = whereClause.charAt(i);
+
+            // Track parentheses depth to handle subqueries
+            if (currentChar == '(') {
+                parenthesesDepth++;
+            } else if (currentChar == ')') {
+                parenthesesDepth--;
+            }
+
+            // Check if we encounter AND (with or without leading space)
+            boolean foundAnd = false;
+            int andLength = 0;
+
+            // Check for " AND" (with leading space)
             if (i <= whereClause.length() - 4 && upperClause.substring(i, i + 4).equals(" AND")) {
+                foundAnd = true;
+                andLength = 4;
+            }
+            // Check for "AND " at the beginning or after certain characters like )
+            else if (i <= whereClause.length() - 4 && upperClause.substring(i, i + 4).equals("AND ")) {
+                foundAnd = true;
+                andLength = 4;
+            }
+            // Check for "AND" followed by non-letter character (like space, (, etc.)
+            else if (i <= whereClause.length() - 3 && upperClause.substring(i, i + 3).equals("AND") &&
+                    (i + 3 >= whereClause.length() || !Character.isLetter(whereClause.charAt(i + 3)))) {
+                foundAnd = true;
+                andLength = 3;
+            }
+
+            if (foundAnd) {
+                // If we're inside parentheses (subquery), don't split
+                if (parenthesesDepth > 0) {
+                    currentPart.append(whereClause.substring(i, i + andLength));
+                    i += andLength;
+                    continue;
+                }
+
                 // Check if this AND is within BETWEEN...AND structure
                 String beforeAnd = currentPart.toString().toUpperCase();
-
-                // If current part contains BETWEEN or NOT BETWEEN without corresponding AND, then this AND belongs to BETWEEN
                 boolean inBetween = false;
+
                 if (beforeAnd.contains(" BETWEEN ") || beforeAnd.contains(" NOT BETWEEN ")) {
                     // Simple check: if there's already an AND, then current AND is logical connector
                     // If no AND, then current AND is part of BETWEEN
@@ -372,20 +408,20 @@ public class MySqlPureSqlParser implements SqlParser {
 
                 if (inBetween) {
                     // This AND is part of BETWEEN, add to current part
-                    currentPart.append(whereClause.substring(i, i + 4));
-                    i += 4;
+                    currentPart.append(whereClause.substring(i, i + andLength));
+                    i += andLength;
                 } else {
                     // This AND is logical connector, split condition
                     parts.add(currentPart.toString().trim());
                     currentPart = new StringBuilder();
-                    i += 4; // Skip " AND"
+                    i += andLength; // Skip "AND"
                     // Skip subsequent spaces
                     while (i < whereClause.length() && Character.isWhitespace(whereClause.charAt(i))) {
                         i++;
                     }
                 }
             } else {
-                currentPart.append(whereClause.charAt(i));
+                currentPart.append(currentChar);
                 i++;
             }
         }
@@ -422,9 +458,26 @@ public class MySqlPureSqlParser implements SqlParser {
         if (conditionStr.startsWith("(") && conditionStr.endsWith(")")) {
             conditionStr = conditionStr.substring(1, conditionStr.length() - 1).trim();
         }
-
+        // NOT EXISTS
+        if (conditionStr.toUpperCase().contains("NOT EXISTS ") || conditionStr.toUpperCase().contains("NOT EXISTS(")) {
+            condition.setOperator("NOT EXISTS");
+            // 先去除头部 EXISTS (
+            String result = conditionStr.replaceFirst("^(?i)NOT\\s*(?i)EXISTS\\s*\\(", "");
+            // 再去除尾部 )
+            result = result.replaceFirst("\\)$", "");
+            condition.setExists(parse(result.trim()));
+        }
+        // EXISTS
+        else if (conditionStr.toUpperCase().contains("EXISTS ") || conditionStr.toUpperCase().contains("EXISTS(")) {
+            condition.setOperator("EXISTS");
+            // 先去除头部 EXISTS (
+            String result = conditionStr.replaceFirst("^(?i)EXISTS\\s*\\(", "");
+            // 再去除尾部 )
+            result = result.replaceFirst("\\)$", "");
+            condition.setExists(parse(result.trim()));
+        }
         // IS NULL / IS NOT NULL
-        if (conditionStr.toUpperCase().matches(".*\\s+IS\\s+NOT\\s+NULL\\s*")) {
+        else if (conditionStr.toUpperCase().matches(".*\\s+IS\\s+NOT\\s+NULL\\s*")) {
             String[] parts = conditionStr.split("\\s+(?i)IS\\s+NOT\\s+NULL");
             condition.setLeftOperand(parts[0].trim());
             condition.setOperator("IS NOT NULL");

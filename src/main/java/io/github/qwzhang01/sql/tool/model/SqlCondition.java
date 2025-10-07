@@ -53,6 +53,7 @@ public class SqlCondition {
     private List<SqlCondition> subConditions;
     private SqlField rightFieldInfo;
 
+    private SqlObj exists;
 
     /**
      * Default constructor
@@ -150,6 +151,14 @@ public class SqlCondition {
         }
     }
 
+    public SqlObj getExists() {
+        return exists;
+    }
+
+    public void setExists(SqlObj exists) {
+        this.exists = exists;
+    }
+
     public String getLogicalOperator() {
         return logicalOperator;
     }
@@ -197,7 +206,7 @@ public class SqlCondition {
      * @return true if the left operand is null or empty
      */
     public boolean isEmpty() {
-        return leftOperand == null || leftOperand.trim().isEmpty();
+        return exists == null && (leftOperand == null || leftOperand.trim().isEmpty());
     }
 
     /**

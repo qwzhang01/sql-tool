@@ -16,8 +16,12 @@ public class ExistsTest {
     public void testComplexNestedScenario() {
         String sql = "SELECT u.name, p.title FROM user u "
                 + "LEFT JOIN profile p ON u.id = p.user_id AND p.type = ? "
-                + "WHERE u.status IN (?, ?) AND u.created_at BETWEEN ? AND ? "
-                + "AND EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.status = ?)";
+                + "WHERE u.status IN (?, ?)"
+                + " AND u.created_at BETWEEN ? AND ? "
+                + "AND EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.status = ?)"
+                + "AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.status = ?)"
+                + " AND u.phone = ?"
+                + "AND u.email = ?";
 
         SqlGather result = SqlGatherHelper.analysis(sql);
 
