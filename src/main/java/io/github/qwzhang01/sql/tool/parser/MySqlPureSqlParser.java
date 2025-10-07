@@ -114,7 +114,7 @@ public class MySqlPureSqlParser implements SqlParser {
         // Clean comments and extra whitespace in SQL
         sqlObj.setOriginalSql(getCleaner().cleanSql(sqlObj.getOriginalSql()).trim());
         if (!sqlObj.getOriginalSql().toUpperCase().startsWith("WHERE")) {
-            throw new IllegalArgumentException("Unsupported JOIN type: " + sql);
+            sqlObj.setOriginalSql("WHERE " + sqlObj.getOriginalSql());
         }
         parseWhereConditions(sqlObj.getOriginalSql().substring(5).trim(), sqlObj);
         return sqlObj.getWhereConditions();

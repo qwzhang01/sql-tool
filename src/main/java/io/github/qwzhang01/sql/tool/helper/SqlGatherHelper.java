@@ -3,14 +3,85 @@ package io.github.qwzhang01.sql.tool.helper;
 import io.github.qwzhang01.sql.tool.enums.FieldType;
 import io.github.qwzhang01.sql.tool.enums.OperatorType;
 import io.github.qwzhang01.sql.tool.enums.TableType;
+import io.github.qwzhang01.sql.tool.exception.JsqlParserException;
 import io.github.qwzhang01.sql.tool.model.*;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 
+import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 import static io.github.qwzhang01.sql.tool.enums.OperatorType.SINGLE_PARAM;
 
 public class SqlGatherHelper {
+
+    public static String joint(String originalSql, String joinClause, String extraWhereCondition)  {
+        try {
+            // 1. 解析原始 SQL
+            Select select = (Select) CCJSqlParserUtil.parse(new StringReader(originalSql));
+            PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+
+            // 2. 分离 WHERE 子句
+            Expression originalWhere = plainSelect.getWhere(); // 获取 WHERE 条件
+            FromItem fromItem = plainSelect.getFromItem(); // 获取 FROM 表
+
+            // 3. 添加 LEFT JOIN
+            if (joinClause != null && !joinClause.isEmpty()) {
+                // 解析 LEFT JOIN 子句，例如 "LEFT JOIN dept ON user.dept_id = dept.id"
+                Join join = parseJoinClause(joinClause);
+                plainSelect.addJoins(Arrays.asList(join));
+            }
+
+            // 4. 添加额外 WHERE 条件
+            if (extraWhereCondition != null && !extraWhereCondition.isEmpty()) {
+                // 解析额外 WHERE 条件，例如 "dept.status = 'active'"
+                Expression extraWhere = CCJSqlParserUtil.parseExpression(extraWhereCondition);
+                if (originalWhere != null) {
+                    // 合并 WHERE：原始 WHERE AND 额外 WHERE
+                    plainSelect.setWhere(new AndExpression(originalWhere, extraWhere));
+                } else {
+                    // 无原始 WHERE，直接设置新 WHERE
+                    plainSelect.setWhere(extraWhere);
+                }
+            }
+
+            // 5. 生成最终 SQL
+            return select.toString();
+        }catch (JSQLParserException e){
+            throw new JsqlParserException(e);
+        }
+    }
+
+    private static Join parseJoinClause(String joinClause) throws JSQLParserException {
+        // 假设 joinClause 为 "LEFT JOIN dept ON user.dept_id = dept.id"
+        Join join = new Join();
+        // 设置为 LEFT JOIN
+        join.setLeft(true);
+
+        // 解析 JOIN 子句（简单示例，实际需处理复杂语法）
+        String[] parts = joinClause.split(" ON ");
+        String tablePart = parts[0].replace("LEFT JOIN ", "").trim(); // 提取表名：dept
+        String onCondition = parts[1].trim(); // 提取 ON 条件：user.dept_id = dept.id
+
+        // 设置 JOIN 表
+        join.setRightItem(new Table(tablePart));
+
+        // 解析 ON 条件
+        Expression onExpression = CCJSqlParserUtil.parseExpression(onCondition);
+        join.setOnExpression(onExpression);
+
+        return join;
+    }
+
     /**
      * Extracts parameter placeholders from SQL statement and returns them as a list of SqlParam objects.
      * This method analyzes the SQL statement to identify parameter placeholders (?) and creates
