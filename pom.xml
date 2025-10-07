@@ -42,6 +42,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jsqlparser.version>4.9</jsqlparser.version>
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <junit.platform.version>1.10.3</junit.platform.version>
         <mockito.version>5.20.0</mockito.version>
@@ -51,7 +52,7 @@
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
-            <version>4.9</version>
+            <version>${jsqlparser.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
