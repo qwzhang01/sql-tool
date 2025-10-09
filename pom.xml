@@ -7,7 +7,7 @@
 
     <groupId>io.github.qwzhang01</groupId>
     <artifactId>sql-tool</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>SQL Tool</name>
     <description>A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with

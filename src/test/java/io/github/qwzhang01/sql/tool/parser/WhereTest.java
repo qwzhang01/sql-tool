@@ -386,7 +386,7 @@ class WhereTest {
 
         // 不是WHERE子句
         // assertThrows(IllegalArgumentException.class, () -> {
-            // SqlParseHelper.parseWhere("SELECT * FROM users");
+        // SqlParseHelper.parseWhere("SELECT * FROM users");
         // });
     }
 

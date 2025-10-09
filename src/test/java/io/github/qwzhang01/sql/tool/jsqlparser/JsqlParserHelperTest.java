@@ -1,0 +1,51 @@
+package io.github.qwzhang01.sql.tool.jsqlparser;
+
+import io.github.qwzhang01.sql.tool.helper.JsqlParserHelper;
+import io.github.qwzhang01.sql.tool.model.SqlParam;
+import io.github.qwzhang01.sql.tool.model.SqlTable;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class JsqlParserHelperTest {
+
+    private static final String sql = """
+                            select 
+                                tmp.*,
+                                (select count(*) from dept where dept.order_id = tmp.id) as c
+                            from (
+                                select * from users
+                                join orders on users.id = orders.user_id
+                                join order_items on orders.id = order_items.order_id
+                            ) as tmp
+                            left join dept on dept.id = tmp.dept_id and dept.order_id = ?
+                            where name = 'abc' and age = 123 and c = 8 
+                            and tmp.d in (1, 2, 3)
+                            AND c between 1 and 10
+                            AND e is not null
+                            AND exists (select 1 from goods where goods.order_id = tmp.id)
+                            and f like 'abc%'
+                            or g = 1
+                            and tmp.k = ?
+            """;
+
+    @Test
+    public void testTable() {
+        List<SqlTable> tables = JsqlParserHelper.getTables(sql);
+        System.out.println("");
+    }
+
+    @Test
+    public void getTableDeep() {
+        List<SqlTable> tables = JsqlParserHelper.getTableDeep(sql);
+        System.out.println("");
+    }
+
+    @Test
+    public void testParam() {
+        List<SqlParam> param = JsqlParserHelper.getParam(sql);
+        assertTrue(param.get(0).getFieldName().equals("order_id"));
+    }
+}

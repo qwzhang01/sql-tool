@@ -24,7 +24,7 @@ import static io.github.qwzhang01.sql.tool.enums.OperatorType.SINGLE_PARAM;
 
 public class SqlGatherHelper {
 
-    public static String joint(String originalSql, String joinClause, String extraWhereCondition)  {
+    public static String joint(String originalSql, String joinClause, String extraWhereCondition) {
         try {
             // 1. 解析原始 SQL
             Select select = (Select) CCJSqlParserUtil.parse(new StringReader(originalSql));
@@ -56,7 +56,7 @@ public class SqlGatherHelper {
 
             // 5. 生成最终 SQL
             return select.toString();
-        }catch (JSQLParserException e){
+        } catch (JSQLParserException e) {
             throw new JsqlParserException(e);
         }
     }
