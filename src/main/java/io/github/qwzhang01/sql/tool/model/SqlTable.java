@@ -1,5 +1,7 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import java.util.List;
+
 /**
  * Table information class representing database table metadata and references.
  * This class stores comprehensive information about tables including names,
@@ -31,6 +33,11 @@ public class SqlTable {
     private String schema;
 
     /**
+     * 嵌套查询，只有别名，没有名字，包含的子表数组
+     */
+    private List<SqlTable> childTables;
+
+    /**
      * Default constructor
      */
     public SqlTable() {
@@ -54,6 +61,14 @@ public class SqlTable {
     public SqlTable(String tableName, String alias) {
         this.tableName = tableName;
         this.alias = alias;
+    }
+
+    public List<SqlTable> getChildTables() {
+        return childTables;
+    }
+
+    public void setChildTables(List<SqlTable> childTables) {
+        this.childTables = childTables;
     }
 
     public String getTableName() {
