@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * JSqlParser utility class for parsing and manipulating SQL statements.
  * This class provides methods to extract table information, parameters, and merge SQL clauses.
- * 
+ *
  * <p>Features include:</p>
  * <ul>
  *   <li>Adding JOIN and WHERE clauses to existing SQL statements</li>
@@ -55,8 +55,8 @@ public class JsqlParser {
      * Adds JOIN and WHERE clauses to an existing SQL statement.
      * This method merges additional JOIN and WHERE conditions with the original SQL.
      *
-     * @param sql the original SQL statement to modify
-     * @param joinClause the JOIN clause to add (can be null or empty)
+     * @param sql         the original SQL statement to modify
+     * @param joinClause  the JOIN clause to add (can be null or empty)
      * @param whereClause the WHERE clause to add (can be null or empty)
      * @return the modified SQL statement with merged JOIN and WHERE clauses
      * @throws JsqlParserException if SQL parsing fails
@@ -75,7 +75,7 @@ public class JsqlParser {
             whereClause = whereClause.trim();
             whereClause = sqlCleaner.cleanSql(whereClause);
         }
-        
+
         try {
             MergeStatementVisitorAdaptor mVisitor = new MergeStatementVisitorAdaptor();
 

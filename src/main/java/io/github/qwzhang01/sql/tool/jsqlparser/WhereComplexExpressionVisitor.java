@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * This class analyzes WHERE clause expressions and ensures that table references
  * use the correct aliases when available, providing consistent table naming
  * throughout complex WHERE conditions.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Completes table aliases in column references</li>
@@ -49,7 +49,7 @@ public class WhereComplexExpressionVisitor extends ExpressionVisitorAdapter<Void
      * This method checks if a column's table reference has an alias defined
      * and updates the column to use the alias instead of the full table name.
      *
-     * @param column the column expression to visit
+     * @param column  the column expression to visit
      * @param context the visitor context
      * @return null (required by visitor pattern)
      */
@@ -72,7 +72,7 @@ public class WhereComplexExpressionVisitor extends ExpressionVisitorAdapter<Void
      * This method handles EXISTS and NOT EXISTS expressions by recursively
      * processing the WHERE clauses of their subqueries to complete table aliases.
      *
-     * @param exits the EXISTS expression to visit
+     * @param exits   the EXISTS expression to visit
      * @param context the visitor context
      * @return null (required by visitor pattern)
      */

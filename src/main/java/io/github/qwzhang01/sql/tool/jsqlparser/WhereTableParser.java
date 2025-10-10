@@ -15,12 +15,12 @@ import java.util.List;
  * Parser for extracting table references from WHERE clause expressions.
  * This class analyzes complex WHERE clause expressions to identify all table references
  * including those in subqueries, column references, and nested expressions.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Extracts table references from column expressions</li>
  *   <li>Handles subqueries in WHERE clauses</li>
- *   <li>Processes IN expressions with subqueries</li>  
+ *   <li>Processes IN expressions with subqueries</li>
  *   <li>Supports JOIN clauses within subqueries</li>
  *   <li>Recursively analyzes nested WHERE conditions</li>
  * </ul>
@@ -55,7 +55,7 @@ public class WhereTableParser {
          * When a column is referenced with a table qualifier, this method
          * extracts the table name and alias information.
          *
-         * @param column the column expression to visit
+         * @param column  the column expression to visit
          * @param context the visitor context
          * @return null (required by visitor pattern)
          */
@@ -75,7 +75,7 @@ public class WhereTableParser {
          * JOIN clauses, and recursively processing nested WHERE conditions.
          *
          * @param subSelect the SELECT subquery to visit
-         * @param context the visitor context
+         * @param context   the visitor context
          * @return null (required by visitor pattern)
          */
         @Override
@@ -110,7 +110,7 @@ public class WhereTableParser {
          * and processes both the left and right expressions.
          *
          * @param inExpression the IN expression to visit
-         * @param context the visitor context
+         * @param context      the visitor context
          * @return null (required by visitor pattern)
          */
         @Override
@@ -133,13 +133,13 @@ public class WhereTableParser {
      * and parenthesized subqueries, collecting all table information recursively.
      */
     private class TableNameFromItemVisitor extends FromItemVisitorAdapter<Void> {
-        
+
         /**
          * Visits table references in FROM and JOIN clauses.
          * This method extracts the table name and alias information
          * from direct table references.
          *
-         * @param table the table reference to visit
+         * @param table   the table reference to visit
          * @param context the visitor context
          * @return null (required by visitor pattern)
          */
@@ -158,7 +158,7 @@ public class WhereTableParser {
          * JOIN clauses, and WHERE conditions to extract all table references.
          *
          * @param subSelect the parenthesized SELECT subquery to visit
-         * @param context the visitor context
+         * @param context   the visitor context
          * @return null (required by visitor pattern)
          */
         @Override

@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * Parser for analyzing SELECT statements and extracting table and parameter information.
  * This class provides methods to parse SELECT statements and extract various components
  * such as tables, parameters, JOIN clauses, and WHERE conditions.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Extracts table information with optional deep parsing of subqueries</li>
@@ -47,7 +47,7 @@ public class SelectParser {
 
     /**
      * Extracts all table information from the SELECT statement.
-     * 
+     *
      * @param deeply if true, performs deep parsing including tables from subqueries;
      *               if false, extracts only direct table references
      * @return a list of SqlTable objects containing table names and aliases
@@ -84,7 +84,7 @@ public class SelectParser {
                 }
             }
         }
-        
+
         // Extract parameters from WHERE clause
         Expression where = plainSelect.getWhere();
         if (where != null) {
@@ -93,30 +93,30 @@ public class SelectParser {
                 result.addAll(sqlParams);
             }
         }
-        
+
         // Log other clauses for potential future parameter extraction
         GroupByElement groupBy = plainSelect.getGroupBy();
         if (groupBy != null) {
-            logger.info("GROUP BY clause found: " + groupBy);
+            logger.fine("GROUP BY clause found: " + groupBy);
         }
-        
+
         Expression having = plainSelect.getHaving();
         if (having != null) {
-            logger.info("HAVING clause found: " + having);
+            logger.fine("HAVING clause found: " + having);
         }
-        
+
         List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
         if (orderByElements != null && !orderByElements.isEmpty()) {
             for (OrderByElement orderByElement : orderByElements) {
-                logger.info("ORDER BY element found: " + orderByElement);
+                logger.fine("ORDER BY element found: " + orderByElement);
             }
         }
-        
+
         Limit limit = plainSelect.getLimit();
         if (limit != null) {
-            logger.info("LIMIT clause found: " + limit);
+            logger.fine("LIMIT clause found: " + limit);
         }
-        
+
         return result;
     }
 

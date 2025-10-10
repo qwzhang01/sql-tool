@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * Expression visitor for completing table aliases in JOIN clause expressions.
  * This class analyzes JOIN condition expressions and ensures that table references
  * use the correct aliases when available, excluding the current JOIN table being processed.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Completes table aliases in JOIN condition column references</li>
@@ -35,21 +35,21 @@ public class JoinComplexExpressionVisitor extends ExpressionVisitorAdapter<Void>
      * for efficient alias resolution during JOIN condition processing.
      *
      * @param joinTableName the name of the table being joined (excluded from alias completion)
-     * @param table the list of tables with their aliases to use for reference completion
+     * @param table         the list of tables with their aliases to use for reference completion
      */
     public JoinComplexExpressionVisitor(String joinTableName, List<SqlTable> table) {
         this.joinTableName = joinTableName;
         this.table = table.stream().collect(Collectors.toMap(k -> k.getTableName() + (k.getAlias() != null && !k.getAlias().isEmpty() ? ":" + k.getAlias() : ""),
                 v -> v, (v1, v2) -> v1));
     }
-    
+
     /**
      * Visits column expressions in JOIN conditions to complete table alias references.
      * This method checks if a column's table reference has an alias defined and updates
      * the column to use the alias instead of the full table name. The current JOIN table
      * is excluded from alias completion to avoid conflicts.
      *
-     * @param column the column expression to visit
+     * @param column  the column expression to visit
      * @param content the visitor context
      * @return null (required by visitor pattern)
      */

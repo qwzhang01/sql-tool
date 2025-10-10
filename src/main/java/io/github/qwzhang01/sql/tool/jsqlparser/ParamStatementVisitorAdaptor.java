@@ -12,7 +12,7 @@ import java.util.List;
  * Statement visitor adaptor for extracting SQL parameters (placeholders) from SQL statements.
  * This class analyzes SQL statements and identifies all JDBC parameter placeholders (?),
  * along with their associated column and table information.
- * 
+ *
  * <p>Key capabilities:</p>
  * <ul>
  *   <li>Extracts JDBC parameter placeholders from all SQL statement types</li>
@@ -48,7 +48,7 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      */
     @Override
     public void visit(Delete delete) {
-        log.info("Extracting parameters from DELETE statement: " + delete.toString());
+        log.fine("Extracting parameters from DELETE statement: " + delete.toString());
         this.params = new DeleteParser(delete).param();
     }
 
@@ -61,7 +61,7 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      */
     @Override
     public void visit(Update update) {
-        log.info("Extracting parameters from UPDATE statement: " + update.toString());
+        log.fine("Extracting parameters from UPDATE statement: " + update.toString());
         this.params = new UpdateParser(update).param();
     }
 
@@ -74,7 +74,7 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      */
     @Override
     public void visit(Insert insert) {
-        log.info("Extracting parameters from INSERT statement: " + insert.toString());
+        log.fine("Extracting parameters from INSERT statement: " + insert.toString());
         this.params = new InsertParser(insert).param();
     }
 
@@ -87,7 +87,7 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      */
     @Override
     public void visit(Select select) {
-        log.info("Extracting parameters from SELECT statement: " + select.toString());
+        log.fine("Extracting parameters from SELECT statement: " + select.toString());
         this.params = new SelectParser(select).param();
     }
 }

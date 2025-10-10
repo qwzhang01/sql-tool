@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * Parser for analyzing DELETE statements and extracting table and parameter information.
  * This class provides comprehensive analysis of DELETE statements including target tables,
  * JOIN clauses, WHERE conditions, and JDBC parameters.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Extracts target table and joined tables from DELETE statements</li>
@@ -32,7 +32,7 @@ public class DeleteParser {
      * Logger instance for this parser
      */
     private static final Logger logger = Logger.getLogger(DeleteParser.class.getName());
-    
+
     /**
      * The DELETE statement to be parsed
      */
@@ -50,7 +50,7 @@ public class DeleteParser {
     /**
      * Extracts all table information from the DELETE statement.
      * This method performs deep parsing by default, including tables from subqueries.
-     * 
+     *
      * @return a list of SqlTable objects representing all tables in the DELETE statement
      */
     public List<SqlTable> table() {
@@ -67,7 +67,7 @@ public class DeleteParser {
      */
     private List<SqlTable> getTable(Delete delete, boolean deeply) {
         List<SqlTable> result = new ArrayList<>();
-        
+
         // Extract the main target table
         Table table = delete.getTable();
         result.add(new SqlTable(table.getName(), table.getAlias() != null ? table.getAlias().getName() : ""));
@@ -82,14 +82,14 @@ public class DeleteParser {
                 if (!joinTables.isEmpty()) {
                     result.addAll(joinTables);
                 }
-                
+
                 // Log JOIN information for debugging
-                logger.info("JOIN type: " + join.getJoinHint());
+                logger.fine("JOIN type: " + join.getJoinHint());
                 Collection<Expression> expressions = join.getOnExpressions();
                 for (Expression expression : expressions) {
-                    logger.info("ON condition: " + expression);
+                    logger.fine("ON condition: " + expression);
                 }
-                
+
                 // Process right side of JOIN
                 FromItem rightItem = join.getRightItem();
                 joinTables = fromItem(rightItem, deeply);
@@ -126,7 +126,7 @@ public class DeleteParser {
      * parenthesized subqueries, and lateral subqueries.
      *
      * @param fromItem the FROM item to analyze
-     * @param deeply if true, recursively analyzes subqueries
+     * @param deeply   if true, recursively analyzes subqueries
      * @return a list of SqlTable objects found in the FROM item
      */
     private List<SqlTable> fromItem(FromItem fromItem, boolean deeply) {
@@ -134,13 +134,13 @@ public class DeleteParser {
         if (fromItem == null) {
             return result;
         }
-        
+
         // Handle direct table references
         if (fromItem instanceof Table table) {
-            logger.info("Table found: " + table.getName());
+            logger.fine("Table found: " + table.getName());
             result.add(new SqlTable(table.getName(), table.getAlias() != null ? table.getAlias().getName() : ""));
         }
-        
+
         // Handle parenthesized subqueries
         if (fromItem instanceof ParenthesedSelect subSelect) {
             Alias alias = subSelect.getAlias();
@@ -152,7 +152,7 @@ public class DeleteParser {
                 }
                 result.add(new SqlTable("", name));
             }
-            
+
             // Recursively parse subquery if deep parsing is enabled
             if (deeply) {
                 PlainSelect plainSelect = subSelect.getPlainSelect();
@@ -161,7 +161,7 @@ public class DeleteParser {
                 }
             }
         }
-        
+
         // Handle lateral subqueries
         if (fromItem instanceof LateralSubSelect subSelect) {
             if (deeply) {
@@ -171,7 +171,7 @@ public class DeleteParser {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -184,7 +184,7 @@ public class DeleteParser {
      */
     public List<SqlParam> param() {
         List<SqlParam> result = new ArrayList<>();
-        
+
         // Extract parameters from JOIN clauses
         List<Join> joins = delete.getJoins();
         if (joins != null && !joins.isEmpty()) {
@@ -195,7 +195,7 @@ public class DeleteParser {
                 }
             }
         }
-        
+
         // Extract parameters from WHERE clause
         Expression where = delete.getWhere();
         if (where != null) {

@@ -14,7 +14,7 @@ import java.util.List;
  * Statement visitor adaptor for extracting JOIN and WHERE clauses from SQL statements.
  * This class is designed to parse SQL statements and extract their JOIN and WHERE
  * components for later merging with other SQL statements.
- * 
+ *
  * <p>Primary use cases:</p>
  * <ul>
  *   <li>Extracting JOIN clauses from SELECT, UPDATE, and DELETE statements</li>
@@ -30,7 +30,7 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
      * List of JOIN clauses extracted from the visited statement
      */
     private List<Join> joins;
-    
+
     /**
      * WHERE expression extracted from the visited statement
      */
@@ -56,7 +56,7 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
 
     /**
      * Visits a DELETE statement and extracts its JOIN and WHERE clauses.
-     * 
+     *
      * @param delete the DELETE statement to process
      */
     @Override
@@ -67,7 +67,7 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
 
     /**
      * Visits an UPDATE statement and extracts its JOIN and WHERE clauses.
-     * 
+     *
      * @param update the UPDATE statement to process
      */
     @Override
@@ -80,7 +80,7 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
      * Visits an INSERT statement.
      * INSERT statements cannot be used for JOIN and WHERE clause extraction,
      * so this method throws an UnsupportedOperationException.
-     * 
+     *
      * @param insert the INSERT statement
      * @throws UnsupportedOperationException always, as INSERT statements cannot be merged
      */
@@ -92,7 +92,7 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
     /**
      * Visits a SELECT statement and extracts its JOIN and WHERE clauses.
      * This method processes the PlainSelect component to extract the relevant clauses.
-     * 
+     *
      * @param select the SELECT statement to process
      */
     @Override

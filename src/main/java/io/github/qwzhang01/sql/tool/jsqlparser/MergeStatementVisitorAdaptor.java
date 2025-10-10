@@ -20,7 +20,7 @@ import java.util.List;
  * Statement visitor adaptor for merging JOIN and WHERE clauses into existing SQL statements.
  * This class takes additional JOIN and WHERE clauses and merges them with the original
  * SQL statement to create a modified version.
- * 
+ *
  * <p>Key capabilities:</p>
  * <ul>
  *   <li>Merges additional JOIN clauses with existing SELECT statements</li>
@@ -28,7 +28,7 @@ import java.util.List;
  *   <li>Handles table alias resolution and replacement</li>
  *   <li>Produces a complete modified SQL statement</li>
  * </ul>
- * 
+ *
  * <p>Supported operations:</p>
  * <ul>
  *   <li>SELECT statements - full merge support</li>
@@ -47,7 +47,7 @@ public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      * Additional JOIN clauses to be merged into the statement
      */
     private List<Join> joins;
-    
+
     /**
      * Additional WHERE expression to be merged into the statement
      */
@@ -119,7 +119,7 @@ public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
     /**
      * Visits a SELECT statement and performs the merge operation.
      * This method merges additional JOIN and WHERE clauses with the existing SELECT statement.
-     * 
+     *
      * <p>The merge process includes:</p>
      * <ol>
      *   <li>Extract table information for alias resolution</li>
@@ -139,7 +139,7 @@ public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
 
         // Extract table information for alias resolution during merge
         List<SqlTable> table = new SelectParser(select).table(true);
-        
+
         // Process and merge JOIN clauses
         if (joins != null && !joins.isEmpty()) {
             for (Join join : joins) {
@@ -153,7 +153,7 @@ public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
                         joinTableName = alias.getName();
                     }
                 }
-                
+
                 // Replace table aliases in JOIN conditions
                 Collection<Expression> ons = join.getOnExpressions();
                 for (Expression on : ons) {

@@ -18,7 +18,7 @@ import java.util.List;
  * Parser for analyzing INSERT statements and extracting table and parameter information.
  * This class provides methods to parse INSERT statements and extract the target table
  * information as well as JDBC parameters from the VALUES clause.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Extracts target table name and alias from INSERT statements</li>
@@ -46,7 +46,7 @@ public class InsertParser {
 
     /**
      * Extracts the target table information from the INSERT statement.
-     * 
+     *
      * @return a list containing a single SqlTable object representing the target table
      */
     public List<SqlTable> table() {
@@ -66,7 +66,7 @@ public class InsertParser {
         ExpressionList<Column> columns = insert.getColumns();
         Values values = insert.getValues();
         ExpressionList<?> expressions = values.getExpressions();
-        
+
         // Iterate through each value expression and check for JDBC parameters
         for (int i = 0; i < expressions.size(); i++) {
             Expression value = expressions.get(i);

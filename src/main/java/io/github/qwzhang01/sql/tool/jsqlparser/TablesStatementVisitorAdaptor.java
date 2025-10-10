@@ -12,7 +12,7 @@ import java.util.List;
  * Statement visitor adaptor for extracting table information from SQL statements.
  * This class analyzes SQL statements and extracts all table references including
  * table names, aliases, and optionally tables from nested subqueries.
- * 
+ *
  * <p>Features:</p>
  * <ul>
  *   <li>Extracts table names and aliases from all types of SQL statements</li>
@@ -29,7 +29,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
      * Flag indicating whether to perform deep parsing (including subqueries)
      */
     private final boolean deeply;
-    
+
     /**
      * List of extracted table information
      */
@@ -38,7 +38,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
     /**
      * Constructs a new TablesStatementVisitorAdaptor with the specified parsing depth.
      *
-     * @param deeply if true, performs deep parsing including subqueries; 
+     * @param deeply if true, performs deep parsing including subqueries;
      *               if false, performs shallow parsing of direct table references only
      */
     public TablesStatementVisitorAdaptor(boolean deeply) {
@@ -62,7 +62,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
      */
     @Override
     public void visit(Delete delete) {
-        log.info("Processing DELETE statement: " + delete.toString());
+        log.fine("Processing DELETE statement: " + delete.toString());
         this.tables = new DeleteParser(delete).table();
     }
 
@@ -74,7 +74,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
      */
     @Override
     public void visit(Update update) {
-        log.info("Processing UPDATE statement: " + update.toString());
+        log.fine("Processing UPDATE statement: " + update.toString());
         this.tables = new UpdateParser(update).table();
     }
 
@@ -86,7 +86,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
      */
     @Override
     public void visit(Insert insert) {
-        log.info("Processing INSERT statement: " + insert.toString());
+        log.fine("Processing INSERT statement: " + insert.toString());
         this.tables = new InsertParser(insert).table();
     }
 
@@ -99,7 +99,7 @@ public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor<Void>
      */
     @Override
     public void visit(Select select) {
-        log.info("Processing SELECT statement: " + select.toString());
+        log.fine("Processing SELECT statement: " + select.toString());
         this.tables = new SelectParser(select).table(deeply);
     }
 

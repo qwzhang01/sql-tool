@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * Singleton utility class for parsing SQL expressions and extracting table and parameter information.
  * This class provides comprehensive analysis of SQL expressions, including recursive parsing
  * of complex nested expressions, subqueries, and various operator types.
- * 
+ *
  * <p>Key capabilities:</p>
  * <ul>
  *   <li>Recursive parsing of complex SQL expressions</li>
@@ -71,7 +71,7 @@ public class ExpressionParse {
      * comparison operators, subqueries, and complex nested structures.
      *
      * @param expression the SQL expression to parse
-     * @param indent the current indentation level for logging (used in recursive calls)
+     * @param indent     the current indentation level for logging (used in recursive calls)
      * @return a list of SqlParam objects representing JDBC parameters found in the expression
      */
     private List<SqlParam> parseExpression(Expression expression, String indent) {
@@ -108,7 +108,7 @@ public class ExpressionParse {
         } else if (expression instanceof Parenthesis parenthesis) {
             return parseExpression(parenthesis.getExpression(), indent + "  ");
         } else {
-            log.info(indent + "其他表达式: " + expression);
+            log.fine(indent + "其他表达式: " + expression);
         }
         return Collections.emptyList();
     }
@@ -118,8 +118,8 @@ public class ExpressionParse {
      * This method examines both sides of a comparison operation to identify
      * parameter placeholders and their associated column information.
      *
-     * @param left the left side of the comparison expression
-     * @param right the right side of the comparison expression
+     * @param left   the left side of the comparison expression
+     * @param right  the right side of the comparison expression
      * @param indent the current indentation level for logging
      * @return a list of SqlParam objects found in the comparison
      */
@@ -172,7 +172,7 @@ public class ExpressionParse {
                     param.setFieldName(column.getColumnName());
                     result.add(param);
                 } else {
-                    log.info(indent + "    值: " + expr);
+                    log.fine(indent + "    值: " + expr);
                 }
             }
         } else if (rightExpression instanceof Select subSelect) {
@@ -187,7 +187,7 @@ public class ExpressionParse {
      * to identify parameter placeholders.
      *
      * @param between the BETWEEN expression to analyze
-     * @param indent the current indentation level for logging
+     * @param indent  the current indentation level for logging
      * @return a list of SqlParam objects found in the BETWEEN expression
      */
     private List<SqlParam> analyzeBetween(Between between, String indent) {
@@ -199,7 +199,7 @@ public class ExpressionParse {
             param.setFieldName(column.getColumnName());
             list.add(param);
         } else {
-            log.info(indent + "  起始值: " + between.getBetweenExpressionStart());
+            log.fine(indent + "  起始值: " + between.getBetweenExpressionStart());
         }
         if (between.getBetweenExpressionEnd() instanceof JdbcParameter) {
             SqlParam param = new SqlParam();
@@ -207,7 +207,7 @@ public class ExpressionParse {
             param.setFieldName(column.getColumnName());
             list.add(param);
         } else {
-            log.info(indent + "  结束值: " + between.getBetweenExpressionEnd());
+            log.fine(indent + "  结束值: " + between.getBetweenExpressionEnd());
         }
         return list;
     }
@@ -218,7 +218,7 @@ public class ExpressionParse {
      * to find parameter placeholders in nested queries.
      *
      * @param subSelect the subquery SELECT statement to parse
-     * @param indent the current indentation level for logging
+     * @param indent    the current indentation level for logging
      * @return a list of SqlParam objects found in the subquery
      */
     private List<SqlParam> parseSubSelect(Select subSelect, String indent) {
@@ -227,9 +227,9 @@ public class ExpressionParse {
             // 解析子查询的表
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem instanceof Table table) {
-                log.info(indent + "子查询表: " + table.getName());
+                log.fine(indent + "子查询表: " + table.getName());
                 if (table.getAlias() != null) {
-                    log.info(indent + "子查询表别名: " + table.getAlias().getName());
+                    log.fine(indent + "子查询表别名: " + table.getAlias().getName());
                 }
             }
 
@@ -248,7 +248,7 @@ public class ExpressionParse {
      * table references, including FROM clauses, JOINs, and optionally subqueries.
      *
      * @param plainSelect the PlainSelect statement to analyze
-     * @param deeply if true, recursively analyzes subqueries; if false, only direct references
+     * @param deeply      if true, recursively analyzes subqueries; if false, only direct references
      * @return a list of SqlTable objects representing all tables found in the statement
      */
     public List<SqlTable> getTable(PlainSelect plainSelect, boolean deeply) {
@@ -258,7 +258,7 @@ public class ExpressionParse {
         List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
         if (selectItems != null && !selectItems.isEmpty()) {
             for (SelectItem<?> item : selectItems) {
-                log.info("SELECT 项: " + item);
+                log.fine("SELECT 项: " + item);
             }
         }
 
@@ -271,14 +271,14 @@ public class ExpressionParse {
 
         Distinct distinct = plainSelect.getDistinct();
         if (distinct != null) {
-            log.info("DISTINCT: " + distinct);
+            log.fine("DISTINCT: " + distinct);
         }
 
         // 用于SELECT INTO语句
         List<Table> intoTables = plainSelect.getIntoTables();
         if (intoTables != null && !intoTables.isEmpty()) {
             for (Table table : intoTables) {
-                log.info("INTO TABLE: " + table.getName());
+                log.fine("INTO TABLE: " + table.getName());
             }
         }
 
@@ -292,10 +292,10 @@ public class ExpressionParse {
                     result.addAll(joinTables);
                 }
                 // INNER JOIN, LEFT
-                log.info("JOIN 类型: " + join.getJoinHint());
+                log.fine("JOIN 类型: " + join.getJoinHint());
                 Collection<Expression> expressions = join.getOnExpressions();
                 for (Expression expression : expressions) {
-                    log.info("ON 条件: " + expression);
+                    log.fine("ON 条件: " + expression);
                 }
                 FromItem rightItem = join.getRightItem();
                 joinTables = fromItem(rightItem, deeply);
@@ -341,7 +341,7 @@ public class ExpressionParse {
      * subqueries, and lateral subqueries.
      *
      * @param fromItem the FROM item to analyze
-     * @param deeply if true, recursively analyzes subqueries
+     * @param deeply   if true, recursively analyzes subqueries
      * @return a list of SqlTable objects found in the FROM item
      */
     private List<SqlTable> fromItem(FromItem fromItem, boolean deeply) {
@@ -350,7 +350,7 @@ public class ExpressionParse {
             return result;
         }
         if (fromItem instanceof Table table) {
-            log.info("表名: " + table.getName());
+            log.fine("表名: " + table.getName());
             result.add(new SqlTable(table.getName(), table.getAlias() != null ? table.getAlias().getName() : ""));
         }
         if (fromItem instanceof ParenthesedSelect subSelect) {

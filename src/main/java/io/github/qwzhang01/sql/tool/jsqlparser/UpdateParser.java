@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * Parser for analyzing UPDATE statements and extracting table and parameter information.
  * This class provides comprehensive analysis of UPDATE statements including target tables,
  * JOIN clauses, WHERE conditions, and JDBC parameters.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Extracts target table and joined tables from UPDATE statements</li>
@@ -36,7 +36,7 @@ public class UpdateParser {
      * Logger instance for this parser
      */
     private static final Logger logger = Logger.getLogger(UpdateParser.class.getName());
-    
+
     /**
      * The UPDATE statement to be parsed
      */
@@ -54,7 +54,7 @@ public class UpdateParser {
     /**
      * Extracts all table information from the UPDATE statement.
      * This method performs deep parsing by default, including tables from subqueries.
-     * 
+     *
      * @return a list of SqlTable objects representing all tables in the UPDATE statement
      */
     public List<SqlTable> table() {
@@ -71,7 +71,7 @@ public class UpdateParser {
      */
     private List<SqlTable> getTable(Update update, boolean deeply) {
         List<SqlTable> result = new ArrayList<>();
-        
+
         // Extract the main target table
         Table table = update.getTable();
         result.add(new SqlTable(table.getName(), table.getAlias() != null ? table.getAlias().getName() : ""));
@@ -86,14 +86,14 @@ public class UpdateParser {
                 if (!joinTables.isEmpty()) {
                     result.addAll(joinTables);
                 }
-                
+
                 // Log JOIN information for debugging
-                logger.info("JOIN type: " + join.getJoinHint());
+                logger.fine("JOIN type: " + join.getJoinHint());
                 Collection<Expression> expressions = join.getOnExpressions();
                 for (Expression expression : expressions) {
-                    logger.info("ON condition: " + expression);
+                    logger.fine("ON condition: " + expression);
                 }
-                
+
                 // Process right side of JOIN
                 FromItem rightItem = join.getRightItem();
                 joinTables = fromItem(rightItem, deeply);
@@ -130,7 +130,7 @@ public class UpdateParser {
      * parenthesized subqueries, and lateral subqueries.
      *
      * @param fromItem the FROM item to analyze
-     * @param deeply if true, recursively analyzes subqueries
+     * @param deeply   if true, recursively analyzes subqueries
      * @return a list of SqlTable objects found in the FROM item
      */
     private List<SqlTable> fromItem(FromItem fromItem, boolean deeply) {
@@ -138,13 +138,13 @@ public class UpdateParser {
         if (fromItem == null) {
             return result;
         }
-        
+
         // Handle direct table references
         if (fromItem instanceof Table table) {
-            logger.info("Table found: " + table.getName());
+            logger.fine("Table found: " + table.getName());
             result.add(new SqlTable(table.getName(), table.getAlias() != null ? table.getAlias().getName() : ""));
         }
-        
+
         // Handle parenthesized subqueries
         if (fromItem instanceof ParenthesedSelect subSelect) {
             Alias alias = subSelect.getAlias();
@@ -156,7 +156,7 @@ public class UpdateParser {
                 }
                 result.add(new SqlTable("", name));
             }
-            
+
             // Recursively parse subquery if deep parsing is enabled
             if (deeply) {
                 PlainSelect plainSelect = subSelect.getPlainSelect();
@@ -165,7 +165,7 @@ public class UpdateParser {
                 }
             }
         }
-        
+
         // Handle lateral subqueries
         if (fromItem instanceof LateralSubSelect subSelect) {
             if (deeply) {
@@ -175,7 +175,7 @@ public class UpdateParser {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -188,13 +188,13 @@ public class UpdateParser {
      */
     public List<SqlParam> param() {
         List<SqlParam> result = new ArrayList<>();
-        
+
         // Extract parameters from SET clauses
         List<UpdateSet> updateSets = update.getUpdateSets();
         for (UpdateSet updateSet : updateSets) {
             ExpressionList<Column> columns = updateSet.getColumns();
             ExpressionList<?> values = updateSet.getValues();
-            
+
             // Check each value in the SET clause for JDBC parameters
             for (int i = 0; i < values.size(); i++) {
                 Object value = values.get(i);
@@ -220,7 +220,7 @@ public class UpdateParser {
                 }
             }
         }
-        
+
         // Extract parameters from WHERE clause
         Expression where = update.getWhere();
         if (where != null) {

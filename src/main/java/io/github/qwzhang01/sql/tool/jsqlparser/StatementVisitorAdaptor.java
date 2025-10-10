@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  * Abstract base class for implementing StatementVisitor pattern with JSqlParser 5.1.
  * This class provides default implementations for all statement visit methods and serves
  * as an adapter to simplify concrete visitor implementations.
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Provides logging for all statement types</li>
@@ -62,12 +62,12 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
      *
      * @param analyze the ANALYZE statement
      * @param context the visit context
-     * @param <S> the context type
+     * @param <S>     the context type
      * @return null by default
      */
     @Override
     public <S> T visit(Analyze analyze, S context) {
-        log.info("analyze: " + analyze.toString());
+        log.fine("analyze: " + analyze.toString());
         return null;
     }
 
@@ -76,148 +76,148 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
      * Logs the statement and returns null by default.
      *
      * @param savepointStatement the SAVEPOINT statement
-     * @param context the visit context
-     * @param <S> the context type
+     * @param context            the visit context
+     * @param <S>                the context type
      * @return null by default
      */
     @Override
     public <S> T visit(SavepointStatement savepointStatement, S context) {
-        log.info("savepointStatement: " + savepointStatement.toString());
+        log.fine("savepointStatement: " + savepointStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(RollbackStatement rollbackStatement, S context) {
-        log.info("rollbackStatement: " + rollbackStatement.toString());
+        log.fine("rollbackStatement: " + rollbackStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Comment comment, S context) {
-        log.info("comment: " + comment.toString());
+        log.fine("comment: " + comment.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Commit commit, S context) {
-        log.info("commit: " + commit.toString());
+        log.fine("commit: " + commit.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Delete delete, S context) {
-        log.info("delete: " + delete.toString());
+        log.fine("delete: " + delete.toString());
         visit(delete);
         return null;
     }
 
     @Override
     public <S> T visit(Update update, S context) {
-        log.info("update: " + update.toString());
+        log.fine("update: " + update.toString());
         visit(update);
         return null;
     }
 
     @Override
     public <S> T visit(Insert insert, S context) {
-        log.info("insert: " + insert.toString());
+        log.fine("insert: " + insert.toString());
         visit(insert);
         return null;
     }
 
     @Override
     public <S> T visit(Drop drop, S context) {
-        log.info("drop: " + drop.toString());
+        log.fine("drop: " + drop.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Truncate truncate, S context) {
-        log.info("truncate: " + truncate.toString());
+        log.fine("truncate: " + truncate.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateIndex createIndex, S context) {
-        log.info("createIndex: " + createIndex.toString());
+        log.fine("createIndex: " + createIndex.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateSchema createSchema, S context) {
-        log.info("createSchema: " + createSchema.toString());
+        log.fine("createSchema: " + createSchema.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateTable createTable, S context) {
-        log.info("createTable: " + createTable.toString());
+        log.fine("createTable: " + createTable.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateView createView, S context) {
-        log.info("createView: " + createView.toString());
+        log.fine("createView: " + createView.toString());
         return null;
     }
 
     @Override
     public <S> T visit(AlterView alterView, S context) {
-        log.info("alterView: " + alterView.toString());
+        log.fine("alterView: " + alterView.toString());
         return null;
     }
 
     @Override
     public <S> T visit(RefreshMaterializedViewStatement materializedView, S context) {
-        log.info("materializedView: " + materializedView.toString());
+        log.fine("materializedView: " + materializedView.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Alter alter, S context) {
-        log.info("alter: " + alter.toString());
+        log.fine("alter: " + alter.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Statements statements, S context) {
-        log.info("statements: " + statements.toString());
+        log.fine("statements: " + statements.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Execute execute, S context) {
-        log.info("execute: " + execute.toString());
+        log.fine("execute: " + execute.toString());
         return null;
     }
 
     @Override
     public <S> T visit(SetStatement set, S context) {
-        log.info("set: " + set.toString());
+        log.fine("set: " + set.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ResetStatement reset, S context) {
-        log.info("reset: " + reset.toString());
+        log.fine("reset: " + reset.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ShowIndexStatement showIndex, S context) {
-        log.info("showIndex: " + showIndex.toString());
+        log.fine("showIndex: " + showIndex.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ShowTablesStatement showTables, S context) {
-        log.info("showTables: " + showTables.toString());
+        log.fine("showTables: " + showTables.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Merge merge, S context) {
-        log.info("merge: " + merge.toString());
+        log.fine("merge: " + merge.toString());
         return null;
     }
 
@@ -225,152 +225,152 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
      * Visits a SELECT statement.
      * Logs the statement and delegates to the abstract visit(Select) method.
      *
-     * @param select the SELECT statement
+     * @param select  the SELECT statement
      * @param context the visit context
-     * @param <S> the context type
+     * @param <S>     the context type
      * @return null by default
      */
     @Override
     public <S> T visit(Select select, S context) {
-        log.info("select: " + select.toString());
+        log.fine("select: " + select.toString());
         visit(select);
         return null;
     }
 
     @Override
     public <S> T visit(Upsert upsert, S context) {
-        log.info("upsert: " + upsert.toString());
+        log.fine("upsert: " + upsert.toString());
         return null;
     }
 
     @Override
     public <S> T visit(UseStatement use, S context) {
-        log.info("use: " + use.toString());
+        log.fine("use: " + use.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Block block, S context) {
-        log.info("block: " + block.toString());
+        log.fine("block: " + block.toString());
         return null;
     }
 
     @Override
     public <S> T visit(DescribeStatement describe, S context) {
-        log.info("describe: " + describe.toString());
+        log.fine("describe: " + describe.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ExplainStatement explainStatement, S context) {
-        log.info("explainStatement: " + explainStatement.toString());
+        log.fine("explainStatement: " + explainStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(DeclareStatement declareStatement, S context) {
-        log.info("declareStatement: " + declareStatement.toString());
+        log.fine("declareStatement: " + declareStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(Grant grant, S context) {
-        log.info("grant: " + grant.toString());
+        log.fine("grant: " + grant.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateSequence createSequence, S context) {
-        log.info("createSequence: " + createSequence.toString());
+        log.fine("createSequence: " + createSequence.toString());
         return null;
     }
 
     @Override
     public <S> T visit(AlterSequence alterSequence, S context) {
-        log.info("alterSequence: " + alterSequence.toString());
+        log.fine("alterSequence: " + alterSequence.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateFunctionalStatement createFunctionalStatement, S context) {
-        log.info("createFunctionalStatement: " + createFunctionalStatement.toString());
+        log.fine("createFunctionalStatement: " + createFunctionalStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(CreateSynonym createSynonym, S context) {
-        log.info("createSynonym: " + createSynonym.toString());
+        log.fine("createSynonym: " + createSynonym.toString());
         return null;
     }
 
     @Override
     public <S> T visit(AlterSession alterSession, S context) {
-        log.info("alterSession: " + alterSession.toString());
+        log.fine("alterSession: " + alterSession.toString());
         return null;
     }
 
     @Override
     public <S> T visit(IfElseStatement ifElseStatement, S context) {
-        log.info("ifElseStatement: " + ifElseStatement.toString());
+        log.fine("ifElseStatement: " + ifElseStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(RenameTableStatement renameTableStatement, S context) {
-        log.info("renameTableStatement: " + renameTableStatement.toString());
+        log.fine("renameTableStatement: " + renameTableStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(PurgeStatement purgeStatement, S context) {
-        log.info("purgeStatement: " + purgeStatement.toString());
+        log.fine("purgeStatement: " + purgeStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(AlterSystemStatement alterSystemStatement, S context) {
-        log.info("alterSystemStatement: " + alterSystemStatement.toString());
+        log.fine("alterSystemStatement: " + alterSystemStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(UnsupportedStatement unsupportedStatement, S context) {
-        log.info("unsupportedStatement: " + unsupportedStatement.toString());
+        log.fine("unsupportedStatement: " + unsupportedStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ShowColumnsStatement showColumns, S context) {
-        log.info("showColumns: " + showColumns.toString());
+        log.fine("showColumns: " + showColumns.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ShowStatement showStatement, S context) {
-        log.info("showStatement: " + showStatement.toString());
+        log.fine("showStatement: " + showStatement.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ParenthesedInsert parenthesedInsert, S context) {
-        log.info("parenthesedInsert: " + parenthesedInsert.toString());
+        log.fine("parenthesedInsert: " + parenthesedInsert.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ParenthesedUpdate parenthesedUpdate, S context) {
-        log.info("parenthesedUpdate: " + parenthesedUpdate.toString());
+        log.fine("parenthesedUpdate: " + parenthesedUpdate.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ParenthesedDelete parenthesedDelete, S context) {
-        log.info("parenthesedDelete: " + parenthesedDelete.toString());
+        log.fine("parenthesedDelete: " + parenthesedDelete.toString());
         return null;
     }
 
     // Abstract methods that must be implemented by concrete subclasses
-    
+
     /**
      * Abstract method for visiting DELETE statements.
      * Concrete implementations must provide specific logic for handling DELETE operations.
