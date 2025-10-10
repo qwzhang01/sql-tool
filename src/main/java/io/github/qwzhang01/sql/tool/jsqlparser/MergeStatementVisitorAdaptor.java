@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author avinzhang
  */
-public class MergeStatementVisitor extends AbstractStatementVisitor {
+public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor {
     private String sql;
 
     private List<Join> joins;

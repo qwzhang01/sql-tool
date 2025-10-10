@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author avinzhang
  */
-public class GetStatementVisitor extends AbstractStatementVisitor {
+public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor {
 
     private List<Join> joins;
 

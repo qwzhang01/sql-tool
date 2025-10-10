@@ -1,6 +1,6 @@
 package io.github.qwzhang01.sql.tool.jsqlparser;
 
-import io.github.qwzhang01.sql.tool.model.SqlParam;
+import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Select;
@@ -9,39 +9,44 @@ import net.sf.jsqlparser.statement.update.Update;
 import java.util.List;
 
 /**
- * 获取脚本所有代占位符的参数
+ * 获取脚本所有表信息
  *
  * @author avinzhang
  */
-public class ParamStatementVisitor extends AbstractStatementVisitor {
+public class TablesStatementVisitorAdaptor extends StatementVisitorAdaptor {
 
-    private List<SqlParam> params;
+    private final boolean deeply;
+    private List<SqlTable> tables;
 
-    public List<SqlParam> getParams() {
-        return params;
+    public TablesStatementVisitorAdaptor(boolean deeply) {
+        this.deeply = deeply;
+    }
+
+    public List<SqlTable> getTables() {
+        return tables;
     }
 
     @Override
     public void visit(Delete delete) {
         log.info("delete: " + delete.toString());
-        this.params = new DeleteParser(delete).param();
+        this.tables = new DeleteParser(delete).table();
     }
 
     @Override
     public void visit(Update update) {
         log.info("update: " + update.toString());
-        this.params = new UpdateParser(update).param();
+        this.tables = new UpdateParser(update).table();
     }
 
     @Override
     public void visit(Insert insert) {
         log.info("insert: " + insert.toString());
-        this.params = new InsertParser(insert).param();
+        this.tables = new InsertParser(insert).table();
     }
 
     @Override
     public void visit(Select select) {
         log.info("select: " + select.toString());
-        this.params = new SelectParser(select).param();
+        this.tables = new SelectParser(select).table(deeply);
     }
 }

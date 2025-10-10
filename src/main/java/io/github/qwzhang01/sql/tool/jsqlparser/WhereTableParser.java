@@ -21,7 +21,7 @@ public class WhereTableParser {
     }
 
     // 自定义 ExpressionVisitor，用于提取表名
-    private class WhereExpressionVisitor extends ExpressionVisitorAdapter {
+    private class WhereExpressionVisitor<T> extends ExpressionVisitorAdapter<T> {
         @Override
         public void visit(Column column) {
             // 从 Column 中提取表名
@@ -32,7 +32,7 @@ public class WhereTableParser {
         }
 
         @Override
-        public void visit(Select subSelect) {
+        public <S> T visit(Select subSelect, S context) {
             PlainSelect plainSelect = subSelect.getPlainSelect();
             // 处理子查询中的表名
             // 解析 FROM 子句
@@ -51,6 +51,7 @@ public class WhereTableParser {
             if (where != null) {
                 where.accept(this);
             }
+            return null;
         }
 
         @Override

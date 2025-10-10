@@ -4,6 +4,8 @@ package io.github.qwzhang01.sql.tool.jsqlparser;
 import io.github.qwzhang01.sql.tool.exception.JsqlParserException;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
+import io.github.qwzhang01.sql.tool.parser.MySqlSqlCleaner;
+import io.github.qwzhang01.sql.tool.parser.SqlCleaner;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -18,7 +20,10 @@ import java.util.List;
  * @author avinzhang
  */
 public class JsqlParser {
+    private final SqlCleaner sqlCleaner;
+
     private JsqlParser() {
+        sqlCleaner = new MySqlSqlCleaner();
     }
 
     public static JsqlParser getInstance() {
@@ -26,12 +31,24 @@ public class JsqlParser {
     }
 
     public String addJoinAndWhere(String sql, String joinClause, String whereClause) {
+        if (sql != null && !sql.isEmpty()) {
+            sql = sql.trim();
+            sql = sqlCleaner.cleanSql(sql);
+        }
+        if (joinClause != null && !joinClause.isEmpty()) {
+            joinClause = joinClause.trim();
+            joinClause = sqlCleaner.cleanSql(joinClause);
+        }
+        if (whereClause != null && !whereClause.isEmpty()) {
+            whereClause = whereClause.trim();
+            whereClause = sqlCleaner.cleanSql(whereClause);
+        }
         try {
-            MergeStatementVisitor mVisitor = new MergeStatementVisitor();
+            MergeStatementVisitorAdaptor mVisitor = new MergeStatementVisitorAdaptor();
 
             if (joinClause != null && !joinClause.isEmpty()) {
                 Statement parse = CCJSqlParserUtil.parse("select * from a a " + joinClause);
-                GetStatementVisitor visitor = new GetStatementVisitor();
+                GetStatementVisitorAdaptor visitor = new GetStatementVisitorAdaptor();
                 parse.accept(visitor);
                 List<Join> joins = visitor.getJoins();
                 if (joins != null && !joins.isEmpty()) {
@@ -44,7 +61,7 @@ public class JsqlParser {
                     whereClause = "WHERE " + whereClause;
                 }
                 Statement parse = CCJSqlParserUtil.parse("select * from  a a " + whereClause);
-                GetStatementVisitor visitor = new GetStatementVisitor();
+                GetStatementVisitorAdaptor visitor = new GetStatementVisitorAdaptor();
                 parse.accept(visitor);
                 Expression where = visitor.getWhere();
                 if (where != null) {
@@ -61,9 +78,12 @@ public class JsqlParser {
     }
 
     public List<SqlParam> getParam(String sql) {
+        if (sql != null && !sql.isEmpty()) {
+            sql = sql.trim();
+        }
         try {
             Statement parse = CCJSqlParserUtil.parse(sql);
-            ParamStatementVisitor visitor = new ParamStatementVisitor();
+            ParamStatementVisitorAdaptor visitor = new ParamStatementVisitorAdaptor();
             parse.accept(visitor);
             return visitor.getParams();
         } catch (JSQLParserException e) {
@@ -72,9 +92,12 @@ public class JsqlParser {
     }
 
     public List<SqlTable> getTables(String sql) {
+        if (sql != null && !sql.isEmpty()) {
+            sql = sql.trim();
+        }
         try {
             Statement parse = CCJSqlParserUtil.parse(sql);
-            TablesStatementVisitor visitor = new TablesStatementVisitor(false);
+            TablesStatementVisitorAdaptor visitor = new TablesStatementVisitorAdaptor(false);
             parse.accept(visitor);
             return visitor.getTables();
         } catch (JSQLParserException e) {
@@ -83,9 +106,12 @@ public class JsqlParser {
     }
 
     public List<SqlTable> getTableDeep(String sql) {
+        if (sql != null && !sql.isEmpty()) {
+            sql = sql.trim();
+        }
         try {
             Statement parse = CCJSqlParserUtil.parse(sql);
-            TablesStatementVisitor visitor = new TablesStatementVisitor(true);
+            TablesStatementVisitorAdaptor visitor = new TablesStatementVisitorAdaptor(true);
             parse.accept(visitor);
             return visitor.getTables();
         } catch (JSQLParserException e) {

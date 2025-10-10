@@ -29,7 +29,7 @@ public class JsqlParserTest {
 
         Statement statement = CCJSqlParserUtil.parse(sql);
 
-        statement.accept(new TablesStatementVisitor(true));
+        statement.accept(new TablesStatementVisitorAdaptor(true));
 
         Select select = (Select) statement;
         PlainSelect plainSelect = select.getPlainSelect();
