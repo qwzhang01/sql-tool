@@ -92,5 +92,7 @@ public class MergeStatementVisitor extends AbstractStatementVisitor {
                 plainSelect.setWhere(where);
             }
         }
+
+        sql = select.toString();
     }
 }

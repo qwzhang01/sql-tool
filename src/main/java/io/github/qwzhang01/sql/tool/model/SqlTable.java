@@ -34,6 +34,7 @@ public class SqlTable {
 
     /**
      * 嵌套查询，只有别名，没有名字，包含的子表数组
+     * todo 如果是子查询，用属性方式表示
      */
     private List<SqlTable> childTables;
 
