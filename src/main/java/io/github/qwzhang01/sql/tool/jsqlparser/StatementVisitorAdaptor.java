@@ -35,20 +35,51 @@ import net.sf.jsqlparser.statement.upsert.Upsert;
 import java.util.logging.Logger;
 
 /**
- * StatementVisitorAdaptor
+ * Abstract base class for implementing StatementVisitor pattern with JSqlParser 5.1.
+ * This class provides default implementations for all statement visit methods and serves
+ * as an adapter to simplify concrete visitor implementations.
+ * 
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Provides logging for all statement types</li>
+ *   <li>Delegates core SQL operations (SELECT, INSERT, UPDATE, DELETE) to abstract methods</li>
+ *   <li>Handles all other statement types with default no-op implementations</li>
+ *   <li>Thread-safe logging implementation</li>
+ * </ul>
  *
+ * @param <T> the return type for visit methods
  * @author avinzhang
  */
 public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> {
+    /**
+     * Logger instance for this visitor, initialized per concrete subclass
+     */
     protected final Logger log = Logger.getLogger(this.getClass().getName());
 
-
+    /**
+     * Visits an ANALYZE statement.
+     * Logs the statement and returns null by default.
+     *
+     * @param analyze the ANALYZE statement
+     * @param context the visit context
+     * @param <S> the context type
+     * @return null by default
+     */
     @Override
     public <S> T visit(Analyze analyze, S context) {
         log.info("analyze: " + analyze.toString());
         return null;
     }
 
+    /**
+     * Visits a SAVEPOINT statement.
+     * Logs the statement and returns null by default.
+     *
+     * @param savepointStatement the SAVEPOINT statement
+     * @param context the visit context
+     * @param <S> the context type
+     * @return null by default
+     */
     @Override
     public <S> T visit(SavepointStatement savepointStatement, S context) {
         log.info("savepointStatement: " + savepointStatement.toString());
@@ -76,18 +107,21 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
     @Override
     public <S> T visit(Delete delete, S context) {
         log.info("delete: " + delete.toString());
+        visit(delete);
         return null;
     }
 
     @Override
     public <S> T visit(Update update, S context) {
         log.info("update: " + update.toString());
+        visit(update);
         return null;
     }
 
     @Override
     public <S> T visit(Insert insert, S context) {
         log.info("insert: " + insert.toString());
+        visit(insert);
         return null;
     }
 
@@ -170,12 +204,6 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
     }
 
     @Override
-    public <S> T visit(ShowColumnsStatement showColumns, S context) {
-        log.info("showColumns: " + showColumns.toString());
-        return null;
-    }
-
-    @Override
     public <S> T visit(ShowIndexStatement showIndex, S context) {
         log.info("showIndex: " + showIndex.toString());
         return null;
@@ -193,9 +221,19 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
         return null;
     }
 
+    /**
+     * Visits a SELECT statement.
+     * Logs the statement and delegates to the abstract visit(Select) method.
+     *
+     * @param select the SELECT statement
+     * @param context the visit context
+     * @param <S> the context type
+     * @return null by default
+     */
     @Override
     public <S> T visit(Select select, S context) {
         log.info("select: " + select.toString());
+        visit(select);
         return null;
     }
 
@@ -226,12 +264,6 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
     @Override
     public <S> T visit(ExplainStatement explainStatement, S context) {
         log.info("explainStatement: " + explainStatement.toString());
-        return null;
-    }
-
-    @Override
-    public <S> T visit(ShowStatement showStatement, S context) {
-        log.info("showStatement: " + showStatement.toString());
         return null;
     }
 
@@ -308,30 +340,70 @@ public abstract class StatementVisitorAdaptor<T> implements StatementVisitor<T> 
     }
 
     @Override
-    public <S> T visit(ParenthesedInsert parenthesedInsert, S context) {
+    public <S> T visit(ShowColumnsStatement showColumns, S context) {
+        log.info("showColumns: " + showColumns.toString());
+        return null;
+    }
 
+    @Override
+    public <S> T visit(ShowStatement showStatement, S context) {
+        log.info("showStatement: " + showStatement.toString());
+        return null;
+    }
+
+    @Override
+    public <S> T visit(ParenthesedInsert parenthesedInsert, S context) {
+        log.info("parenthesedInsert: " + parenthesedInsert.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ParenthesedUpdate parenthesedUpdate, S context) {
+        log.info("parenthesedUpdate: " + parenthesedUpdate.toString());
         return null;
     }
 
     @Override
     public <S> T visit(ParenthesedDelete parenthesedDelete, S context) {
+        log.info("parenthesedDelete: " + parenthesedDelete.toString());
         return null;
     }
 
+    // Abstract methods that must be implemented by concrete subclasses
+    
+    /**
+     * Abstract method for visiting DELETE statements.
+     * Concrete implementations must provide specific logic for handling DELETE operations.
+     *
+     * @param delete the DELETE statement to process
+     */
     @Override
-    abstract public void visit(Delete delete);
+    public abstract void visit(Delete delete);
 
+    /**
+     * Abstract method for visiting UPDATE statements.
+     * Concrete implementations must provide specific logic for handling UPDATE operations.
+     *
+     * @param update the UPDATE statement to process
+     */
     @Override
-    abstract public void visit(Update update);
+    public abstract void visit(Update update);
 
+    /**
+     * Abstract method for visiting INSERT statements.
+     * Concrete implementations must provide specific logic for handling INSERT operations.
+     *
+     * @param insert the INSERT statement to process
+     */
     @Override
-    abstract public void visit(Insert insert);
+    public abstract void visit(Insert insert);
 
+    /**
+     * Abstract method for visiting SELECT statements.
+     * Concrete implementations must provide specific logic for handling SELECT operations.
+     *
+     * @param select the SELECT statement to process
+     */
     @Override
-    abstract public void visit(Select select);
+    public abstract void visit(Select select);
 }

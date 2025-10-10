@@ -17,22 +17,62 @@ import net.sf.jsqlparser.statement.select.*;
 import java.util.*;
 import java.util.logging.Logger;
 
+/**
+ * Singleton utility class for parsing SQL expressions and extracting table and parameter information.
+ * This class provides comprehensive analysis of SQL expressions, including recursive parsing
+ * of complex nested expressions, subqueries, and various operator types.
+ * 
+ * <p>Key capabilities:</p>
+ * <ul>
+ *   <li>Recursive parsing of complex SQL expressions</li>
+ *   <li>JDBC parameter extraction with column association</li>
+ *   <li>Table extraction from various expression types and subqueries</li>
+ *   <li>Support for all major SQL operators and constructs</li>
+ *   <li>Deep analysis of nested SELECT statements</li>
+ * </ul>
+ *
+ * @author avinzhang
+ */
 public class ExpressionParse {
+    /**
+     * Logger instance for this parser
+     */
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
+    /**
+     * Private constructor for singleton pattern
+     */
     private ExpressionParse() {
     }
 
+    /**
+     * Gets the singleton instance of ExpressionParse.
+     *
+     * @return the singleton ExpressionParse instance
+     */
     public static ExpressionParse getInstance() {
         return ExpressionParse.SingletonHolder.INSTANCE;
     }
 
+    /**
+     * Parses an SQL expression and extracts JDBC parameters.
+     * This is a convenience method that calls the recursive parser with default indentation.
+     *
+     * @param expression the SQL expression to parse
+     * @return a list of SqlParam objects representing JDBC parameters found in the expression
+     */
     public List<SqlParam> parseExpression(Expression expression) {
         return parseExpression(expression, "  ");
     }
 
     /**
-     * 递归解析表达式，识别占位符和相关信息
+     * Recursively parses SQL expressions to identify JDBC parameters and their associated metadata.
+     * This method handles various types of SQL expressions including logical operators,
+     * comparison operators, subqueries, and complex nested structures.
+     *
+     * @param expression the SQL expression to parse
+     * @param indent the current indentation level for logging (used in recursive calls)
+     * @return a list of SqlParam objects representing JDBC parameters found in the expression
      */
     private List<SqlParam> parseExpression(Expression expression, String indent) {
         if (expression == null) {
@@ -74,7 +114,14 @@ public class ExpressionParse {
     }
 
     /**
-     * 分析比较表达式的左右两边
+     * Analyzes comparison expressions to extract JDBC parameters.
+     * This method examines both sides of a comparison operation to identify
+     * parameter placeholders and their associated column information.
+     *
+     * @param left the left side of the comparison expression
+     * @param right the right side of the comparison expression
+     * @param indent the current indentation level for logging
+     * @return a list of SqlParam objects found in the comparison
      */
     private List<SqlParam> analyzeComparison(Expression left, Expression right, String indent) {
         if (right instanceof JdbcParameter) {
@@ -105,7 +152,12 @@ public class ExpressionParse {
     }
 
     /**
-     * 分析比较表达式的左右两边
+     * Analyzes IN expressions to extract JDBC parameters.
+     * This method handles both list-based IN expressions and subquery-based IN expressions.
+     *
+     * @param inExpr the IN expression to analyze
+     * @param indent the current indentation level for logging
+     * @return a list of SqlParam objects found in the IN expression
      */
     private List<SqlParam> analyzeIn(InExpression inExpr, String indent) {
         Column column = (Column) inExpr.getLeftExpression();
@@ -129,6 +181,15 @@ public class ExpressionParse {
         return Collections.emptyList();
     }
 
+    /**
+     * Analyzes BETWEEN expressions to extract JDBC parameters.
+     * This method examines both the start and end values of a BETWEEN clause
+     * to identify parameter placeholders.
+     *
+     * @param between the BETWEEN expression to analyze
+     * @param indent the current indentation level for logging
+     * @return a list of SqlParam objects found in the BETWEEN expression
+     */
     private List<SqlParam> analyzeBetween(Between between, String indent) {
         List<SqlParam> list = new ArrayList<>();
         Column column = (Column) between.getLeftExpression();
@@ -152,7 +213,13 @@ public class ExpressionParse {
     }
 
     /**
-     * 解析子查询
+     * Parses subqueries to extract JDBC parameters.
+     * This method recursively analyzes SELECT statements within expressions
+     * to find parameter placeholders in nested queries.
+     *
+     * @param subSelect the subquery SELECT statement to parse
+     * @param indent the current indentation level for logging
+     * @return a list of SqlParam objects found in the subquery
      */
     private List<SqlParam> parseSubSelect(Select subSelect, String indent) {
         PlainSelect plainSelect = subSelect.getPlainSelect();
@@ -175,6 +242,15 @@ public class ExpressionParse {
         return Collections.emptyList();
     }
 
+    /**
+     * Extracts table information from a PlainSelect statement.
+     * This method analyzes all components of a SELECT statement to identify
+     * table references, including FROM clauses, JOINs, and optionally subqueries.
+     *
+     * @param plainSelect the PlainSelect statement to analyze
+     * @param deeply if true, recursively analyzes subqueries; if false, only direct references
+     * @return a list of SqlTable objects representing all tables found in the statement
+     */
     public List<SqlTable> getTable(PlainSelect plainSelect, boolean deeply) {
         List<SqlTable> result = new ArrayList<>();
 
@@ -248,10 +324,26 @@ public class ExpressionParse {
         }).toList();
     }
 
+    /**
+     * Extracts table references from WHERE clause expressions.
+     * This method delegates to WhereTableParser for specialized WHERE clause analysis.
+     *
+     * @param where the WHERE expression to analyze
+     * @return a list of SqlTable objects found in the WHERE clause
+     */
     private List<SqlTable> whereTable(Expression where) {
         return new WhereTableParser().extractTable(where);
     }
 
+    /**
+     * Extracts table information from FROM item expressions.
+     * This method handles various types of FROM items including direct table references,
+     * subqueries, and lateral subqueries.
+     *
+     * @param fromItem the FROM item to analyze
+     * @param deeply if true, recursively analyzes subqueries
+     * @return a list of SqlTable objects found in the FROM item
+     */
     private List<SqlTable> fromItem(FromItem fromItem, boolean deeply) {
         List<SqlTable> result = new ArrayList<>();
         if (fromItem == null) {
@@ -271,19 +363,32 @@ public class ExpressionParse {
                 result.add(new SqlTable("", name));
             }
             if (deeply) {
-                result.addAll(getTable(subSelect.getPlainSelect(), true));
+                PlainSelect plainSelect = subSelect.getPlainSelect();
+                if (plainSelect != null) {
+                    result.addAll(getTable(plainSelect, true));
+                }
             }
-
         }
         if (fromItem instanceof LateralSubSelect subSelect) {
             if (deeply) {
-                result.addAll(getTable(subSelect.getPlainSelect(), true));
+                PlainSelect plainSelect = subSelect.getPlainSelect();
+                if (plainSelect != null) {
+                    result.addAll(getTable(plainSelect, true));
+                }
             }
         }
         return result;
     }
 
+    /**
+     * Singleton holder class for thread-safe lazy initialization.
+     * This pattern ensures that the singleton instance is created only when needed
+     * and provides thread safety without synchronization overhead.
+     */
     private static class SingletonHolder {
+        /**
+         * The singleton instance of ExpressionParse
+         */
         private static final ExpressionParse INSTANCE = new ExpressionParse();
     }
 }
