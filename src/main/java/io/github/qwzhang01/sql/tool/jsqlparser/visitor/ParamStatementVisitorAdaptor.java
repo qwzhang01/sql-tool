@@ -1,12 +1,18 @@
-package io.github.qwzhang01.sql.tool.jsqlparser;
+package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
+import io.github.qwzhang01.sql.tool.jsqlparser.DeleteParser;
+import io.github.qwzhang01.sql.tool.jsqlparser.InsertParser;
+import io.github.qwzhang01.sql.tool.jsqlparser.SelectParser;
+import io.github.qwzhang01.sql.tool.jsqlparser.UpdateParser;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
+import net.sf.jsqlparser.statement.StatementVisitorAdapter;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Statement visitor adaptor for extracting SQL parameters (placeholders) from SQL statements.
@@ -23,8 +29,8 @@ import java.util.List;
  *
  * @author avinzhang
  */
-public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
-
+public class ParamStatementVisitorAdaptor extends StatementVisitorAdapter<Void> {
+    private static final Logger log = Logger.getLogger(ParamStatementVisitorAdaptor.class.getName());
     /**
      * List of extracted SQL parameters with their metadata
      */
@@ -47,9 +53,10 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      * @param delete the DELETE statement to analyze
      */
     @Override
-    public void visit(Delete delete) {
+    public <S> Void visit(Delete delete, S content) {
         log.fine("Extracting parameters from DELETE statement: " + delete.toString());
         this.params = new DeleteParser(delete).param();
+        return null;
     }
 
     /**
@@ -60,9 +67,10 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      * @param update the UPDATE statement to analyze
      */
     @Override
-    public void visit(Update update) {
+    public <S> Void visit(Update update, S content) {
         log.fine("Extracting parameters from UPDATE statement: " + update.toString());
         this.params = new UpdateParser(update).param();
+        return null;
     }
 
     /**
@@ -73,9 +81,10 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      * @param insert the INSERT statement to analyze
      */
     @Override
-    public void visit(Insert insert) {
+    public <S> Void visit(Insert insert, S content) {
         log.fine("Extracting parameters from INSERT statement: " + insert.toString());
         this.params = new InsertParser(insert).param();
+        return null;
     }
 
     /**
@@ -86,8 +95,9 @@ public class ParamStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
      * @param select the SELECT statement to analyze
      */
     @Override
-    public void visit(Select select) {
+    public <S> Void visit(Select select, S content) {
         log.fine("Extracting parameters from SELECT statement: " + select.toString());
         this.params = new SelectParser(select).param();
+        return null;
     }
 }

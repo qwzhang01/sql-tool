@@ -1,10 +1,12 @@
-package io.github.qwzhang01.sql.tool.jsqlparser;
+package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
+import io.github.qwzhang01.sql.tool.jsqlparser.SelectParser;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.StatementVisitorAdapter;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.FromItem;
@@ -37,7 +39,7 @@ import java.util.List;
  *
  * @author avinzhang
  */
-public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
+public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
     /**
      * The final merged SQL statement as a string
      */
@@ -183,6 +185,4 @@ public class MergeStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> 
         // Generate the final merged SQL statement
         sql = select.toString();
     }
-
-
 }

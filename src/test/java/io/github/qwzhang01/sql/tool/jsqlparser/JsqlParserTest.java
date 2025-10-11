@@ -1,6 +1,8 @@
 package io.github.qwzhang01.sql.tool.jsqlparser;
 
+import io.github.qwzhang01.sql.tool.jsqlparser.visitor.TableFinder;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
+import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.JdbcParameter;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class JsqlParserTest {
 
@@ -27,25 +30,8 @@ public class JsqlParserTest {
                 "LEFT JOIN posts p ON u.id = p.user_id AND p.status = ? " +
                 "INNER JOIN departments d ON u.dept_id = d.id ";
 
-        Statement statement = CCJSqlParserUtil.parse(sql);
-
-        statement.accept(new TablesStatementVisitorAdaptor(true));
-
-        Select select = (Select) statement;
-        PlainSelect plainSelect = select.getPlainSelect();
-
-        System.out.println("\n=== LEFT JOIN 查询解析 ===");
-        System.out.println("原始SQL: " + sql);
-
-        // 解析表信息
-        FromItem fromItem = plainSelect.getFromItem();
-        if (fromItem instanceof Table table) {
-            System.out.println("表名: " + table.getName());
-            System.out.println("表别名: " + (table.getAlias() != null ? table.getAlias().getName() : "无"));
-        }
-
-        // 解析 JOIN 信息
-        List<Join> joinList = plainSelect.getJoins();
+        Set<SqlTable> tablesOrOtherSources = TableFinder.findTablesOrOtherSources(sql);
+        System.out.println(tablesOrOtherSources);
     }
 
     /**

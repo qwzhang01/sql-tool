@@ -236,7 +236,7 @@ public class MySqlPureSqlParser implements SqlParser {
         parts = Arrays.stream(parts).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
 
         SqlTable table = new SqlTable();
-        table.setTableName(parts[0]);
+        table.setName(parts[0]);
 
         if (parts.length > 1) {
             table.setAlias(parts[1]);
@@ -672,7 +672,7 @@ public class MySqlPureSqlParser implements SqlParser {
 
             // Set main table
             SqlTable mainTable = new SqlTable();
-            mainTable.setTableName(tableName);
+            mainTable.setName(tableName);
             sqlObj.setMainTable(mainTable);
 
             // Parse fields
@@ -837,7 +837,7 @@ public class MySqlPureSqlParser implements SqlParser {
         }
 
         // FROM clause
-        sql.append(" FROM ").append(sqlObj.getMainTable().getTableName());
+        sql.append(" FROM ").append(sqlObj.getMainTable().getName());
         if (sqlObj.getMainTable().getAlias() != null) {
             sql.append(" ").append(sqlObj.getMainTable().getAlias());
         }
@@ -908,7 +908,7 @@ public class MySqlPureSqlParser implements SqlParser {
      * Build INSERT SQL
      */
     private void buildInsertSql(SqlObj sqlObj, StringBuilder sql) {
-        sql.append("INSERT INTO ").append(sqlObj.getMainTable().getTableName());
+        sql.append("INSERT INTO ").append(sqlObj.getMainTable().getName());
 
         if (sqlObj.getInsertValues() != null && !sqlObj.getInsertValues().isEmpty()) {
             sql.append(" (");
@@ -935,7 +935,7 @@ public class MySqlPureSqlParser implements SqlParser {
      * Build UPDATE SQL
      */
     private void buildUpdateSql(SqlObj sqlObj, StringBuilder sql) {
-        sql.append("UPDATE ").append(sqlObj.getMainTable().getTableName());
+        sql.append("UPDATE ").append(sqlObj.getMainTable().getName());
         if (sqlObj.getMainTable().getAlias() != null) {
             sql.append(" ").append(sqlObj.getMainTable().getAlias());
         }
@@ -968,7 +968,7 @@ public class MySqlPureSqlParser implements SqlParser {
      * Build DELETE SQL
      */
     private void buildDeleteSql(SqlObj sqlObj, StringBuilder sql) {
-        sql.append("DELETE FROM ").append(sqlObj.getMainTable().getTableName());
+        sql.append("DELETE FROM ").append(sqlObj.getMainTable().getName());
 
         // WHERE clause
         if (sqlObj.getWhereConditions() != null && !sqlObj.getWhereConditions().isEmpty()) {

@@ -184,7 +184,7 @@ public class SqlGatherHelper {
     private static void convertMainTable(SqlObj sqlObj, SqlGather analysisInfo) {
         SqlTable mainTable = sqlObj.getMainTable();
         if (mainTable != null) {
-            SqlGather.Table table = new SqlGather.Table(mainTable.getTableName(), mainTable.getAlias(), TableType.MAIN);
+            SqlGather.Table table = new SqlGather.Table(mainTable.getName(), mainTable.getAlias(), TableType.MAIN);
             analysisInfo.addTable(table);
         }
     }

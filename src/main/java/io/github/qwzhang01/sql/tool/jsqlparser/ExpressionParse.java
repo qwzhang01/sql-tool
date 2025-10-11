@@ -10,9 +10,12 @@ import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
+import net.sf.jsqlparser.util.TablesNamesFinder;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -52,6 +55,12 @@ public class ExpressionParse {
      */
     public static ExpressionParse getInstance() {
         return ExpressionParse.SingletonHolder.INSTANCE;
+    }
+
+    public static List<String> extractTableNames(String sql) throws Exception {
+        Statement statement = CCJSqlParserUtil.parse(sql);
+        TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+        return tablesNamesFinder.getTableList(statement);
     }
 
     /**
@@ -316,10 +325,10 @@ public class ExpressionParse {
 
         Set<String> mut = new HashSet<>();
         return result.stream().filter(s -> {
-            if (mut.contains(s.getTableName() + s.getAlias())) {
+            if (mut.contains(s.getName() + s.getAlias())) {
                 return false;
             }
-            mut.add(s.getTableName() + s.getAlias());
+            mut.add(s.getName() + s.getAlias());
             return true;
         }).toList();
     }

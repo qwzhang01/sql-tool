@@ -1,4 +1,4 @@
-package io.github.qwzhang01.sql.tool.jsqlparser;
+package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -39,7 +39,7 @@ public class JoinComplexExpressionVisitor extends ExpressionVisitorAdapter<Void>
      */
     public JoinComplexExpressionVisitor(String joinTableName, List<SqlTable> table) {
         this.joinTableName = joinTableName;
-        this.table = table.stream().collect(Collectors.toMap(k -> k.getTableName() + (k.getAlias() != null && !k.getAlias().isEmpty() ? ":" + k.getAlias() : ""),
+        this.table = table.stream().collect(Collectors.toMap(k -> k.getName() + (k.getAlias() != null && !k.getAlias().isEmpty() ? ":" + k.getAlias() : ""),
                 v -> v, (v1, v2) -> v1));
     }
 

@@ -1,4 +1,4 @@
-package io.github.qwzhang01.sql.tool.jsqlparser;
+package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.expression.Expression;
@@ -41,7 +41,7 @@ public class WhereComplexExpressionVisitor extends ExpressionVisitorAdapter<Void
      */
     public WhereComplexExpressionVisitor(List<SqlTable> table) {
         // Create mapping for main table name replacement
-        this.table = table.stream().collect(Collectors.toMap(k -> k.getTableName() + (k.getAlias() != null && !k.getAlias().isEmpty() ? ":" + k.getAlias() : ""), v -> v, (v1, v2) -> v1));
+        this.table = table.stream().collect(Collectors.toMap(k -> k.getName() + (k.getAlias() != null && !k.getAlias().isEmpty() ? ":" + k.getAlias() : ""), v -> v, (v1, v2) -> v1));
     }
 
     /**

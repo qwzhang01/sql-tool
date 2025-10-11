@@ -1,9 +1,11 @@
 package io.github.qwzhang01.sql.tool.helper;
 
 import io.github.qwzhang01.sql.tool.jsqlparser.JsqlParser;
+import io.github.qwzhang01.sql.tool.jsqlparser.visitor.TableFinder;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,10 +32,6 @@ public class JsqlParserHelper {
     }
 
     public static List<SqlTable> getTables(String sql) {
-        return JsqlParser.getInstance().getTables(sql);
-    }
-
-    public static List<SqlTable> getTableDeep(String sql) {
-        return JsqlParser.getInstance().getTableDeep(sql);
+        return new ArrayList<>(TableFinder.findTablesOrOtherSources(sql));
     }
 }

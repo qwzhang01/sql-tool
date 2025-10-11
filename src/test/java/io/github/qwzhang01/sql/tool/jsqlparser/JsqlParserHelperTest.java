@@ -1,11 +1,14 @@
 package io.github.qwzhang01.sql.tool.jsqlparser;
 
 import io.github.qwzhang01.sql.tool.helper.JsqlParserHelper;
+import io.github.qwzhang01.sql.tool.jsqlparser.visitor.TableFinder;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
+import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,6 +35,15 @@ public class JsqlParserHelperTest {
                             and tmp.k = ?
             """;
 
+
+    @Test
+    public void tableTest() throws JSQLParserException {
+        // Set<SqlTable> tables = TableFinder.findTables(sql);
+        Set<SqlTable> tablesOrOtherSources = TableFinder.findTablesOrOtherSources(sql);
+        System.out.println(tablesOrOtherSources);
+
+    }
+
     @Test
     public void testTable() {
         List<SqlTable> tables = JsqlParserHelper.getTables(sql);
@@ -40,7 +52,7 @@ public class JsqlParserHelperTest {
 
     @Test
     public void getTableDeep() {
-        List<SqlTable> tables = JsqlParserHelper.getTableDeep(sql);
+        List<SqlTable> tables = JsqlParserHelper.getTables(sql);
         System.out.println("");
     }
 

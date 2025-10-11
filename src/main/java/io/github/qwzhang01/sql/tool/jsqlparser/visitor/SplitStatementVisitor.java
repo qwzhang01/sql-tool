@@ -1,8 +1,8 @@
-package io.github.qwzhang01.sql.tool.jsqlparser;
+package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.statement.StatementVisitorAdapter;
 import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author avinzhang
  */
-public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
+public class SplitStatementVisitor extends StatementVisitorAdapter<Void> {
 
     /**
      * List of JOIN clauses extracted from the visited statement
@@ -60,9 +60,10 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
      * @param delete the DELETE statement to process
      */
     @Override
-    public void visit(Delete delete) {
+    public <S> Void visit(Delete delete, S content) {
         this.joins = delete.getJoins();
         this.where = delete.getWhere();
+        return null;
     }
 
     /**
@@ -71,22 +72,10 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
      * @param update the UPDATE statement to process
      */
     @Override
-    public void visit(Update update) {
+    public <S> Void visit(Update update, S content) {
         this.joins = update.getJoins();
         this.where = update.getWhere();
-    }
-
-    /**
-     * Visits an INSERT statement.
-     * INSERT statements cannot be used for JOIN and WHERE clause extraction,
-     * so this method throws an UnsupportedOperationException.
-     *
-     * @param insert the INSERT statement
-     * @throws UnsupportedOperationException always, as INSERT statements cannot be merged
-     */
-    @Override
-    public void visit(Insert insert) {
-        throw new UnsupportedOperationException("Insert statements cannot be used for clause extraction");
+        return null;
     }
 
     /**
@@ -96,13 +85,12 @@ public class GetStatementVisitorAdaptor extends StatementVisitorAdaptor<Void> {
      * @param select the SELECT statement to process
      */
     @Override
-    public void visit(Select select) {
+    public <S> Void visit(Select select, S content) {
         PlainSelect plainSelect = select.getPlainSelect();
         if (plainSelect != null) {
             this.joins = plainSelect.getJoins();
             this.where = plainSelect.getWhere();
         }
+        return null;
     }
-
-
 }

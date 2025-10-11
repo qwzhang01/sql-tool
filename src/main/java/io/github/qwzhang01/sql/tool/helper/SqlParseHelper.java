@@ -172,7 +172,7 @@ public class SqlParseHelper {
 
         // Main table
         if (sqlObj.getMainTable() != null) {
-            tableNames.add(sqlObj.getMainTable().getTableName());
+            tableNames.add(sqlObj.getMainTable().getName());
         }
 
         // JOIN tables
@@ -420,7 +420,7 @@ public class SqlParseHelper {
         sb.append("  Original SQL: ").append(sqlObj.getOriginalSql()).append("\n");
 
         if (sqlObj.getMainTable() != null) {
-            sb.append("  Main Table: ").append(sqlObj.getMainTable().getTableName());
+            sb.append("  Main Table: ").append(sqlObj.getMainTable().getName());
             if (sqlObj.getMainTable().getAlias() != null) {
                 sb.append(" AS ").append(sqlObj.getMainTable().getAlias());
             }

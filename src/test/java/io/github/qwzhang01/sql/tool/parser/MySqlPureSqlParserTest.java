@@ -76,7 +76,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.SELECT, result.getSqlType());
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertNull(result.getMainTable().getAlias());
     }
 
@@ -89,7 +89,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.SELECT, result.getSqlType());
-        assertEquals("user", result.getMainTable().getTableName());
+        assertEquals("user", result.getMainTable().getName());
         assertNull(result.getMainTable().getAlias());
     }
 
@@ -128,7 +128,7 @@ class MySqlPureSqlParserTest {
         assertEquals("email", col3.getFieldName());
         assertEquals("alias_email", col3.getAlias());
 
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertEquals("u", result.getMainTable().getAlias());
     }
 
@@ -149,7 +149,7 @@ class MySqlPureSqlParserTest {
         assertEquals(SqlType.SELECT, result.getSqlType());
 
         // 验证主表
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertEquals("u", result.getMainTable().getAlias());
 
         // 验证JOIN
@@ -543,7 +543,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.INSERT, result.getSqlType());
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
 
         assertEquals(3, result.getInsertValues().size());
         assertEquals("name", result.getInsertValues().get(0).columnName());
@@ -577,7 +577,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.UPDATE, result.getSqlType());
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
 
         assertNotNull(result.getUpdateValues());
         assertEquals(2, result.getUpdateValues().size());
@@ -594,7 +594,7 @@ class MySqlPureSqlParserTest {
         SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertEquals("u", result.getMainTable().getAlias());
     }
 
@@ -619,7 +619,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.DELETE, result.getSqlType());
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertEquals(1, result.getWhereConditions().size());
     }
 
@@ -630,7 +630,7 @@ class MySqlPureSqlParserTest {
         SqlObj result = parser.parse(sql);
 
         assertNotNull(result);
-        assertEquals("users", result.getMainTable().getTableName());
+        assertEquals("users", result.getMainTable().getName());
         assertEquals("u", result.getMainTable().getAlias());
     }
 
@@ -653,7 +653,7 @@ class MySqlPureSqlParserTest {
 
         assertNotNull(result);
         assertEquals(SqlType.DELETE, result.getSqlType());
-        assertEquals("temp_table", result.getMainTable().getTableName());
+        assertEquals("temp_table", result.getMainTable().getName());
         assertTrue(result.getWhereConditions() == null || result.getWhereConditions().isEmpty());
     }
 

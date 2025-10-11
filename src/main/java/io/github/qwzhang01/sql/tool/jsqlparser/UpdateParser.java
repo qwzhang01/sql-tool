@@ -115,7 +115,7 @@ public class UpdateParser {
         // Remove duplicates based on table name and alias combination
         Set<String> mut = new HashSet<>();
         return result.stream().filter(s -> {
-            String key = s.getTableName() + s.getAlias();
+            String key = s.getName() + s.getAlias();
             if (mut.contains(key)) {
                 return false;
             }
