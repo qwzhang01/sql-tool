@@ -88,7 +88,6 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     public Set<SqlTable> getTables(Statement statement) {
         init(false);
         statement.accept(this, null);
-
         // @todo: assess this carefully, maybe we want to remove more specifically
         // only Aliases on WithItems, Parenthesed Selects and Lateral Selects
         otherItemNames.forEach(tables::remove);
