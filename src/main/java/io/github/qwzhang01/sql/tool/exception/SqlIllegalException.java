@@ -10,7 +10,7 @@ public class SqlIllegalException extends ParseException {
     private String sql;
 
     public SqlIllegalException(String message, Throwable cause, String sql) {
-        super(message, cause);
+        super(message + ": " + sql, cause);
         this.sql = sql;
     }
 
