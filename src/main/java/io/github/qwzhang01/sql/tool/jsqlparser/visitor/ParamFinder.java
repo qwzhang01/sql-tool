@@ -43,17 +43,18 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 import net.sf.jsqlparser.statement.upsert.Upsert;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<Void>, ExpressionVisitor<Void>, SelectItemVisitor<Void>, StatementVisitor<Void> {
     private static final Logger log = Logger.getLogger(ParamFinder.class.getName());
     private Integer index = -1;
-    private List<SqlParam> params;
+    private Set<SqlParam> params;
 
-    public static List<SqlParam> find(String sqlStr) {
+    public static Set<SqlParam> find(String sqlStr) {
         ParamFinder<?> tablesNamesFinder = new ParamFinder<>();
         return tablesNamesFinder.get(SqlParser.getInstance().parse(sqlStr));
     }
@@ -62,8 +63,8 @@ public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         throw new UnsupportedOperationException(String.format("Finding tables from %s is not supported", type.getClass().getSimpleName()));
     }
 
-    public List<SqlParam> get(Statement statement) {
-        params = new ArrayList<>();
+    public Set<SqlParam> get(Statement statement) {
+        params = new HashSet<>();
         statement.accept(this, null);
         return params;
     }
@@ -454,6 +455,17 @@ public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
             index = rightJdbcParameter.getIndex();
             left.accept(this, null);
             index = -1;
+        } else if (right instanceof Function fun) {
+            ExpressionList<?> parameters = fun.getParameters();
+            if (parameters != null && !parameters.isEmpty()) {
+                for (Expression parameter : parameters) {
+                    if (parameter instanceof JdbcParameter jdbcParameter) {
+                        index = jdbcParameter.getIndex();
+                        left.accept(this, null);
+                        index = -1;
+                    }
+                }
+            }
         } else {
             right.accept(this, null);
         }

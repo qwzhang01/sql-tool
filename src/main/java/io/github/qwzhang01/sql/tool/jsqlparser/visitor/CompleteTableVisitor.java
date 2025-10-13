@@ -1,11 +1,16 @@
 package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
 import io.github.qwzhang01.sql.tool.model.SqlTable;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.operators.relational.ExistsExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.ParenthesedSelect;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 
+import java.util.Collection;
 import java.util.List;
 
 public class CompleteTableVisitor extends ExpressionVisitorAdapter<Void> {
@@ -40,7 +45,22 @@ public class CompleteTableVisitor extends ExpressionVisitorAdapter<Void> {
 
     @Override
     public <S> Void visit(ExistsExpression expression, S context) {
-        expression.getRightExpression().accept(this, context);
+        Expression rightExpression = expression.getRightExpression();
+        if (rightExpression instanceof ParenthesedSelect select) {
+            PlainSelect plainSelect = select.getPlainSelect();
+            List<Join> joins = plainSelect.getJoins();
+            if (joins != null && !joins.isEmpty()) {
+                for (Join join : joins) {
+                    Collection<Expression> ons = join.getOnExpressions();
+                    for (Expression on : ons) {
+                        on.accept(this, context);
+                    }
+                }
+            }
+            if (plainSelect.getWhere() != null) {
+                plainSelect.getWhere().accept(this, context);
+            }
+        }
         return null;
     }
 }

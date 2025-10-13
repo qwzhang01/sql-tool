@@ -20,6 +20,13 @@ import java.util.List;
  * @author avinzhang
  */
 public class ParserHelper {
+    public static List<SqlTable> getTables(String sql) {
+        return new ArrayList<>(TableFinder.findTablesOrOtherSources(sql));
+    }
+
+    public static List<SqlParam> getParam(String sql) {
+        return new ArrayList<>(ParamFinder.find(sql));
+    }
 
     public static String addJoin(String sql, String joinClause) {
         return addJoinAndWhere(sql, joinClause, null);
@@ -76,13 +83,5 @@ public class ParserHelper {
         Statement parse = SqlParser.getInstance().parse(sql);
         parse.accept(mVisitor);
         return mVisitor.getSql();
-    }
-
-    public static List<SqlParam> getParam(String sql) {
-        return ParamFinder.find(sql);
-    }
-
-    public static List<SqlTable> getTables(String sql) {
-        return new ArrayList<>(TableFinder.findTablesOrOtherSources(sql));
     }
 }

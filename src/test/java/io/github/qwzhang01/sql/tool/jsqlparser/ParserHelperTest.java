@@ -170,7 +170,7 @@ public class ParserHelperTest {
 
         Set<SqlTable> tablesOrOtherSources = TableFinder.findTablesOrOtherSources(sqlStr);
 
-        long startMillis = System.currentTimeMillis();
+        /*long startMillis = System.currentTimeMillis();
         for (int i = 1; i < 1000; i++) {
             final CCJSqlParser parser = new CCJSqlParser(sqlStr)
                     .withSquareBracketQuotation(false)
@@ -179,6 +179,6 @@ public class ParserHelperTest {
             parser.Statements();
             long endMillis = System.currentTimeMillis();
             System.out.println("Duration [ms]: " + (endMillis - startMillis) / i);
-        }
+        }*/
     }
 }
