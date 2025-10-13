@@ -53,7 +53,8 @@ public class ParserHelperTest {
 
     @Test
     public void testComplete() {
-        String join = "left join flow f on f.userId = users.id";
+        String join = "left join flow f on f.userId = users.id" +
+                " left join users u1 on tmp.id = u1.user_id";
         String where = "WHERE f.id = ? AND exists (select 1 from `product` where product.userId = users.id)";
         String result = ParserHelper.addJoinAndWhere(sql, join, where);
         System.out.println(result);
