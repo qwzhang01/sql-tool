@@ -1,5 +1,7 @@
 package io.github.qwzhang01.sql.tool.model;
 
+import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
+
 import java.util.Set;
 
 /**
@@ -22,7 +24,7 @@ public class SqlTable {
      */
     private String alias;
 
-
+    private boolean isVirtual;
     /**
      * 嵌套查询，只有别名，没有名字，包含的子表数组
      */
@@ -35,23 +37,42 @@ public class SqlTable {
     }
 
     /**
-     * Constructor with table name only
-     *
-     * @param name the name of the table
-     */
-    public SqlTable(String name) {
-        this.name = name;
-    }
-
-    /**
      * Constructor with table name and alias
      *
      * @param name  the name of the table
      * @param alias the table alias
      */
-    public SqlTable(String name, String alias) {
+    public SqlTable(String name, String alias, boolean isVirtual) {
         this.name = name;
         this.alias = alias;
+        this.isVirtual = isVirtual;
+    }
+
+    /**
+     * 获取表的别名
+     *
+     * @param table 表名
+     * @return 别名
+     */
+    public String getAlias(String table) {
+        if (table == null || table.isEmpty()) {
+            throw new UnSupportedException("空表名无法获取别名");
+        }
+        if (table.equals(name)) {
+            return alias == null || alias.isEmpty() ? table : alias;
+        }
+
+        if (children == null || children.isEmpty()) {
+            return table;
+        }
+        for (SqlTable child : children) {
+            return child.getAlias(table);
+        }
+        return table;
+    }
+
+    public boolean isVirtual() {
+        return isVirtual;
     }
 
     public Set<SqlTable> getChildren() {

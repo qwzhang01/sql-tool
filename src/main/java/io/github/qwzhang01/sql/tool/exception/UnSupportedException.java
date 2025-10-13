@@ -20,13 +20,4 @@ public class UnSupportedException extends ParseException {
         super(message);
     }
 
-    /**
-     * Constructs a new unsupported operation exception with the specified detail message and cause
-     *
-     * @param message the detail message explaining what feature is not supported
-     * @param cause   the cause of the exception
-     */
-    public UnSupportedException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

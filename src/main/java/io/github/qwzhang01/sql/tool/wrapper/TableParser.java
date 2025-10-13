@@ -24,11 +24,11 @@ public class TableParser {
 
     // 可以在这里添加其他业务方法
     public SqlTable parse(Table table) {
-        return new SqlTable(table.getName(), table.getAlias() == null ? "" : table.getAlias().getName());
+        return new SqlTable(table.getName(), table.getAlias() == null ? "" : table.getAlias().getName(), false);
     }
 
     public SqlTable parse(Alias table) {
-        return new SqlTable(table.getName(), "");
+        return new SqlTable(table.getName(), "", true);
     }
 
     // 静态内部类，用于持有单例实例

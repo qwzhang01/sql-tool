@@ -9,10 +9,6 @@ package io.github.qwzhang01.sql.tool.exception;
 public class SqlIllegalException extends ParseException {
     private String sql;
 
-    public SqlIllegalException(String message) {
-        super(message);
-    }
-
     public SqlIllegalException(String message, Throwable cause, String sql) {
         super(message, cause);
         this.sql = sql;

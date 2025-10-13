@@ -1,9 +1,7 @@
 package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
-
-import io.github.qwzhang01.sql.tool.model.SqlTable;
+import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.wrapper.SqlParser;
-import io.github.qwzhang01.sql.tool.wrapper.TableParser;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.arithmetic.*;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -45,64 +43,29 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 import net.sf.jsqlparser.statement.upsert.Upsert;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.logging.Logger;
 
+public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<Void>, ExpressionVisitor<Void>, SelectItemVisitor<Void>, StatementVisitor<Void> {
+    private static final Logger log = Logger.getLogger(ParamFinder.class.getName());
+    private Integer index = -1;
+    private List<SqlParam> params;
 
-/**
- * Find all used tables within an select statement.
- *
- * <p>
- * Override extractTableName method to modify the extracted table names (e.g. without schema).
- */
-public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<Void>, ExpressionVisitor<Void>, SelectItemVisitor<Void>, StatementVisitor<Void> {
-
-    private SqlTable parentTable;
-
-    private Set<SqlTable> tables;
-    private boolean allowColumnProcessing = false;
-
-    private Set<SqlTable> otherItemNames;
-
-    public static Set<SqlTable> findTables(String sqlStr) {
-        TableFinder<?> tablesNamesFinder = new TableFinder<>();
-        return tablesNamesFinder.getTables(SqlParser.getInstance().parse(sqlStr));
-    }
-
-    public static Set<SqlTable> findTablesOrOtherSources(String sqlStr) {
-        TableFinder<?> tablesNamesFinder = new TableFinder<>();
-        return tablesNamesFinder.getTablesOrOtherSources(SqlParser.getInstance().parse(sqlStr));
-    }
-
-    public static Set<SqlTable> findTablesInExpression(String exprStr) {
-        TableFinder<?> tablesNamesFinder = new TableFinder<>();
-        return tablesNamesFinder.getTables(SqlParser.getInstance().parseExpression(exprStr));
+    public static List<SqlParam> find(String sqlStr) {
+        ParamFinder<?> tablesNamesFinder = new ParamFinder<>();
+        return tablesNamesFinder.get(SqlParser.getInstance().parse(sqlStr));
     }
 
     private static <T> void throwUnsupported(T type) {
         throw new UnsupportedOperationException(String.format("Finding tables from %s is not supported", type.getClass().getSimpleName()));
     }
 
-    public Set<SqlTable> getTables(Statement statement) {
-        init(false);
+    public List<SqlParam> get(Statement statement) {
+        params = new ArrayList<>();
         statement.accept(this, null);
-        // @todo: assess this carefully, maybe we want to remove more specifically
-        // only Aliases on WithItems, Parenthesed Selects and Lateral Selects
-        otherItemNames.forEach(tables::remove);
-
-        return tables;
-    }
-
-    public Set<SqlTable> getTablesOrOtherSources(Statement statement) {
-        init(false);
-        statement.accept(this, null);
-
-        HashSet<SqlTable> tablesOrOtherSources = new HashSet<>(tables);
-        tablesOrOtherSources.addAll(otherItemNames);
-
-        return tablesOrOtherSources;
+        return params;
     }
 
     @Override
@@ -146,15 +109,8 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         return null;
     }
 
-    public Set<SqlTable> getTables(Expression expr) {
-        init(true);
-        expr.accept(this, null);
-        return tables;
-    }
-
     @Override
     public <S> Void visit(WithItem<?> withItem, S context) {
-        otherItemNames.add(TableParser.getInstance().parse(withItem.getAlias()));
         withItem.getSelect().accept((SelectVisitor<?>) this, context);
         return null;
     }
@@ -166,11 +122,6 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
     @Override
     public <S> Void visit(ParenthesedSelect select, S context) {
-        if (select.getAlias() != null) {
-            SqlTable defineTable = TableParser.getInstance().parse(select.getAlias());
-            otherItemNames.add(defineTable);
-            parentTable = defineTable;
-        }
         List<WithItem<?>> withItemsList = select.getWithItemsList();
         if (withItemsList != null && !withItemsList.isEmpty()) {
             for (WithItem<?> withItem : withItemsList) {
@@ -178,7 +129,6 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
             }
         }
         select.getSelect().accept((SelectVisitor<?>) this, context);
-        parentTable = null;
         return null;
     }
 
@@ -225,31 +175,8 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         SelectVisitor.super.visit(plainSelect);
     }
 
-    /**
-     * Override to adapt the tableName generation (e.g. with / without schema).
-     *
-     * @param table
-     * @return
-     */
-    protected SqlTable extractTableName(Table table) {
-        return TableParser.getInstance().parse(table);
-    }
-
     @Override
     public <S> Void visit(Table table, S context) {
-        SqlTable tableWholeName = extractTableName(table);
-        if (!otherItemNames.contains(tableWholeName)) {
-            if (parentTable != null) {
-                Set<SqlTable> children = parentTable.getChildren();
-                if (children == null || children.isEmpty()) {
-                    children = new HashSet<>();
-                }
-                children.add(tableWholeName);
-                parentTable.setChildren(children);
-            } else {
-                tables.add(tableWholeName);
-            }
-        }
         return null;
     }
 
@@ -272,9 +199,7 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
     @Override
     public <S> Void visit(Between between, S context) {
-        between.getLeftExpression().accept(this, context);
-        between.getBetweenExpressionStart().accept(this, context);
-        between.getBetweenExpressionEnd().accept(this, context);
+        visitBetweenExpression(between);
         return null;
     }
 
@@ -287,8 +212,15 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
     @Override
     public <S> Void visit(Column tableColumn, S context) {
-        if (allowColumnProcessing && tableColumn.getTable() != null && tableColumn.getTable().getName() != null) {
+        if (tableColumn.getTable() != null && tableColumn.getTable().getName() != null) {
             visit(tableColumn.getTable(), context);
+        }
+        if (index > -1) {
+            String table = "";
+            if (tableColumn.getTable() != null) {
+                table = tableColumn.getTable().getName();
+            }
+            params.add(new SqlParam(tableColumn.getColumnName(), table, index));
         }
         return null;
     }
@@ -340,8 +272,7 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
     @Override
     public <S> Void visit(InExpression inExpression, S context) {
-        inExpression.getLeftExpression().accept(this, context);
-        inExpression.getRightExpression().accept(this, context);
+        visitInExpression(inExpression);
         return null;
     }
 
@@ -510,8 +441,89 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     }
 
     private void visitBinaryExpression(BinaryExpression binaryExpression) {
-        binaryExpression.getLeftExpression().accept(this, null);
-        binaryExpression.getRightExpression().accept(this, null);
+        Expression left = binaryExpression.getLeftExpression();
+        Expression right = binaryExpression.getRightExpression();
+        if (left instanceof JdbcParameter leftJdbcParameter) {
+            index = leftJdbcParameter.getIndex();
+            right.accept(this, null);
+            index = -1;
+        } else {
+            left.accept(this, null);
+        }
+        if (right instanceof JdbcParameter rightJdbcParameter) {
+            index = rightJdbcParameter.getIndex();
+            left.accept(this, null);
+            index = -1;
+        } else {
+            right.accept(this, null);
+        }
+    }
+
+    private void visitPairingExpression(ExpressionList<Column> columns, ExpressionList<?> values) {
+        for (int i = 0; i < values.size(); i++) {
+            Expression value = values.get(i);
+            if (value instanceof JdbcParameter jdbcParameter) {
+                index = jdbcParameter.getIndex();
+                columns.get(i).accept(this, null);
+                index = -1;
+            } else {
+                columns.get(i).accept(this, null);
+                value.accept(this, null);
+            }
+        }
+    }
+
+    private void visitBetweenExpression(Between between) {
+        Expression left = between.getLeftExpression();
+        if (between.getBetweenExpressionStart() instanceof JdbcParameter jdbcParameter) {
+            index = jdbcParameter.getIndex();
+            left.accept(this, null);
+            index = -1;
+        } else {
+            between.getBetweenExpressionStart().accept(this, null);
+        }
+
+        if (between.getBetweenExpressionEnd() instanceof JdbcParameter jdbcParameter) {
+            index = jdbcParameter.getIndex();
+            left.accept(this, null);
+            index = -1;
+        } else {
+            between.getBetweenExpressionEnd().accept(this, null);
+        }
+    }
+
+    private void visitInExpression(InExpression inExpression) {
+        Expression left = inExpression.getLeftExpression();
+        Expression right = inExpression.getRightExpression();
+        if (left instanceof ExpressionList exprList) {
+            List<Expression> expressions = exprList.getExpressions();
+            for (Expression expr : expressions) {
+                if (expr instanceof JdbcParameter jdbcParameter) {
+                    index = jdbcParameter.getIndex();
+                    right.accept(this, null);
+                    index = -1;
+                } else {
+                    expr.accept(this, null);
+                }
+            }
+        } else {
+            left.accept(this, null);
+        }
+
+        if (right instanceof ExpressionList exprList) {
+            List<Expression> expressions = exprList.getExpressions();
+            for (Expression expr : expressions) {
+                if (expr instanceof JdbcParameter jdbcParameter) {
+                    index = jdbcParameter.getIndex();
+                    left.accept(this, null);
+                    index = -1;
+                } else {
+                    expr.accept(this, null);
+                }
+            }
+        } else {
+            right.accept(this, null);
+        }
     }
 
     @Override
@@ -684,9 +696,6 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
     @Override
     public <S> Void visit(LateralSubSelect lateralSubSelect, S context) {
-        if (lateralSubSelect.getAlias() != null) {
-            otherItemNames.add(TableParser.getInstance().parse(lateralSubSelect.getAlias()));
-        }
         lateralSubSelect.getSelect().accept((SelectVisitor<?>) this, context);
         return null;
     }
@@ -705,20 +714,6 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     @Override
     public void visit(TableStatement tableStatement) {
         SelectVisitor.super.visit(tableStatement);
-    }
-
-    /**
-     * Initializes table names collector. Important is the usage of Column instances to find table
-     * names. This is only allowed for expression parsing, where a better place for tablenames could
-     * not be there. For complete statements only from items are used to avoid some alias as
-     * tablenames.
-     *
-     * @param allowColumnProcessing
-     */
-    protected void init(boolean allowColumnProcessing) {
-        otherItemNames = new HashSet<>();
-        tables = new HashSet<>();
-        this.allowColumnProcessing = allowColumnProcessing;
     }
 
     @Override
@@ -873,8 +868,7 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
 
         if (update.getUpdateSets() != null) {
             for (UpdateSet updateSet : update.getUpdateSets()) {
-                updateSet.getColumns().accept(this, context);
-                updateSet.getValues().accept(this, context);
+                visitPairingExpression(updateSet.getColumns(), updateSet.getValues());
             }
         }
 
@@ -918,6 +912,8 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         if (insert.getSelect() != null) {
             visit(insert.getSelect(), context);
         }
+
+        visitPairingExpression(insert.getColumns(), insert.getValues().getExpressions());
         return null;
     }
 
@@ -1663,5 +1659,4 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         visitBinaryExpression(geometryDistance);
         return null;
     }
-
 }

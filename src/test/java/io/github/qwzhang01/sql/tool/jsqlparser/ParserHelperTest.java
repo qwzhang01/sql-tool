@@ -1,11 +1,12 @@
 package io.github.qwzhang01.sql.tool.jsqlparser;
 
-import io.github.qwzhang01.sql.tool.helper.JsqlParserHelper;
+import io.github.qwzhang01.sql.tool.helper.ParserHelper;
 import io.github.qwzhang01.sql.tool.jsqlparser.visitor.TableFinder;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParser;
+import net.sf.jsqlparser.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class JsqlParserHelperTest {
+public class ParserHelperTest {
 
     private static final String sql = """
                             select 
@@ -39,39 +40,27 @@ public class JsqlParserHelperTest {
 
     @Test
     public void tableTest() throws JSQLParserException {
-        // Set<SqlTable> tables = TableFinder.findTables(sql);
-        Set<SqlTable> tablesOrOtherSources = TableFinder.findTablesOrOtherSources(sql);
+        List<SqlTable> tablesOrOtherSources = ParserHelper.getTables(sql);
         System.out.println(tablesOrOtherSources);
 
     }
 
     @Test
-    public void testTable() {
-        List<SqlTable> tables = JsqlParserHelper.getTables(sql);
-        System.out.println("");
-    }
-
-    @Test
-    public void getTableDeep() {
-        List<SqlTable> tables = JsqlParserHelper.getTables(sql);
-        System.out.println("");
-    }
-
-    @Test
     public void testParam() {
-        List<SqlParam> param = JsqlParserHelper.getParam(sql);
-        assertTrue(param.get(0).getFieldName().equals("order_id"));
+        List<SqlParam> param = ParserHelper.getParam(sql);
+        assertTrue(param.get(0).getColumn().equals("order_id"));
     }
 
     @Test
-    public void testComplex() {
+    public void testComplete() {
         String join = "left join flow f on f.userId = users.id";
         String where = "WHERE flow.id = ? AND exists (select 1 from `product` where product.userId = users.id)";
-        String result = JsqlParserHelper.addJoinAndWhere(sql, join, where);
+        String result = ParserHelper.addJoinAndWhere(sql, join, where);
         System.out.println(result);
     }
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void testComplex() throws ParseException {
         String sqlStr = "SELECT  e.id\n" +
                 "        , e.code\n" +
                 "        , e.review_type\n" +

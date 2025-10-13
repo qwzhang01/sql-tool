@@ -1,6 +1,5 @@
 package io.github.qwzhang01.sql.tool.jsqlparser.visitor;
 
-import io.github.qwzhang01.sql.tool.jsqlparser.SelectParser;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
@@ -40,11 +39,11 @@ import java.util.List;
  * @author avinzhang
  */
 public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
+    public List<SqlTable> tables;
     /**
      * The final merged SQL statement as a string
      */
     private String sql;
-
     /**
      * Additional JOIN clauses to be merged into the statement
      */
@@ -54,6 +53,10 @@ public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
      * Additional WHERE expression to be merged into the statement
      */
     private Expression where;
+
+    public void setTables(List<SqlTable> tables) {
+        this.tables = tables;
+    }
 
     /**
      * Sets the JOIN clauses to be merged with the visited statement.
@@ -140,8 +143,6 @@ public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
         }
 
         // Extract table information for alias resolution during merge
-        List<SqlTable> table = new SelectParser(select).table(true);
-
         // Process and merge JOIN clauses
         if (joins != null && !joins.isEmpty()) {
             for (Join join : joins) {
@@ -159,7 +160,7 @@ public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
                 // Replace table aliases in JOIN conditions
                 Collection<Expression> ons = join.getOnExpressions();
                 for (Expression on : ons) {
-                    on.accept(new JoinComplexExpressionVisitor(joinTableName, table));
+                    on.accept(new CompleteTableVisitor(tables));
                 }
             }
 
@@ -170,7 +171,7 @@ public class MergeStatementVisitor extends StatementVisitorAdapter<Void> {
         // Process and merge WHERE conditions
         if (where != null) {
             // Replace table aliases in the WHERE clause
-            where.accept(new WhereComplexExpressionVisitor(table));
+            where.accept(new CompleteTableVisitor(tables));
 
             Expression mainWhere = plainSelect.getWhere();
             if (mainWhere != null) {

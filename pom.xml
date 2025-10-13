@@ -9,8 +9,9 @@
     <artifactId>sql-tool</artifactId>
     <version>1.1.0</version>
 
-    <name>SQL Tool</name>
-    <description>A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with
+    <name>sql-tool</name>
+    <description>
+        A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with
         comprehensive MySQL syntax support
     </description>
     <url>https://github.com/qwzhang01/sql-tool</url>
