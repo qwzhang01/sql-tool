@@ -5,13 +5,13 @@ import io.github.qwzhang01.sql.tool.jsqlparser.visitor.TableFinder;
 import io.github.qwzhang01.sql.tool.model.SqlParam;
 import io.github.qwzhang01.sql.tool.model.SqlTable;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
 
+import static io.github.qwzhang01.sql.tool.jsqlparser.param.ParamExtractor.preProcessSql;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ParserHelperTest {
@@ -181,5 +181,21 @@ public class ParserHelperTest {
             long endMillis = System.currentTimeMillis();
             System.out.println("Duration [ms]: " + (endMillis - startMillis) / i);
         }*/
+    }
+
+
+    public static void main(String[] args) {
+        String sql = """
+                select * from a where 
+                (
+                    `examVenueId` = #{ew.paramNameValuePairs.MPGENVAL1} 
+                    AND (`phone` = #{ew.paramNameValuePairs.MPGENVAL2} OR `email` = #{ew.paramNameValuePairs.MPGENVAL3}) 
+                    AND `createTime` >= #{ew.paramNameValuePairs.MPGENVAL4} 
+                    AND `createTime` <= #{ew.paramNameValuePairs.MPGENVAL5}
+                )
+                """;
+
+        sql = preProcessSql(sql);
+        System.out.println(sql);
     }
 }
