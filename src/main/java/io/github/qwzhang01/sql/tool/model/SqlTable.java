@@ -58,7 +58,18 @@ public class SqlTable {
         if (table == null || table.isEmpty()) {
             throw new UnSupportedException("空表名无法获取别名");
         }
-        if (table.equals(name)) {
+        if (table.equalsIgnoreCase(name)) {
+            return alias == null || alias.isEmpty() ? table : alias;
+        }
+
+        String name = this.name;
+        if (name.contains("`")) {
+            name = name.replace("`", "");
+        }
+        if (table.contains("`")) {
+            table = table.replace("`", "");
+        }
+        if (table.equalsIgnoreCase(name)) {
             return alias == null || alias.isEmpty() ? table : alias;
         }
 
