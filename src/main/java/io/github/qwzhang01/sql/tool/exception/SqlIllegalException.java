@@ -2,7 +2,7 @@ package io.github.qwzhang01.sql.tool.exception;
 
 
 /**
- * sql 不合法，无法转换
+ * Exception for illegal SQL that cannot be parsed or converted
  *
  * @author avinzhang
  */

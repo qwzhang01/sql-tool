@@ -3,7 +3,7 @@ package io.github.qwzhang01.sql.tool.model;
 import java.util.Objects;
 
 /**
- * 参数 占位符
+ * SQL parameter placeholder
  *
  * @author Avin Zhang
  * @since 1.0.0
@@ -12,7 +12,7 @@ public class SqlParam {
     private String column;
     private String table;
     /**
-     * 占位符在SQL中的索引位置
+     * Index position of placeholder in SQL
      */
     private Integer index;
 

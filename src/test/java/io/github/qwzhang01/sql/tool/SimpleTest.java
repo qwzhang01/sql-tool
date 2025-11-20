@@ -13,7 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 简单测试用例 - 验证核心功能
+ * Simple test cases for core functionality
  */
 public class SimpleTest {
 

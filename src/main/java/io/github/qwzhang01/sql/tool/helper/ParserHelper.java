@@ -1,5 +1,6 @@
 package io.github.qwzhang01.sql.tool.helper;
 
+import io.github.qwzhang01.sql.tool.jsqlparser.param.ParamExtractor;
 import io.github.qwzhang01.sql.tool.jsqlparser.visitor.MergeStatementVisitor;
 import io.github.qwzhang01.sql.tool.jsqlparser.visitor.ParamFinder;
 import io.github.qwzhang01.sql.tool.jsqlparser.visitor.SplitStatementVisitor;
@@ -13,6 +14,7 @@ import net.sf.jsqlparser.statement.select.Join;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Helper class for JSQLParser operations
@@ -28,6 +30,16 @@ public class ParserHelper {
         return new ArrayList<>(ParamFinder.find(sql));
     }
 
+    public static List<SqlParam> getSpecParam(String sql) {
+        sql = ParamExtractor.preProcessSql(sql);
+        return new ArrayList<>(ParamFinder.find(sql));
+    }
+
+    public static List<SqlParam> getSpecParam(String sql, Pattern pattern) {
+        sql = ParamExtractor.preProcessSql(sql, pattern);
+        return new ArrayList<>(ParamFinder.find(sql));
+    }
+
     public static String addJoin(String sql, String joinClause) {
         return addJoinAndWhere(sql, joinClause, null);
     }
@@ -37,7 +49,7 @@ public class ParserHelper {
     }
 
     public static String addJoinAndWhere(String sql, String joinClause, String whereClause) {
-        // Clean and prepare SQL statements
+
         if (sql != null && !sql.isEmpty()) {
             sql = sql.trim();
         }
@@ -51,10 +63,10 @@ public class ParserHelper {
         MergeStatementVisitor mVisitor = new MergeStatementVisitor();
         mVisitor.setTables(getTables(sql));
 
-        // Process JOIN clause if provided
+
         if (joinClause != null && !joinClause.isEmpty()) {
-            // Parse JOIN clause using a dummy SELECT statement
-            Statement parse = SqlParser.getInstance().parse("select * from a a " + joinClause);
+
+            Statement parse = SqlParser.getInstance().parse("select * from dump_table d " + joinClause);
             SplitStatementVisitor visitor = new SplitStatementVisitor();
             parse.accept(visitor);
             List<Join> joins = visitor.getJoins();
@@ -63,14 +75,13 @@ public class ParserHelper {
             }
         }
 
-        // Process WHERE clause if provided
         if (whereClause != null && !whereClause.isEmpty()) {
-            // Ensure WHERE keyword is present
+
             if (!whereClause.toUpperCase().startsWith("WHERE")) {
                 whereClause = "WHERE " + whereClause;
             }
-            // Parse WHERE clause using a dummy SELECT statement
-            Statement parse = SqlParser.getInstance().parse("select * from  a a " + whereClause);
+
+            Statement parse = SqlParser.getInstance().parse("select * from dump_table d " + whereClause);
             SplitStatementVisitor visitor = new SplitStatementVisitor();
             parse.accept(visitor);
             Expression where = visitor.getWhere();
@@ -79,7 +90,7 @@ public class ParserHelper {
             }
         }
 
-        // Parse the original SQL and apply the merge visitor
+
         Statement parse = SqlParser.getInstance().parse(sql);
         parse.accept(mVisitor);
         return mVisitor.getSql();

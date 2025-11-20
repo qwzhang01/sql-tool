@@ -13,13 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 复杂SQL解析测试
+ * Complex SQL parsing tests
  */
-@DisplayName("复杂SQL解析测试")
+@DisplayName("Complex SQL Parsing Tests")
 public class ComplexSqlParserTest {
 
     @Test
-    @DisplayName("WITH子句测试 - CTE")
+    @DisplayName("WITH clause - CTE")
     public void testWithClauseQuery() {
         String sql = """
                 WITH active_users AS (
@@ -43,7 +43,7 @@ public class ComplexSqlParserTest {
     }
 
     @Test
-    @DisplayName("UNION查询测试")
+    @DisplayName("UNION query test")
     public void testUnionQuery() {
         String sql = """
                 SELECT 'customer' as type, id, name FROM customers WHERE status = 'active'
@@ -64,7 +64,7 @@ public class ComplexSqlParserTest {
     }
 
     @Test
-    @DisplayName("窗口函数测试")
+    @DisplayName("Window function test")
     public void testWindowFunctionQuery() {
         String sql = """
                 SELECT 
@@ -88,7 +88,7 @@ public class ComplexSqlParserTest {
     }
 
     @Test
-    @DisplayName("CASE WHEN表达式测试")
+    @DisplayName("CASE WHEN expression test")
     public void testCaseWhenExpression() {
         String sql = """
                 SELECT 
@@ -116,7 +116,7 @@ public class ComplexSqlParserTest {
     }
 
     @Test
-    @DisplayName("复杂嵌套查询测试")
+    @DisplayName("Complex nested query test")
     public void testComplexNestedQuery() {
         String sql = """
                 SELECT 
@@ -160,7 +160,7 @@ public class ComplexSqlParserTest {
     }
 
     @Test
-    @DisplayName("数据库函数和表达式测试")
+    @DisplayName("Database functions and expressions test")
     public void testDatabaseFunctionsAndExpressions() {
         String sql = """
                 SELECT 

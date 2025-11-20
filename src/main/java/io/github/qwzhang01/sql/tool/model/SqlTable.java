@@ -5,43 +5,24 @@ import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
 import java.util.Set;
 
 /**
- * Table information class representing database table metadata and references.
- * This class stores comprehensive information about tables including names,
- * aliases, and hierarchical database/schema structure.
+ * SQL table information with name, alias and nested table support
  *
  * @author Avin Zhang
  * @since 1.0.0
  */
 public class SqlTable {
 
-    /**
-     * The table name as it appears in the database
-     */
     private String name;
-
-    /**
-     * The table alias used in SQL statements
-     */
     private String alias;
-
     private boolean isVirtual;
     /**
-     * 嵌套查询，只有别名，没有名字，包含的子表数组
+     * Child tables for nested queries
      */
     private Set<SqlTable> children;
 
-    /**
-     * Default constructor
-     */
     public SqlTable() {
     }
 
-    /**
-     * Constructor with table name and alias
-     *
-     * @param name  the name of the table
-     * @param alias the table alias
-     */
     public SqlTable(String name, String alias, boolean isVirtual) {
         this.name = name;
         this.alias = alias;
@@ -49,14 +30,11 @@ public class SqlTable {
     }
 
     /**
-     * 获取表的别名
-     *
-     * @param table 表名
-     * @return 别名
+     * Get table alias by table name
      */
     public String getAlias(String table) {
         if (table == null || table.isEmpty()) {
-            throw new UnSupportedException("空表名无法获取别名");
+            throw new UnSupportedException("Empty table name cannot get alias");
         }
         if (table.equalsIgnoreCase(name)) {
             return alias == null || alias.isEmpty() ? table : alias;

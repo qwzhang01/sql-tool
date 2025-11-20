@@ -8,19 +8,19 @@ import io.github.qwzhang01.sql.tool.model.SqlTable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * SQL合并功能测试
+ * SQL merge functionality tests
  */
-@DisplayName("SQL合并功能测试")
+@DisplayName("SQL Merge Tests")
 public class SqlMergeTest {
 
     @Test
-    @DisplayName("添加JOIN和WHERE子句")
+    @DisplayName("Add JOIN and WHERE clauses")
     public void testAddJoinAndWhere() {
         String originalSql = """
                 SELECT u.name, u.email
@@ -38,13 +38,13 @@ public class SqlMergeTest {
         assertTrue(mergedSql.contains("up.verified = 1"));
         assertTrue(mergedSql.contains("u.status = 'active'"));
 
-        // 验证合并后的SQL仍然可以解析
+        // Verify merged SQL can still be parsed
         Set<SqlTable> tables = TableFinder.findTables(mergedSql);
         assertEquals(2, tables.size());
     }
 
     @Test
-    @DisplayName("只添加JOIN子句")
+    @DisplayName("Add JOIN clause only")
     public void testAddOnlyJoin() {
         String originalSql = "SELECT * FROM orders o WHERE o.status = 'pending'";
         String joinClause = "INNER JOIN customers c ON o.customer_id = c.id";
@@ -60,7 +60,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("只添加WHERE子句")
+    @DisplayName("Add WHERE clause only")
     public void testAddOnlyWhere() {
         String originalSql = "SELECT * FROM products p";
         String whereClause = "p.price > 100 AND p.category_id = ?";
@@ -75,7 +75,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("复杂SQL合并测试")
+    @DisplayName("Complex SQL merge test")
     public void testComplexSqlMerge() {
         String originalSql = """
                 SELECT u.id, u.name, COUNT(o.id) as order_count
@@ -105,7 +105,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("带参数的JOIN合并")
+    @DisplayName("JOIN merge with parameters")
     public void testJoinMergeWithParameters() {
         String originalSql = "SELECT * FROM users u WHERE u.age > ?";
         String joinClause = "LEFT JOIN orders o ON u.id = o.user_id AND o.status = ?";
@@ -120,7 +120,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("多个JOIN合并测试")
+    @DisplayName("Multiple JOIN merge test")
     public void testMultipleJoinMerge() {
         String originalSql = "SELECT * FROM users u";
         String joinClause = """
@@ -139,7 +139,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("WHERE子句自动添加WHERE关键字")
+    @DisplayName("Auto-add WHERE keyword")
     public void testAutoAddWhereKeyword() {
         String originalSql = "SELECT * FROM users u";
         String whereClause = "u.status = 'active' AND u.age > 18";
@@ -152,7 +152,7 @@ public class SqlMergeTest {
     }
 
     @Test
-    @DisplayName("已有WHERE子句的合并")
+    @DisplayName("Merge with existing WHERE clause")
     public void testMergeWithExistingWhere() {
         String originalSql = "SELECT * FROM users u WHERE u.status = 'active'";
         String whereClause = "u.age > 18 AND u.verified = 1";
@@ -163,7 +163,7 @@ public class SqlMergeTest {
         assertTrue(mergedSql.contains("u.status = 'active'"));
         assertTrue(mergedSql.contains("u.age > 18"));
         assertTrue(mergedSql.contains("u.verified = 1"));
-        // 应该用AND连接原有和新增的WHERE条件
+        // Should connect original and new WHERE conditions with AND
         assertTrue(mergedSql.contains("AND"));
     }
 }

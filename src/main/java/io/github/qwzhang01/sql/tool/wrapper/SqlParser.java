@@ -7,29 +7,24 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 
 /**
- * CCJSqlParserUtil 工具
- * 异常捕捉
+ * SQL parser wrapper with exception handling
  *
  * @author avinzhang
  */
 public class SqlParser {
 
-    // 私有构造函数，防止外部实例化
     private SqlParser() {
-        // 初始化代码可以放在这里
     }
 
-    // 获取单例实例的公共方法
     public static SqlParser getInstance() {
         return SqlParserHolder.INSTANCE;
     }
 
-    // 可以在这里添加其他业务方法
     public Statement parse(String sql) {
         try {
             return CCJSqlParserUtil.parse(sql);
         } catch (JSQLParserException e) {
-            throw new SqlIllegalException("SQL 非法，无法转换", e, sql);
+            throw new SqlIllegalException("Invalid SQL, cannot parse", e, sql);
         }
     }
 
@@ -37,11 +32,11 @@ public class SqlParser {
         try {
             return CCJSqlParserUtil.parseExpression(expression);
         } catch (JSQLParserException e) {
-            throw new SqlIllegalException("SQL 非法，无法转换", e, expression);
+            throw new SqlIllegalException("Invalid SQL, cannot parse", e, expression);
         }
     }
 
-    // 静态内部类，用于持有单例实例
+
     private static class SqlParserHolder {
         private static final SqlParser INSTANCE = new SqlParser();
     }

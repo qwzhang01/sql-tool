@@ -11,13 +11,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 边界情况和异常测试
+ * Edge cases and exception tests
  */
-@DisplayName("边界情况和异常测试")
+@DisplayName("Edge Cases and Exception Tests")
 public class EdgeCaseTest {
 
     @Test
-    @DisplayName("空SQL测试")
+    @DisplayName("Empty SQL test")
     public void testEmptySQL() {
         assertThrows(Exception.class, () -> {
             TableFinder.findTables("");
@@ -29,7 +29,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("null SQL测试")
+    @DisplayName("Null SQL test")
     public void testNullSQL() {
         assertThrows(Exception.class, () -> {
             TableFinder.findTables(null);
@@ -41,7 +41,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("无效SQL测试")
+    @DisplayName("Invalid SQL test")
     public void testInvalidSQL() {
         String invalidSql = "INVALID SQL STATEMENT";
 
@@ -55,7 +55,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("不完整SQL测试")
+    @DisplayName("Incomplete SQL test")
     public void testIncompleteSQL() {
         String incompleteSql = "SELECT * FROM";
 
@@ -71,7 +71,7 @@ public class EdgeCaseTest {
             "SELECT DISTINCT category FROM products ORDER BY category",
             "SELECT COUNT(*) FROM orders GROUP BY customer_id HAVING COUNT(*) > 5"
     })
-    @DisplayName("参数化测试 - 各种SELECT语句格式")
+    @DisplayName("Parameterized test - Various SELECT formats")
     public void testVariousSelectFormats(String sql) {
         assertDoesNotThrow(() -> {
             var tables = TableFinder.findTables(sql);
@@ -81,7 +81,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("特殊字符和引号测试")
+    @DisplayName("Special characters and quotes test")
     public void testSpecialCharactersAndQuotes() {
         String sql = """
                 SELECT u.`name`, u."email", u.[phone]
@@ -92,7 +92,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("大小写混合测试")
+    @DisplayName("Mixed case test")
     public void testMixedCase() {
         String sql = """
                 Select U.Name, U.Email
@@ -109,11 +109,11 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("超长SQL测试")
+    @DisplayName("Very long SQL test")
     public void testVeryLongSQL() {
         StringBuilder sqlBuilder = new StringBuilder("SELECT ");
 
-        // 生成100个列
+        // Generate 100 columns
         for (int i = 1; i <= 100; i++) {
             if (i > 1) sqlBuilder.append(", ");
             sqlBuilder.append("u.column").append(i);
@@ -121,7 +121,7 @@ public class EdgeCaseTest {
 
         sqlBuilder.append(" FROM users u WHERE ");
 
-        // 生成100个条件
+        // Generate 100 conditions
         for (int i = 1; i <= 100; i++) {
             if (i > 1) sqlBuilder.append(" AND ");
             sqlBuilder.append("u.field").append(i).append(" = ?");
@@ -139,7 +139,7 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("深度嵌套子查询测试")
+    @DisplayName("Deep nested subquery test")
     public void testDeeplyNestedSubqueries() {
         String sql = """
                 SELECT u.name
@@ -173,14 +173,14 @@ public class EdgeCaseTest {
     }
 
     @Test
-    @DisplayName("注释SQL测试")
+    @DisplayName("SQL with comments test")
     public void testSQLWithComments() {
         String sql = """
-                -- 这是一个查询用户信息的SQL
-                SELECT u.name, u.email /* 用户基本信息 */
-                FROM users u -- 用户表
-                WHERE u.status = 'active' /* 只查询活跃用户 */
-                -- 按名称排序
+                -- This is a SQL query for user information
+                SELECT u.name, u.email /* User basic info */
+                FROM users u -- User table
+                WHERE u.status = 'active' /* Only active users */
+                -- Order by name
                 ORDER BY u.name
                 """;
 

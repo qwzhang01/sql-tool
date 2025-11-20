@@ -9,20 +9,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import java.util.List;
+
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 性能测试
+ * Performance tests
  */
-@DisplayName("性能测试")
+@DisplayName("Performance Tests")
 public class PerformanceTest {
 
     @Test
-    @DisplayName("大型复杂查询性能测试")
+    @DisplayName("Large complex query performance test")
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     public void testLargeComplexQueryPerformance() {
         String complexSql = """
@@ -67,19 +67,19 @@ public class PerformanceTest {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
-        // 验证结果正确性
+        // Verify result correctness
         assertTrue(tables.stream().anyMatch(t -> "categories".equals(t.getName())));
         assertTrue(tables.stream().anyMatch(t -> "products".equals(t.getName())));
         assertTrue(tables.stream().anyMatch(t -> "order_items".equals(t.getName())));
         assertTrue(tables.stream().anyMatch(t -> "orders".equals(t.getName())));
         assertEquals(1, params.size());
 
-        // 性能断言（应该在1秒内完成）
-        assertTrue(duration < 1000, "解析时间过长: " + duration + "ms");
+        // Performance assertion (should complete within 1 second)
+        assertTrue(duration < 1000, "Parsing took too long: " + duration + "ms");
     }
 
     @Test
-    @DisplayName("批量SQL解析性能测试")
+    @DisplayName("Batch SQL parsing performance test")
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     public void testBatchSqlParsingPerformance() {
         String[] sqls = {
@@ -102,15 +102,15 @@ public class PerformanceTest {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
-        // 5000次解析应该在5秒内完成
-        assertTrue(duration < 5000, "批量解析时间过长: " + duration + "ms");
+        // 5000 parses should complete within 5 seconds
+        assertTrue(duration < 5000, "Batch parsing took too long: " + duration + "ms");
 
         double avgTime = (double) duration / 5000;
-        assertTrue(avgTime < 1.0, "平均解析时间过长: " + avgTime + "ms");
+        assertTrue(avgTime < 1.0, "Average parsing time too long: " + avgTime + "ms");
     }
 
     @Test
-    @DisplayName("SQL合并性能测试")
+    @DisplayName("SQL merge performance test")
     @Timeout(value = 1, unit = TimeUnit.SECONDS)
     public void testSqlMergePerformance() {
         String baseSql = """
@@ -136,20 +136,20 @@ public class PerformanceTest {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
-        // 100次合并应该在1秒内完成
-        assertTrue(duration < 1000, "SQL合并时间过长: " + duration + "ms");
+        // 100 merges should complete within 1 second
+        assertTrue(duration < 1000, "SQL merge took too long: " + duration + "ms");
     }
 
     @Test
-    @DisplayName("内存使用测试")
+    @DisplayName("Memory usage test")
     public void testMemoryUsage() {
         Runtime runtime = Runtime.getRuntime();
 
-        // 记录初始内存使用
-        runtime.gc(); // 强制垃圾回收
+        // Record initial memory usage
+        runtime.gc(); // Force garbage collection
         long initialMemory = runtime.totalMemory() - runtime.freeMemory();
 
-        // 执行大量SQL解析操作
+        // Execute many SQL parsing operations
         String sql = """
                 SELECT u.id, u.name, p.title, a.street, o.total, oi.quantity
                 FROM users u
@@ -165,19 +165,19 @@ public class PerformanceTest {
             ParamFinder.find(sql);
         }
 
-        // 记录操作后内存使用
-        runtime.gc(); // 强制垃圾回收
+        // Record memory usage after operations
+        runtime.gc(); // Force garbage collection
         long finalMemory = runtime.totalMemory() - runtime.freeMemory();
 
         long memoryIncrease = finalMemory - initialMemory;
         long memoryIncreaseMB = memoryIncrease / (1024 * 1024);
 
-        // 内存增长不应该超过50MB
-        assertTrue(memoryIncreaseMB < 50, "内存使用增长过多: " + memoryIncreaseMB + "MB");
+        // Memory growth should not exceed 50MB
+        assertTrue(memoryIncreaseMB < 50, "Memory usage increased too much: " + memoryIncreaseMB + "MB");
     }
 
     @Test
-    @DisplayName("并发解析测试")
+    @DisplayName("Concurrent parsing test")
     @Timeout(value = 3, unit = TimeUnit.SECONDS)
     public void testConcurrentParsing() throws InterruptedException {
         String sql = """
@@ -200,7 +200,7 @@ public class PerformanceTest {
                         Set<SqlTable> tables = TableFinder.findTables(sql);
                         Set<SqlParam> params = ParamFinder.find(sql);
 
-                        // 验证结果
+                        // Verify result
                         if (tables.size() != 2 || params.size() != 2) {
                             results[threadIndex] = false;
                             return;
@@ -215,12 +215,12 @@ public class PerformanceTest {
 
         long startTime = System.currentTimeMillis();
 
-        // 启动所有线程
+        // Start all threads
         for (Thread thread : threads) {
             thread.start();
         }
 
-        // 等待所有线程完成
+        // Wait for all threads to complete
         for (Thread thread : threads) {
             thread.join();
         }
@@ -228,12 +228,12 @@ public class PerformanceTest {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
-        // 验证所有线程都成功完成
+        // Verify all threads completed successfully
         for (int i = 0; i < threadCount; i++) {
-            assertTrue(results[i], "线程 " + i + " 执行失败");
+            assertTrue(results[i], "Thread " + i + " failed");
         }
 
-        // 并发执行应该在3秒内完成
-        assertTrue(duration < 3000, "并发解析时间过长: " + duration + "ms");
+        // Concurrent execution should complete within 3 seconds
+        assertTrue(duration < 3000, "Concurrent parsing took too long: " + duration + "ms");
     }
 }

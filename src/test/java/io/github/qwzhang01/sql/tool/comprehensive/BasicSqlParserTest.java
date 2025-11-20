@@ -7,20 +7,20 @@ import io.github.qwzhang01.sql.tool.model.SqlTable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 基础SQL解析测试
+ * Basic SQL parsing tests
  */
-@DisplayName("基础SQL解析测试")
+@DisplayName("Basic SQL Parsing Tests")
 public class BasicSqlParserTest {
 
     @Test
-    @DisplayName("基础SELECT语句 - 表名提取")
+    @DisplayName("Basic SELECT - Table Extraction")
     public void testBasicSelectTableExtraction() {
         String sql = "SELECT id, name FROM users WHERE age > 18";
 
@@ -32,7 +32,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("带别名的SELECT语句")
+    @DisplayName("SELECT with Alias")
     public void testSelectWithAlias() {
         String sql = "SELECT u.id, u.name FROM users u WHERE u.age > 18";
 
@@ -45,7 +45,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("多表JOIN查询")
+    @DisplayName("Multi-table JOIN")
     public void testMultiTableJoin() {
         String sql = "SELECT u.name, o.order_date, p.product_name " +
                 "FROM users u " +
@@ -62,7 +62,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("参数占位符提取")
+    @DisplayName("Parameter Extraction")
     public void testParameterExtraction() {
         String sql = "SELECT u.name, u.email " +
                 "FROM users u " +
@@ -78,7 +78,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("UPDATE语句解析")
+    @DisplayName("UPDATE Statement")
     public void testUpdateStatement() {
         String sql = "UPDATE users u " +
                 "SET u.last_login = ?, u.login_count = u.login_count + 1 " +
@@ -93,7 +93,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("DELETE语句解析")
+    @DisplayName("DELETE Statement")
     public void testDeleteStatement() {
         String sql = "DELETE FROM users " +
                 "WHERE created_date < ? " +
@@ -108,7 +108,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("INSERT语句解析")
+    @DisplayName("INSERT Statement")
     public void testInsertStatement() {
         String sql = "INSERT INTO audit_log (user_id, action, created_date) " +
                 "VALUES (?, 'login', NOW())";
@@ -122,7 +122,7 @@ public class BasicSqlParserTest {
     }
 
     @Test
-    @DisplayName("子查询表名提取")
+    @DisplayName("Subquery Table Extraction")
     public void testSubqueryTableExtraction() {
         String sql = "SELECT u.name, " +
                 "(SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) as order_count " +

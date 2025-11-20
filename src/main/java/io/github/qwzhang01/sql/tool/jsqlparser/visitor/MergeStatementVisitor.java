@@ -17,23 +17,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Statement visitor adaptor for merging JOIN and WHERE clauses into existing SQL statements.
- * This class takes additional JOIN and WHERE clauses and merges them with the original
- * SQL statement to create a modified version.
- *
- * <p>Key capabilities:</p>
- * <ul>
- *   <li>Merges additional JOIN clauses with existing SELECT statements</li>
- *   <li>Combines WHERE conditions using AND logic</li>
- *   <li>Handles table alias resolution and replacement</li>
- *   <li>Produces a complete modified SQL statement</li>
- * </ul>
- *
- * <p>Supported operations:</p>
- * <ul>
- *   <li>SELECT statements - full merge support</li>
- *   <li>INSERT, UPDATE, DELETE statements - throws UnsupportedOperationException</li>
- * </ul>
+ * Visitor for merging JOIN and WHERE clauses into SQL statements
  *
  * @author avinzhang
  */
