@@ -24,7 +24,15 @@ public class CompleteTableVisitor extends ExpressionVisitorAdapter<Void> {
     private String getAlias(String table) {
         for (SqlTable sqlTable : this.table) {
             String alias = sqlTable.getAlias(table);
-            if (!alias.equals(table)) {
+            if (alias == null) {
+                alias = "";
+            }
+            if (!alias.isEmpty()) {
+                alias = alias.trim().replace("`", "");
+            }
+            table = table.trim().replace("`", "");
+
+            if (!alias.equalsIgnoreCase(table)) {
                 return alias;
             }
         }
@@ -36,7 +44,7 @@ public class CompleteTableVisitor extends ExpressionVisitorAdapter<Void> {
         Table cTable = column.getTable();
         if (cTable != null) {
             String cAlias = getAlias(cTable.getName());
-            if (!cAlias.equals(cTable.getName())) {
+            if (!cAlias.equalsIgnoreCase(cTable.getName())) {
                 cTable.setName(cAlias);
             }
         }

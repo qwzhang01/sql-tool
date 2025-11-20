@@ -104,7 +104,7 @@ public class SqlTable {
             return false;
         }
         if (obj instanceof SqlTable table) {
-            if (!table.getName().equals(name)) {
+            if (!table.getName().equalsIgnoreCase(name)) {
                 return false;
             }
             if (alias == null && table.getAlias() == null) {
@@ -116,7 +116,7 @@ public class SqlTable {
             if (table.getAlias() == null) {
                 return false;
             }
-            return alias.equals(table.getAlias());
+            return alias.equalsIgnoreCase(table.getAlias());
         } else {
             return false;
         }
