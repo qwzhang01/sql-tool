@@ -478,6 +478,8 @@ public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
                 index = jdbcParameter.getIndex();
                 columns.get(i).accept(this, null);
                 index = -1;
+            } else if (value instanceof ExpressionList) {
+                visitPairingExpression(columns, (ExpressionList<?>) value);
             } else {
                 columns.get(i).accept(this, null);
                 value.accept(this, null);
@@ -923,6 +925,13 @@ public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
         }
         if (insert.getSelect() != null) {
             visit(insert.getSelect(), context);
+        }
+
+        List<UpdateSet> updateSets = insert.getSetUpdateSets();
+        if (updateSets != null && !updateSets.isEmpty()) {
+            for (UpdateSet updateSet : updateSets) {
+                visitPairingExpression(updateSet.getColumns(), updateSet.getValues());
+            }
         }
 
         visitPairingExpression(insert.getColumns(), insert.getValues().getExpressions());
