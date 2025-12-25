@@ -52,35 +52,78 @@ import java.util.Set;
 
 
 /**
- * Find all used tables within an select statement.
+ * Visitor class for finding all tables used within SQL statements.
+ * This visitor traverses the entire SQL AST to discover all table references,
+ * including those in subqueries, JOINs, and WITH clauses. It distinguishes between
+ * actual tables and other sources (like aliases and subqueries).
  *
- * <p>
- * Override extractTableName method to modify the extracted table names (e.g. without schema).
+ * <p>Override the extractTableName method to modify how table names are extracted
+ * (e.g., to exclude schema names).</p>
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
  */
 public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<Void>, ExpressionVisitor<Void>, SelectItemVisitor<Void>, StatementVisitor<Void> {
 
+    /**
+     * The current parent table context (used for nested queries)
+     */
     private SqlTable parentTable;
 
+    /**
+     * Set of discovered tables
+     */
     private Set<SqlTable> tables;
+    
+    /**
+     * Flag indicating whether column processing is allowed (for expression parsing)
+     */
     private boolean allowColumnProcessing = false;
 
+    /**
+     * Set of other named items (aliases, subquery names, etc.)
+     */
     private Set<SqlTable> otherItemNames;
 
+    /**
+     * Finds all actual tables in a SQL statement (excludes aliases and subquery names)
+     *
+     * @param sqlStr the SQL statement to parse
+     * @return set of SqlTable objects representing actual tables
+     */
     public static Set<SqlTable> findTables(String sqlStr) {
         TableFinder<?> tablesNamesFinder = new TableFinder<>();
         return tablesNamesFinder.getTables(SqlParser.getInstance().parse(sqlStr));
     }
 
+    /**
+     * Finds all tables and other sources (including aliases and subquery names)
+     *
+     * @param sqlStr the SQL statement to parse
+     * @return set of SqlTable objects representing all table sources
+     */
     public static Set<SqlTable> findTablesOrOtherSources(String sqlStr) {
         TableFinder<?> tablesNamesFinder = new TableFinder<>();
         return tablesNamesFinder.getTablesOrOtherSources(SqlParser.getInstance().parse(sqlStr));
     }
 
+    /**
+     * Finds all tables referenced in a SQL expression
+     *
+     * @param exprStr the SQL expression to parse
+     * @return set of SqlTable objects found in the expression
+     */
     public static Set<SqlTable> findTablesInExpression(String exprStr) {
         TableFinder<?> tablesNamesFinder = new TableFinder<>();
         return tablesNamesFinder.getTables(SqlParser.getInstance().parseExpression(exprStr));
     }
 
+    /**
+     * Throws an exception for unsupported statement types
+     *
+     * @param type the unsupported type
+     * @param <T>  type parameter
+     */
     private static <T> void throwUnsupported(T type) {
         throw new UnsupportedOperationException(String.format("Finding tables from %s is not supported", type.getClass().getSimpleName()));
     }
@@ -226,10 +269,11 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     }
 
     /**
-     * Override to adapt the tableName generation (e.g. with / without schema).
+     * Extracts table name from a JSQLParser Table object.
+     * Override this method to customize table name extraction (e.g., to include/exclude schema).
      *
-     * @param table
-     * @return
+     * @param table the JSQLParser Table object
+     * @return SqlTable object representing the extracted table information
      */
     protected SqlTable extractTableName(Table table) {
         return TableParser.getInstance().parse(table);
@@ -708,12 +752,12 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     }
 
     /**
-     * Initializes table names collector. Important is the usage of Column instances to find table
-     * names. This is only allowed for expression parsing, where a better place for tablenames could
-     * not be there. For complete statements only from items are used to avoid some alias as
-     * tablenames.
+     * Initializes the table names collector.
+     * Column processing is only allowed for expression parsing, where table names
+     * might only be found in column references. For complete statements, only FROM
+     * items are used to avoid mistaking aliases for table names.
      *
-     * @param allowColumnProcessing
+     * @param allowColumnProcessing true to allow extracting tables from column references
      */
     protected void init(boolean allowColumnProcessing) {
         otherItemNames = new HashSet<>();
@@ -1230,9 +1274,11 @@ public class TableFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     }
 
     /**
-     * visit join block
+     * Visits all JOIN clauses to extract table references
      *
-     * @param joins join sql block
+     * @param joins   list of JOIN clauses to visit
+     * @param context the visitor context
+     * @param <S>     context type parameter
      */
     private <S> void visitJoins(List<Join> joins, S context) {
         if (joins == null) {

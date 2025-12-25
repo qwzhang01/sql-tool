@@ -1,201 +1,514 @@
 # SQL Tool
 
-A comprehensive SQL parsing and analysis tool for Java applications, providing powerful capabilities for SQL statement parsing, analysis, and manipulation.
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.
+qwzhang01/seven-sql-parser.svg)](https://search.maven.org/artifact/io.github.qwzhang01/seven-sql-parser)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java Version](https://img.shields.io/badge/Java-17%2B-blue)](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)
 
-## Features
+A lightweight, powerful SQL parsing and analysis library for Java applications.
+Built on top of JSQLParser, this tool provides comprehensive capabilities for
+SQL statement parsing, analysis, and dynamic manipulation without requiring a
+database connection.
 
-### Core Functionality
-- **SQL Parsing**: Parse various SQL statements (SELECT, INSERT, UPDATE, DELETE)
-- **SQL Analysis**: Extract detailed information about tables, fields, conditions, and parameters
-- **SQL Cleaning**: Remove comments and normalize SQL formatting
-- **Parameter Mapping**: Generate parameter mappings for prepared statements
-- **Join Analysis**: Parse and analyze JOIN operations and relationships
+## Key Features
 
-### Supported SQL Operations
-- **SELECT**: Complete SELECT statement parsing with support for:
-  - Field selection and aliases
-  - Table joins (INNER, LEFT, RIGHT, FULL OUTER)
-  - WHERE conditions with complex operators
-  - GROUP BY and HAVING clauses
-  - ORDER BY with ASC/DESC
-  - LIMIT and OFFSET
-- **INSERT**: INSERT statement parsing with field-value mapping
-- **UPDATE**: UPDATE statement parsing with SET clauses and WHERE conditions
-- **DELETE**: DELETE statement parsing with WHERE conditions
+### 🔍 SQL Parsing & Analysis
 
-### Advanced Features
-- **Operator Support**: Comprehensive operator support including:
-  - Comparison operators (=, !=, <, >, <=, >=)
-  - Range operators (BETWEEN, NOT BETWEEN)
-  - List operators (IN, NOT IN)
-  - Pattern matching (LIKE, NOT LIKE)
-  - NULL checks (IS NULL, IS NOT NULL)
-- **Table Alias Resolution**: Automatic table alias detection and resolution
-- **Field Type Classification**: Categorize fields by usage (SELECT, CONDITION, INSERT, UPDATE_SET)
-- **Parameter Counting**: Accurate parameter count calculation for prepared statements
+- **Multi-Statement Support**: Parse SELECT, INSERT, UPDATE, and DELETE
+  statements
+- **Deep Analysis**: Extract tables, columns, parameters, conditions, and JOIN
+  relationships
+- **Smart Parameter Detection**: Identify JDBC placeholders (?) and map them to
+  their columns
+- **Custom Parameter Formats**: Support for MyBatis-style `#{param}`
+  placeholders with automatic conversion
 
-## Project Structure
+### 🔧 SQL Manipulation
 
+- **Dynamic JOIN Addition**: Programmatically add JOIN clauses to existing SQL
+- **Dynamic WHERE Conditions**: Append WHERE conditions intelligently, combining
+  with existing ones using AND
+- **Clause Merging**: Merge new clauses with existing SQL without breaking the
+  structure
+
+### 📊 Information Extraction
+
+- **Table Discovery**: Find all tables referenced in SQL, including those in
+  subqueries
+- **Alias Resolution**: Automatically resolve and apply table aliases
+- **Parameter Mapping**: Map each `?` placeholder to its corresponding table and
+  column
+- **Nested Query Support**: Handle complex nested queries and subqueries
+
+### 🎯 Advanced Operators
+
+Comprehensive support for SQL operators:
+
+- **Comparison**: `=`, `!=`, `<`, `>`, `<=`, `>=`
+- **Range**: `BETWEEN`, `NOT BETWEEN`
+- **List**: `IN`, `NOT IN`
+- **Pattern Matching**: `LIKE`, `NOT LIKE`
+- **NULL Checks**: `IS NULL`, `IS NOT NULL`
+- **Logical**: `AND`, `OR`, `NOT`
+
+## Installation
+
+### Maven
+
+```xml
+
+<dependency>
+    <groupId>io.github.qwzhang01</groupId>
+    <artifactId>seven-sql-parser</artifactId>
+    <version>1.1.7</version>
+</dependency>
 ```
-sql-tool/
-├── src/main/java/io/github/qwzhang01/sql/tool/
-│   ├── enums/           # Enumeration classes
-│   │   ├── FieldType.java      # Field type definitions
-│   │   ├── OperatorType.java   # SQL operator types
-│   │   ├── SqlType.java        # SQL statement types
-│   │   └── TableType.java      # Table type classifications
-│   ├── helper/          # Helper utilities
-│   │   ├── SqlGatherHelper.java    # Main SQL analysis helper
-│   │   └── SqlParseHelper.java     # SQL parsing utilities
-│   ├── model/           # Data models
-│   │   ├── SqlCondition.java   # SQL condition representation
-│   │   ├── SqlField.java       # SQL field information
-│   │   ├── SqlGather.java      # Comprehensive SQL analysis result
-│   │   ├── SqlJoin.java        # JOIN operation details
-│   │   ├── SqlObj.java         # Base SQL object
-│   │   ├── SqlParam.java       # SQL parameter information
-│   │   └── SqlTable.java       # Table information
-│   └── parser/          # SQL parsers
-│       ├── MySqlPureSqlParser.java # MySQL-specific SQL parser
-│       ├── MySqlSqlCleaner.java    # SQL cleaning utilities
-│       └── MySqlSqlCompare.java    # SQL comparison utilities
-└── src/test/java/       # Test cases
-    └── io/github/qwzhang01/sql/tool/
-        ├── helper/      # Helper class tests
-        └── parser/      # Parser tests
+
+### Gradle
+
+```gradle
+implementation 'io.github.qwzhang01:seven-sql-parser:1.1.7'
 ```
 
-## Usage Examples
-
-### Basic SQL Analysis
+## Quick Start
 
 ```java
-import io.github.qwzhang01.sql.tool.helper.SqlGatherHelper;
-import io.github.qwzhang01.sql.tool.model.SqlGather;
+import io.github.qwzhang01.sql.tool.helper.ParserHelper;
+import io.github.qwzhang01.sql.tool.model.SqlParam;
+import io.github.qwzhang01.sql.tool.model.SqlTable;
 
-// Analyze a SELECT statement
+import java.util.List;
+
+// Parse a SQL statement
 String sql = "SELECT u.name, u.email FROM users u WHERE u.age > ? AND u.status = ?";
-SqlGather analysis = SqlGatherHelper.analysis(sql);
 
-// Get table information
-List<SqlGather.Table> tables = analysis.getTables();
+// Extract tables
+List<SqlTable> tables = ParserHelper.getTables(sql);
 System.out.
 
-println("Main table: "+tables.get(0).
+println("Tables: "+tables);
 
-tableName());
-
-// Get field conditions
-List<SqlGather.Field> conditions = analysis.getConditions();
+// Extract parameters
+List<SqlParam> params = ParserHelper.getParam(sql);
 for(
-SqlGather.Field condition :conditions){
+SqlParam param :params){
         System.out.
 
-println("Field: "+condition.columnName() +
-        ", Operator: "+condition.
+println("Parameter "+param.getIndex() +": "+
+        param.
 
-operatorType() +
-        ", Param Count: "+condition.
+getTable() +"."+param.
 
-paramCount());
+getColumn());
         }
 
-// Get parameter mappings
-List<SqlGather.ParameterFieldMapping> parameters = analysis.getParameterMappings();
+// Add a WHERE condition dynamically
+String modifiedSql = ParserHelper.addWhere(sql, "u.created_at > '2024-01-01'");
+System.out.
+
+println("Modified SQL: "+modifiedSql);
+```
+
+## Project Architecture
+
+```
+seven-sql-parser/
+├── exception/                    # Custom exceptions
+│   ├── ParseException.java       # Base parsing exception
+│   ├── SqlIllegalException.java  # Illegal SQL exception
+│   └── UnSupportedException.java # Unsupported feature exception
+├── helper/                       # Utility helpers
+│   └── ParserHelper.java         # Main API for SQL operations
+├── model/                        # Data models
+│   ├── SqlParam.java             # Parameter placeholder info
+│   └── SqlTable.java             # Table information with aliases
+├── wrapper/                      # Wrapper classes
+│   ├── SqlParser.java            # SQL statement parser wrapper
+│   └── TableParser.java          # Table object parser
+└── jsqlparser/                   # JSQLParser integration
+    ├── param/
+    │   └── ParamExtractor.java   # Parameter extraction utilities
+    └── visitor/                  # AST visitors
+        ├── CompleteTableVisitor.java  # Alias resolution
+        ├── MergeStatementVisitor.java # SQL merging logic
+        ├── ParamFinder.java           # Parameter discovery
+        ├── SplitStatementVisitor.java # Clause extraction
+        └── TableFinder.java           # Table discovery
+```
+
+## Core API Usage
+
+### 1. Table Extraction
+
+Extract all tables from SQL, including those in subqueries and JOINs:
+
+```java
+import io.github.qwzhang01.sql.tool.helper.ParserHelper;
+import io.github.qwzhang01.sql.tool.model.SqlTable;
+
+String sql = """
+        SELECT u.name, o.order_date
+        FROM users u
+        INNER JOIN orders o ON u.id = o.user_id
+        WHERE u.status = 'active'
+        """;
+
+List<SqlTable> tables = ParserHelper.getTables(sql);
 for(
-SqlGather.ParameterFieldMapping param :parameters){
+SqlTable table :tables){
         System.out.
 
-println("Parameter "+param.index() +
-        " -> "+param.
+println("Table: "+table.getName() +
+        ", Alias: "+table.
 
-tableName() +"."+param.
+getAlias());
+        }
+// Output:
+// Table: users, Alias: u
+// Table: orders, Alias: o
+```
 
-fieldName());
+### 2. Parameter Extraction
+
+Extract and map JDBC parameters to their columns:
+
+```java
+String sql = "SELECT * FROM users WHERE age > ? AND status = ? AND created_at BETWEEN ? AND ?";
+
+List<SqlParam> params = ParserHelper.getParam(sql);
+for(
+SqlParam param :params){
+        System.out.
+
+println("Parameter #"+param.getIndex() +
+        " -> Column: "+param.
+
+getColumn() +
+        ", Table: "+param.
+
+getTable());
+        }
+// Output:
+// Parameter #0 -> Column: age, Table: users
+// Parameter #1 -> Column: status, Table: users
+// Parameter #2 -> Column: created_at, Table: users
+// Parameter #3 -> Column: created_at, Table: users
+```
+
+### 3. MyBatis Parameter Support
+
+Handle MyBatis-style `#{param}` placeholders:
+
+```java
+String myBatisSql = "SELECT * FROM users WHERE name = #{userName} AND age > #{minAge}";
+
+// Convert to standard JDBC placeholders and extract
+List<SqlParam> params = ParserHelper.getSpecParam(myBatisSql);
+// Internally converts to: SELECT * FROM users WHERE name = ? AND age > ?
+```
+
+### 4. Dynamic WHERE Clause Addition
+
+Add WHERE conditions to existing SQL:
+
+```java
+String originalSql = "SELECT * FROM users WHERE status = 'active'";
+
+// Add additional WHERE condition
+String modifiedSql = ParserHelper.addWhere(originalSql, "age >= 18");
+System.out.
+
+println(modifiedSql);
+// Output: SELECT * FROM users WHERE status = 'active' AND age >= 18
+
+// Can omit WHERE keyword
+String modifiedSql2 = ParserHelper.addWhere(originalSql, "created_at > '2024-01-01'");
+// Result: SELECT * FROM users WHERE status = 'active' AND created_at > '2024-01-01'
+```
+
+### 5. Dynamic JOIN Addition
+
+Add JOIN clauses to existing SQL:
+
+```java
+String originalSql = "SELECT u.* FROM users u WHERE u.status = 'active'";
+
+// Add a JOIN
+String joinClause = "INNER JOIN orders o ON u.id = o.user_id";
+String modifiedSql = ParserHelper.addJoin(originalSql, joinClause);
+System.out.
+
+println(modifiedSql);
+// Output: SELECT u.* FROM users u 
+//         INNER JOIN orders o ON u.id = o.user_id 
+//         WHERE u.status = 'active'
+```
+
+### 6. Combined JOIN and WHERE Addition
+
+Add both JOIN and WHERE clauses simultaneously:
+
+```java
+String baseSql = "SELECT u.name FROM users u";
+
+String modifiedSql = ParserHelper.addJoinAndWhere(
+        baseSql,
+        "LEFT JOIN addresses a ON u.id = a.user_id",
+        "u.status = 'active' AND a.country = 'USA'"
+);
+
+System.out.
+
+println(modifiedSql);
+// Output: SELECT u.name FROM users u
+//         LEFT JOIN addresses a ON u.id = a.user_id
+//         WHERE u.status = 'active' AND a.country = 'USA'
+```
+
+## Advanced Examples
+
+### Working with Complex Queries
+
+```java
+String complexSql = """
+        SELECT 
+            u.id, u.name, COUNT(o.id) as order_count
+        FROM users u
+        LEFT JOIN orders o ON u.id = o.user_id
+        WHERE u.status = ?
+        GROUP BY u.id, u.name
+        HAVING COUNT(o.id) > ?
+        ORDER BY order_count DESC
+        LIMIT ?
+        """;
+
+// Extract all tables
+List<SqlTable> tables = ParserHelper.getTables(complexSql);
+// Returns: users (alias: u), orders (alias: o)
+
+// Extract parameters
+List<SqlParam> params = ParserHelper.getParam(complexSql);
+// Returns 3 parameters mapped to their respective columns
+```
+
+### Handling Subqueries
+
+```java
+String subquerySql = """
+        SELECT u.name 
+        FROM users u
+        WHERE u.id IN (
+            SELECT user_id 
+            FROM orders 
+            WHERE total > ?
+        )
+        """;
+
+List<SqlTable> tables = ParserHelper.getTables(subquerySql);
+// Returns: users, orders (from subquery)
+
+List<SqlParam> params = ParserHelper.getParam(subquerySql);
+// Returns parameter mapped to orders.total
+```
+
+### Custom Parameter Pattern Matching
+
+```java
+import java.util.regex.Pattern;
+
+// Define custom parameter pattern (e.g., :paramName)
+Pattern customPattern = Pattern.compile(":(\\w+)");
+
+String sql = "SELECT * FROM users WHERE name = :userName AND age > :minAge";
+List<SqlParam> params = ParserHelper.getSpecParam(sql, customPattern);
+// Converts :userName and :minAge to ? and extracts parameters
+```
+
+## Supported SQL Features
+
+### Statement Types
+
+| Statement | Support Level | Notes                                       |
+|-----------|---------------|---------------------------------------------|
+| SELECT    | ✅ Full        | Including complex queries, subqueries, CTEs |
+| INSERT    | ✅ Full        | Single and batch inserts                    |
+| UPDATE    | ✅ Full        | Including JOINs                             |
+| DELETE    | ✅ Full        | Including JOINs                             |
+| MERGE     | ⚠️ Partial    | Basic support                               |
+
+### SQL Clauses
+
+- ✅ WHERE (all operators)
+- ✅ JOIN (INNER, LEFT, RIGHT, FULL, CROSS)
+- ✅ GROUP BY
+- ✅ HAVING
+- ✅ ORDER BY
+- ✅ LIMIT / OFFSET
+- ✅ UNION / UNION ALL
+- ✅ WITH (CTE)
+
+### Operators
+
+- **Comparison**: `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=`
+- **Logical**: `AND`, `OR`, `NOT`
+- **Range**: `BETWEEN`, `NOT BETWEEN`
+- **Pattern**: `LIKE`, `NOT LIKE`, `REGEXP`
+- **Set**: `IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`
+- **Null**: `IS NULL`, `IS NOT NULL`
+- **Arithmetic**: `+`, `-`, `*`, `/`, `%`, `DIV`, `MOD`
+
+## Exception Handling
+
+The library provides clear exception hierarchy:
+
+```java
+try{
+String sql = "INVALID SQL SYNTAX";
+List<SqlTable> tables = ParserHelper.getTables(sql);
+}catch(
+SqlIllegalException e){
+        System.err.
+
+println("Invalid SQL: "+e.getSql());
+        System.err.
+
+println("Error: "+e.getMessage());
+        }catch(
+ParseException e){
+        System.err.
+
+println("Parse error: "+e.getMessage());
         }
 ```
 
-### Parameter Extraction
+### Exception Types
 
-```java
-import io.github.qwzhang01.sql.tool.helper.SqlGatherHelper;
-import io.github.qwzhang01.sql.tool.model.SqlParam;
+- **`ParseException`**: Base exception for all parsing errors
+- **`SqlIllegalException`**: Thrown when SQL syntax is invalid (includes the
+  problematic SQL)
+- **`UnSupportedException`**: Thrown when a valid SQL feature is not yet
+  supported by this version
 
-String sql = "INSERT INTO users (name, email, age) VALUES (?, ?, ?)";
-List<SqlParam> params = SqlGatherHelper.param(sql);
+## Performance Considerations
 
-for (SqlParam param : params) {
-    System.out.println("Field: " + param.getFieldName() + 
-                      ", Table: " + param.getTableName());
-}
+- **Lightweight**: No database connection required
+- **Fast Parsing**: Leverages JSQLParser's efficient parsing
+- **Memory Efficient**: Processes SQL without loading entire database schemas
+- **Thread-Safe**: All utility methods are thread-safe
+
+### Best Practices
+
+1. **Reuse ParserHelper**: All methods are static - no need to instantiate
+2. **Cache Results**: If parsing the same SQL repeatedly, cache the results
+3. **Validate First**: Use try-catch to handle malformed SQL gracefully
+
+## Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/qwzhang01/seven-sql-parser.git
+cd seven-sql-parser
+
+# Build with Maven
+mvn clean install
+
+# Run tests
+mvn test
+
+# Generate Javadoc
+mvn javadoc:javadoc
 ```
-
-### SQL Cleaning
-
-```java
-import io.github.qwzhang01.sql.tool.parser.MySqlSqlCleaner;
-
-MySqlSqlCleaner cleaner = new MySqlSqlCleaner();
-String dirtySql = "SELECT * FROM users /* this is a comment */ WHERE age > 18 -- another comment";
-String cleanSql = cleaner.cleanSql(dirtySql);
-System.out.println("Clean SQL: " + cleanSql);
-// Output: SELECT * FROM users WHERE age > 18
-```
-
-## Supported SQL Patterns
-
-### SELECT Statements
-- Simple SELECT: `SELECT * FROM table`
-- Field selection: `SELECT field1, field2 FROM table`
-- Table aliases: `SELECT t.field FROM table t` or `SELECT t.field FROM table AS t`
-- JOINs: `SELECT * FROM table1 t1 JOIN table2 t2 ON t1.id = t2.id`
-- Complex WHERE: `SELECT * FROM table WHERE field BETWEEN ? AND ? OR field IN (?, ?, ?)`
-
-### INSERT Statements
-- Simple INSERT: `INSERT INTO table (field1, field2) VALUES (?, ?)`
-- Table aliases: `INSERT INTO table t (field1, field2) VALUES (?, ?)`
-
-### UPDATE Statements
-- Simple UPDATE: `UPDATE table SET field1 = ? WHERE field2 = ?`
-- Table aliases: `UPDATE table t SET t.field1 = ? WHERE t.field2 = ?`
-
-### DELETE Statements
-- Simple DELETE: `DELETE FROM table WHERE field = ?`
-- Table aliases: `DELETE FROM table t WHERE t.field = ?`
 
 ## Testing
 
-The project includes comprehensive test suites covering:
+Comprehensive test coverage including:
 
-- **SqlGatherHelperTest**: Tests for the main analysis functionality
-- **MySqlPureSqlParserTest**: Tests for SQL parsing logic
-- **MySqlSqlCleanerTest**: Tests for SQL cleaning operations
-- **WhereTest**: Tests for WHERE clause parsing
-- **JoinTest**: Tests for JOIN operation parsing
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: End-to-end parsing scenarios
+- **Edge Cases**: Complex queries, nested subqueries, error conditions
 
-Run tests using Maven:
 ```bash
+# Run all tests
 mvn test
+
+# Run specific test class
+mvn test -Dtest=ParserHelperTest
+
+# Run with coverage
+mvn clean test jacoco:report
 ```
+
+## Version History
+
+| Version | Date | Changes                |
+|---------|------|------------------------|
+| 1.1.7   | 2024 | Current stable release |
+| 1.0.0   | 2023 | Initial release        |
 
 ## Requirements
 
-- Java 17 or higher
-- Maven 3.6 or higher
+- **Java**: 17 or higher
+- **Maven**: 3.6 or higher (for building)
+- **JSQLParser**: 5.1 (automatically managed by Maven)
 
-## License
+## Dependencies
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This library has minimal dependencies:
+
+```xml
+
+<dependency>
+    <groupId>com.github.jsqlparser</groupId>
+    <artifactId>jsqlparser</artifactId>
+    <version>5.1</version>
+</dependency>
+```
+
+## Roadmap
+
+- [ ] Support for more database-specific SQL dialects
+- [ ] Enhanced DDL statement support (CREATE, ALTER, DROP)
+- [ ] Query optimization suggestions
+- [ ] SQL formatter and beautifier
+- [ ] Performance metrics and profiling
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+We welcome contributions! Please follow these guidelines:
 
-## Support
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Add tests** for new functionality
+5. **Ensure** all tests pass (`mvn test`)
+6. **Push** to the branch (`git push origin feature/amazing-feature`)
+7. **Open** a Pull Request
 
-For questions, issues, or contributions, please visit the project repository or create an issue.
+### Code Style
+
+- Follow standard Java naming conventions
+- Add Javadoc comments for public APIs
+- Write unit tests for new features
+- Keep methods focused and concise
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file
+for details.
+
+## Support & Contact
+
+- **Issues
+  **: [GitHub Issues](https://github.com/qwzhang01/seven-sql-parser/issues)
+- **Email**: qwzhang01@gmail.com
+- **Documentation
+  **: [GitHub Wiki](https://github.com/qwzhang01/seven-sql-parser/wiki)
+
+## Acknowledgments
+
+- Built on top of [JSQLParser](https://github.com/JSQLParser/JSqlParser)
+- Inspired by the need for lightweight SQL analysis in Java applications
+
+---
+
+**Made with ❤️ by Avin Zhang**

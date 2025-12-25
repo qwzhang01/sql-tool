@@ -6,15 +6,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.qwzhang01</groupId>
-    <artifactId>sql-tool</artifactId>
+    <artifactId>seven-sql-parser</artifactId>
     <version>1.1.7</version>
 
-    <name>sql-tool</name>
+    <name>seven-sql-parser</name>
     <description>
         A pure Java SQL parsing tool that supports bidirectional conversion between SQL and objects, with
         comprehensive MySQL syntax support
     </description>
-    <url>https://github.com/qwzhang01/sql-tool</url>
+    <url>https://github.com/qwzhang01/seven-sql-parser</url>
 
     <licenses>
         <license>
@@ -34,9 +34,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/qwzhang01/sql-tool.git</connection>
-        <developerConnection>scm:git:ssh://github.com:qwzhang01/sql-tool.git</developerConnection>
-        <url>https://github.com/qwzhang01/sql-tool</url>
+        <connection>scm:git:git://github.com/qwzhang01/seven-sql-parser.git</connection>
+        <developerConnection>scm:git:ssh://github.com:qwzhang01/seven-sql-parser.git</developerConnection>
+        <url>https://github.com/qwzhang01/seven-sql-parser</url>
     </scm>
 
     <properties>

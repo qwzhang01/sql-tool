@@ -5,18 +5,32 @@ import io.github.qwzhang01.sql.tool.exception.UnSupportedException;
 import java.util.Set;
 
 /**
- * SQL table information with name, alias and nested table support
+ * Represents SQL table information including name, alias, and support for nested tables.
+ * This class models both physical database tables and virtual tables (like subqueries).
+ * It supports hierarchical table structures through the children set for nested queries.
  *
  * @author Avin Zhang
  * @since 1.0.0
  */
 public class SqlTable {
 
-    private String name;
-    private String alias;
-    private boolean isVirtual;
     /**
-     * Child tables for nested queries
+     * The actual table name
+     */
+    private String name;
+    
+    /**
+     * The table alias (if any)
+     */
+    private String alias;
+    
+    /**
+     * Flag indicating if this is a virtual table (e.g., subquery)
+     */
+    private boolean isVirtual;
+    
+    /**
+     * Child tables for nested queries (e.g., tables in subqueries)
      */
     private Set<SqlTable> children;
 
@@ -30,7 +44,13 @@ public class SqlTable {
     }
 
     /**
-     * Get table alias by table name
+     * Gets the alias for a given table name, searching this table and its children.
+     * If the table name matches this table, returns its alias; otherwise searches children.
+     * Handles backtick-quoted table names by removing them for comparison.
+     *
+     * @param table the table name to look up
+     * @return the alias for the table, or the original table name if no alias exists
+     * @throws UnSupportedException if the table name is empty
      */
     public String getAlias(String table) {
         if (table == null || table.isEmpty()) {

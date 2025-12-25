@@ -49,20 +49,54 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Visitor class for finding and extracting SQL parameters (JDBC placeholders) from SQL statements.
+ * This visitor traverses the entire SQL AST to locate all JDBC parameter placeholders (?)
+ * and associates them with their corresponding columns and tables.
+ *
+ * @author Avin Zhang
+ * @since 1.0.0
+ */
 public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<Void>, ExpressionVisitor<Void>, SelectItemVisitor<Void>, StatementVisitor<Void> {
     private static final Logger log = Logger.getLogger(ParamFinder.class.getName());
+    
+    /**
+     * Current parameter index being processed (-1 when not processing a parameter)
+     */
     private Integer index = -1;
+    
+    /**
+     * Set of discovered SQL parameters
+     */
     private Set<SqlParam> params;
 
+    /**
+     * Finds all JDBC parameters in the given SQL string
+     *
+     * @param sqlStr the SQL statement to analyze
+     * @return set of SqlParam objects representing all parameters found
+     */
     public static Set<SqlParam> find(String sqlStr) {
         ParamFinder<?> tablesNamesFinder = new ParamFinder<>();
         return tablesNamesFinder.get(SqlParser.getInstance().parse(sqlStr));
     }
 
+    /**
+     * Throws an exception for unsupported statement types
+     *
+     * @param type the unsupported type
+     * @param <T>  type parameter
+     */
     private static <T> void throwUnsupported(T type) {
         throw new UnsupportedOperationException(String.format("Finding tables from %s is not supported", type.getClass().getSimpleName()));
     }
 
+    /**
+     * Extracts parameters from a parsed SQL statement
+     *
+     * @param statement the parsed SQL statement
+     * @return set of SqlParam objects representing all parameters
+     */
     public Set<SqlParam> get(Statement statement) {
         params = new HashSet<>();
         statement.accept(this, null);
@@ -1247,9 +1281,11 @@ public class ParamFinder<Void> implements SelectVisitor<Void>, FromItemVisitor<V
     }
 
     /**
-     * visit join block
+     * Visits all JOIN clauses to extract parameters from ON conditions
      *
-     * @param joins join sql block
+     * @param joins   list of JOIN clauses to visit
+     * @param context the visitor context
+     * @param <S>     context type parameter
      */
     private <S> void visitJoins(List<Join> joins, S context) {
         if (joins == null) {
